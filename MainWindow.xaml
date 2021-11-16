@@ -6,7 +6,24 @@
         xmlns:local="clr-namespace:MindMap"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
-    <Grid>
-
-    </Grid>
+	<Grid>
+		<Grid.RowDefinitions>
+			<RowDefinition Height="auto"/>
+			<RowDefinition Height="*"/>
+		</Grid.RowDefinitions>
+		<Menu>
+			<MenuItem Header="Files">
+				<MenuItem Name="NewFileMenuItem" Header="New File" Click="NewFileMenuItem_Click"/>
+				<Separator/>
+				<MenuItem Header="Save"/>
+				<MenuItem Header="Save As"/>
+				<Separator/>
+				<MenuItem Header="Exit"/>
+			</MenuItem>
+			<MenuItem Header="About">
+				<MenuItem x:Name="AboutThisMenuItem" Header="About This" Click="AboutThisMenuItem_Click"/>
+			</MenuItem>
+		</Menu>
+		<Frame x:Name="MainFrame" Grid.Row="1" NavigationUIVisibility="Hidden"/>
+	</Grid>
 </Window>

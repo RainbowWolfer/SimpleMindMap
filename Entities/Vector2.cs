@@ -6,9 +6,12 @@ using System.Threading.Tasks;
 using System.Windows;
 
 namespace MindMap.Entities {
-	public class Vector2 {
+	public struct Vector2 {
 		public double X { get; set; }
 		public double Y { get; set; }
+
+		public int X_Int => (int)Math.Floor(X);
+		public int Y_Int => (int)Math.Floor(Y);
 
 		public static readonly Vector2 Zero = new();
 		public static readonly Vector2 One = new(1, 1);
@@ -33,7 +36,7 @@ namespace MindMap.Entities {
 			this.Y = vector.Y;
 		}
 
-		public Vector2 Clone() => new Vector2(X, Y);
+		public Vector2 Clone() => new(X, Y);
 
 		public Vector2 Bound(Vector2 from, Vector2 to) {
 			var result = this.Clone();
@@ -50,6 +53,16 @@ namespace MindMap.Entities {
 			return result;
 		}
 
+		public Vector2 ToInt() {
+			return new Vector2(Math.Floor(X), Math.Floor(Y));
+		}
+
+		public string ToString(int lengthAfterDot) {//"bug": does not work with negative number
+			return $"Vector2: (" +
+			$"{X.ToString()[..(X.ToString().LastIndexOf('.') + lengthAfterDot)]}," +
+			$"{Y.ToString()[..(Y.ToString().LastIndexOf('.') + lengthAfterDot)]})";
+		}
+
 		public override string ToString() {
 			return $"Vector2: ({X},{Y})";
 		}
@@ -61,7 +74,6 @@ namespace MindMap.Entities {
 		public override int GetHashCode() {
 			return base.GetHashCode();
 		}
-
 
 		public static implicit operator Vector2(Point point) {
 			return new Vector2(point.X, point.Y);
@@ -84,6 +96,18 @@ namespace MindMap.Entities {
 		}
 		public static Vector2 operator -(Vector2 v) {
 			return new Vector2(-v.X, -v.Y);
+		}
+		public static Vector2 operator *(Vector2 v1, Vector2 v2) {
+			return new Vector2(v1.X * v2.X, v1.Y * v2.Y);
+		}
+		public static Vector2 operator /(Vector2 v1, Vector2 v2) {
+			return new Vector2(v1.X / v2.X, v1.Y / v2.Y);
+		}
+		public static Vector2 operator *(Vector2 v1, double d) {
+			return new Vector2(v1.X * d, v1.Y * d);
+		}
+		public static Vector2 operator /(Vector2 v1, double d) {
+			return new Vector2(v1.X / d, v1.Y / d);
 		}
 	}
 }

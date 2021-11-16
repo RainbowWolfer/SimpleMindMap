@@ -6,7 +6,7 @@
 	  xmlns:local="clr-namespace:MindMap.Pages"
 	  mc:Ignorable="d" 
 	  d:DesignHeight="450" d:DesignWidth="800"
-	  d:Background="White"
+	  d:Background="Gray"
 	  Title="MindMapPage">
 
 	<Grid>
@@ -20,10 +20,24 @@
 			<TextBlock x:Name="CurrentPositionText"/>
 			<TextBlock x:Name="CurrentMousePositionText"/>
 		</StackPanel>
-		<Border Grid.Column="1" BorderBrush="Gray" BorderThickness="2,0,0,0">
-			<Canvas x:Name="MainCanvas">
-				<!--<Rectangle Fill="Black" Width="100" Height="100"/>-->
-			</Canvas>
+		<Border Grid.Column="1" BorderBrush="Gray" BorderThickness="2,0,0,0" ClipToBounds="True">
+			<Border.RenderTransform>
+				<TranslateTransform X="0" Y="0"/>
+			</Border.RenderTransform>
+			<Grid>
+				<!--Only for detecting contacting canvas through mouse-->
+				<Rectangle x:Name="BackgroundRectangle" Fill="Transparent" MouseDown="BackgroundRectangle_MouseDown" MouseMove="BackgroundRectangle_MouseMove" 				MouseUp="BackgroundRectangle_MouseUp"/>
+				<Canvas x:Name="MainCanvas">
+					<Canvas x:Name="BackgroundCanvas"/>
+					<Canvas.RenderTransform>
+						<TransformGroup>
+							<TranslateTransform x:Name="MainCanvas_TranslateTransform" X="0" Y="0"/>
+							<ScaleTransform ScaleX="1" ScaleY="1"/>
+							<!--Need further working-->
+						</TransformGroup>
+					</Canvas.RenderTransform>
+				</Canvas>
+			</Grid>
 		</Border>
 	</Grid>
 </Page>

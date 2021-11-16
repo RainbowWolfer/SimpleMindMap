@@ -21,6 +21,7 @@ namespace MindMap {
 		public MainWindow() {
 			InitializeComponent();
 			_mainFrame = MainFrame;
+			_mainFrame.NavigationService.RemoveBackEntry();
 			MainFrame.Navigate(new WelcomePage());
 		}
 

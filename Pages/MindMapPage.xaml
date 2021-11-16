@@ -11,16 +11,18 @@
 
 	<Grid>
 		<Grid.ColumnDefinitions>
-			<ColumnDefinition Width="auto"/>
+			<ColumnDefinition Width="170"/>
 			<ColumnDefinition Width="*"/>
 		</Grid.ColumnDefinitions>
 		<StackPanel>
 			<TextBlock Text="This is Tool Menu" Margin="10" FontSize="18"/>
 			<Button x:Name="AddRectableButton" Content="Add Rectangle" Click="AddRectableButton_Click"/>
+			<TextBlock x:Name="CurrentPositionText"/>
+			<TextBlock x:Name="CurrentMousePositionText"/>
 		</StackPanel>
 		<Border Grid.Column="1" BorderBrush="Gray" BorderThickness="2,0,0,0">
 			<Canvas x:Name="MainCanvas">
-				
+				<!--<Rectangle Fill="Black" Width="100" Height="100"/>-->
 			</Canvas>
 		</Border>
 	</Grid>

@@ -50,7 +50,7 @@ namespace MindMap.Pages {
 		private void Deselect() {
 			if(_selection != null && _selection.target is Grid grid) {
 				if(grid.Children.Cast<UIElement>().FirstOrDefault(i => i is TextBox box) is TextBox box) {
-					grid.Children.Add(new TextBlock() { Text = box.Text, TextWrapping = TextWrapping.Wrap, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center, FontSize = 15 });
+					grid.Children.Add(new TextBlock() { Text = string.IsNullOrEmpty(box.Text) ? "(No Text)" : box.Text, TextWrapping = TextWrapping.Wrap, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center, FontSize = 15 });
 					grid.Children.Remove(box);
 				}
 			}
@@ -59,7 +59,7 @@ namespace MindMap.Pages {
 		private void CreateResizePanel(FrameworkElement target) {
 			ClearResizePanel();
 			Style style_line = new(typeof(Line));
-			style_line.Setters.Add(new Setter(Shape.StrokeProperty, Brushes.Gray));
+			style_line.Setters.Add(new Setter(Shape.StrokeProperty, Brushes.Black));
 			style_line.Setters.Add(new Setter(Shape.StrokeDashArrayProperty, new DoubleCollection(new double[] { 3, 0.5 })));
 			style_line.Setters.Add(new Setter(Shape.StrokeThicknessProperty, (double)3));
 			//line pattern cannot handle mousedown, consider using rectangle -> stroke
@@ -77,7 +77,7 @@ namespace MindMap.Pages {
 			style_rect.Setters.Add(new Setter(WidthProperty, (double)10));
 			style_rect.Setters.Add(new Setter(HeightProperty, (double)10));
 			style_rect.Setters.Add(new Setter(Shape.StrokeThicknessProperty, (double)3));
-			style_rect.Setters.Add(new Setter(Shape.StrokeProperty, Brushes.Gray));
+			style_rect.Setters.Add(new Setter(Shape.StrokeProperty, Brushes.Black));
 			style_rect.Setters.Add(new Setter(Shape.StrokeDashArrayProperty, new DoubleCollection(new double[] { 3, 1 })));
 
 			Rectangle top_left = new() { Style = style_rect };
@@ -185,6 +185,19 @@ namespace MindMap.Pages {
 			MainCanvas.Children.Add(grid);
 		}
 
+		private void AddEllipseButton_Click(object sender, RoutedEventArgs e) {
+			Ellipse el = new() {
+				Width = 50,
+				Height = 50,
+				Fill = new SolidColorBrush(Colors.Red),
+				RenderTransform = new TranslateTransform(0, 0),
+			};
+			el.SetValue(Canvas.TopProperty, 0.0);
+			el.SetValue(Canvas.LeftProperty, 0.0);
+			el.MouseDown += Rect_MouseDown;
+			MainCanvas.Children.Add(el);
+		}
+
 		private int clickCount = 0;
 		private int lastClickTimeStamp;
 		private Vector2 offset;
@@ -227,8 +240,10 @@ namespace MindMap.Pages {
 							var box = new TextBox() {
 								Text = tb.Text,
 								TextWrapping = TextWrapping.Wrap,
-								HorizontalAlignment = HorizontalAlignment.Center,
-								VerticalAlignment = VerticalAlignment.Center,
+								HorizontalAlignment = HorizontalAlignment.Stretch,
+								VerticalAlignment = VerticalAlignment.Stretch,
+								TextAlignment = TextAlignment.Center,
+								Padding = new Thickness(20),
 								FontSize = 15,
 								AcceptsReturn = true,
 								AcceptsTab = true,

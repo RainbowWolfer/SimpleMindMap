@@ -17,6 +17,7 @@
 		<StackPanel>
 			<TextBlock Text="This is Tool Menu" Margin="10" FontSize="18"/>
 			<Button x:Name="AddRectableButton" Content="Add Rectangle" Click="AddRectableButton_Click"/>
+			<Button x:Name="AddGridButton" Content="Add Grid" Click="AddGridButton_Click"/>
 		</StackPanel>
 		<Border Grid.Column="1" BorderBrush="Gray" BorderThickness="2,0,0,0" ClipToBounds="True">
 			<Border.RenderTransform>

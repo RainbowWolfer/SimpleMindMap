@@ -47,6 +47,15 @@ namespace MindMap.Pages {
 			Remove(_selection.bot_right);
 		}
 
+		private void Deselect() {
+			if(_selection != null && _selection.target is Grid grid) {
+				if(grid.Children.Cast<UIElement>().FirstOrDefault(i => i is TextBox box) is TextBox box) {
+					grid.Children.Add(new TextBlock() { Text = box.Text, TextWrapping = TextWrapping.Wrap, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center, FontSize = 15 });
+					grid.Children.Remove(box);
+				}
+			}
+		}
+
 		private void CreateResizePanel(FrameworkElement target) {
 			ClearResizePanel();
 			Style style_line = new(typeof(Line));
@@ -147,7 +156,6 @@ namespace MindMap.Pages {
 					BackgroundCanvas.Children.Add(t);
 				}
 			}
-			//Debug.WriteLine(backgroundPool.Count);
 		}
 
 		private void AddRectableButton_Click(object sender, RoutedEventArgs e) {
@@ -161,6 +169,20 @@ namespace MindMap.Pages {
 			rect.SetValue(Canvas.LeftProperty, 0.0);
 			rect.MouseDown += Rect_MouseDown;
 			MainCanvas.Children.Add(rect);
+		}
+
+		private void AddGridButton_Click(object sender, RoutedEventArgs e) {
+			Grid grid = new() {
+				Width = 200,
+				Height = 200,
+				Background = Brushes.Gray,
+				RenderTransform = new TranslateTransform(0, 0),
+			};
+			grid.SetValue(Canvas.TopProperty, 0.0);
+			grid.SetValue(Canvas.LeftProperty, 0.0);
+			grid.MouseDown += Rect_MouseDown;
+			grid.Children.Add(new TextBlock() { Text = "Input Your Text", TextWrapping = TextWrapping.Wrap, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center, FontSize = 15 });
+			MainCanvas.Children.Add(grid);
 		}
 
 		private int clickCount = 0;
@@ -186,6 +208,10 @@ namespace MindMap.Pages {
 		private void Rect_MouseDown(object sender, MouseButtonEventArgs e) {
 			FrameworkElement? target = sender as FrameworkElement;
 			current = target;
+			if(current != _selection?.target) {
+				ClearResizePanel();
+				Deselect();
+			}
 			startPos = e.GetPosition(MainCanvas);
 			offset = startPos - new Vector2(Canvas.GetLeft(target), Canvas.GetTop(target));
 			Mouse.Capture(sender as UIElement);
@@ -196,17 +222,34 @@ namespace MindMap.Pages {
 				lastClickTimeStamp = e.Timestamp;
 				if(clickCount == 1) {
 					Debug.WriteLine("This is double click");
-					
+					if(current is Grid grid) {
+						if(grid.Children.Cast<UIElement>().FirstOrDefault(i => i is TextBlock) is TextBlock tb) {
+							var box = new TextBox() {
+								Text = tb.Text,
+								TextWrapping = TextWrapping.Wrap,
+								HorizontalAlignment = HorizontalAlignment.Center,
+								VerticalAlignment = VerticalAlignment.Center,
+								FontSize = 15,
+								AcceptsReturn = true,
+								AcceptsTab = true,
+							};
+							box.KeyDown += (s, e) => {
+								if(e.Key == Key.Escape) {
+									ClearResizePanel();
+									Deselect();
+								}
+							};
+							grid.Children.Add(box);
+							grid.Children.Remove(tb);
+							box.Focus();
+						}
+					}
 				}
 			} else if(e.MouseDevice.RightButton == MouseButtonState.Pressed) {
 				mouseType = MouseType.Right;
 			} else if(e.MouseDevice.MiddleButton == MouseButtonState.Pressed) {
 				mouseType = MouseType.Middle;
 			}
-		}
-
-		private void ResizeControl_MouseDown(object sender, MouseButtonEventArgs e) {
-
 		}
 
 		private void MainCanvas_MouseUp(object sender, MouseButtonEventArgs e) {
@@ -252,6 +295,7 @@ namespace MindMap.Pages {
 		private void BackgroundRectangle_MouseUp(object sender, MouseButtonEventArgs e) {
 			_drag = false;
 			ClearResizePanel();
+			Deselect();
 		}
 
 		private void MainCanvas_Loaded(object sender, RoutedEventArgs e) {
@@ -402,5 +446,6 @@ namespace MindMap.Pages {
 		private enum MouseType {
 			Left, Middle, Right
 		}
+
 	}
 }

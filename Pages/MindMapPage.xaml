@@ -24,7 +24,7 @@
 			</Border.RenderTransform>
 			<Grid>
 				<!--Only for detecting contacting canvas through mouse-->
-				<Rectangle x:Name="BackgroundRectangle" Fill="Transparent" MouseDown="BackgroundRectangle_MouseDown" MouseMove="BackgroundRectangle_MouseMove" 				MouseUp="BackgroundRectangle_MouseUp"/>
+				<Rectangle x:Name="BackgroundRectangle" Fill="Transparent" MouseDown="BackgroundRectangle_MouseDown" MouseMove="BackgroundRectangle_MouseMove" MouseUp="BackgroundRectangle_MouseUp"/>
 				<Canvas x:Name="MainCanvas" Loaded="MainCanvas_Loaded">
 					<Canvas x:Name="BackgroundCanvas"/>
 					<Canvas.RenderTransform>

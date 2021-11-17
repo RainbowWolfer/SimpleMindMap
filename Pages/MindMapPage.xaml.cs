@@ -47,11 +47,11 @@ namespace MindMap.Pages {
 			Remove(_selection.bot_right);
 		}
 
-		private void CreateResizePanel(Shape target) {
+		private void CreateResizePanel(FrameworkElement target) {
 			ClearResizePanel();
 			Style style_line = new(typeof(Line));
 			style_line.Setters.Add(new Setter(Shape.StrokeProperty, Brushes.Gray));
-			style_line.Setters.Add(new Setter(Shape.StrokeDashArrayProperty, new DoubleCollection(new double[] { 3, 0 })));
+			style_line.Setters.Add(new Setter(Shape.StrokeDashArrayProperty, new DoubleCollection(new double[] { 3, 0.5 })));
 			style_line.Setters.Add(new Setter(Shape.StrokeThicknessProperty, (double)3));
 			//line pattern cannot handle mousedown, consider using rectangle -> stroke
 			Line top = new() { Style = style_line };
@@ -67,9 +67,9 @@ namespace MindMap.Pages {
 			style_rect.Setters.Add(new Setter(Shape.FillProperty, Brushes.Transparent));
 			style_rect.Setters.Add(new Setter(WidthProperty, (double)10));
 			style_rect.Setters.Add(new Setter(HeightProperty, (double)10));
-			style_rect.Setters.Add(new Setter(Shape.StrokeThicknessProperty, (double)2));
+			style_rect.Setters.Add(new Setter(Shape.StrokeThicknessProperty, (double)3));
 			style_rect.Setters.Add(new Setter(Shape.StrokeProperty, Brushes.Gray));
-			style_rect.Setters.Add(new Setter(Shape.StrokeDashArrayProperty, new DoubleCollection(new double[] { 3, 2 })));
+			style_rect.Setters.Add(new Setter(Shape.StrokeDashArrayProperty, new DoubleCollection(new double[] { 3, 1 })));
 
 			Rectangle top_left = new() { Style = style_rect };
 			Rectangle top_right = new() { Style = style_rect };
@@ -163,10 +163,13 @@ namespace MindMap.Pages {
 			MainCanvas.Children.Add(rect);
 		}
 
+		private int clickCount = 0;
+		private int lastClickTimeStamp;
 		private Vector2 offset;
 		private Vector2 startPos;//check for click
-		private Shape? current;
+		private FrameworkElement? current;
 		private bool hasMoved;
+		private MouseType mouseType;
 		private void MainCanvas_MouseMove(object sender, MouseEventArgs e) {
 			if(current == null || e.MouseDevice.LeftButton != MouseButtonState.Pressed) {
 				return;
@@ -181,15 +184,25 @@ namespace MindMap.Pages {
 		}
 
 		private void Rect_MouseDown(object sender, MouseButtonEventArgs e) {
-			if(e.MouseDevice.LeftButton != MouseButtonState.Pressed) {
-				return;
-			}
-			Shape? target = sender as Shape;
+			FrameworkElement? target = sender as FrameworkElement;
 			current = target;
 			startPos = e.GetPosition(MainCanvas);
 			offset = startPos - new Vector2(Canvas.GetLeft(target), Canvas.GetTop(target));
 			Mouse.Capture(sender as UIElement);
 			hasMoved = false;
+			if(e.MouseDevice.LeftButton == MouseButtonState.Pressed) {
+				mouseType = MouseType.Left;
+				clickCount = e.Timestamp - lastClickTimeStamp <= 200 ? clickCount + 1 : 0;
+				lastClickTimeStamp = e.Timestamp;
+				if(clickCount == 1) {
+					Debug.WriteLine("This is double click");
+					
+				}
+			} else if(e.MouseDevice.RightButton == MouseButtonState.Pressed) {
+				mouseType = MouseType.Right;
+			} else if(e.MouseDevice.MiddleButton == MouseButtonState.Pressed) {
+				mouseType = MouseType.Middle;
+			}
 		}
 
 		private void ResizeControl_MouseDown(object sender, MouseButtonEventArgs e) {
@@ -198,7 +211,19 @@ namespace MindMap.Pages {
 
 		private void MainCanvas_MouseUp(object sender, MouseButtonEventArgs e) {
 			if(current != null && startPos == e.GetPosition(MainCanvas) && !hasMoved) {
-				CreateResizePanel(current);
+				switch(mouseType) {
+					case MouseType.Left:
+						CreateResizePanel(current);
+						break;
+					case MouseType.Middle:
+						Debug.WriteLine("middle mouse");
+						break;
+					case MouseType.Right:
+						Debug.WriteLine("flyout menu");
+						break;
+					default:
+						throw new Exception($"Mouse Type Error {mouseType}");
+				}
 			}
 			current = null;
 			Mouse.Capture(null);
@@ -235,7 +260,7 @@ namespace MindMap.Pages {
 
 
 		private class ResizePanel {
-			public Shape target;
+			public FrameworkElement target;//FrameworkElement
 			public Line top;
 			public Line bot;
 			public Line left;
@@ -255,7 +280,7 @@ namespace MindMap.Pages {
 			public ResizeControl control_bot_left;
 			public ResizeControl control_bot_right;
 
-			public ResizePanel(MindMapPage parent, Shape target, Line top, Line bot, Line left, Line right, Rectangle top_left, Rectangle top_right, Rectangle bot_left, Rectangle bot_right) {
+			public ResizePanel(MindMapPage parent, FrameworkElement target, Line top, Line bot, Line left, Line right, Rectangle top_left, Rectangle top_right, Rectangle bot_left, Rectangle bot_right) {
 				this.target = target;
 				this.top = top;
 				this.bot = bot;
@@ -282,7 +307,7 @@ namespace MindMap.Pages {
 		}
 
 		private class ResizeControl {
-			public Shape target;
+			public FrameworkElement target;
 			public Shape shape;
 			public Direction direction;
 
@@ -290,7 +315,7 @@ namespace MindMap.Pages {
 			private Vector2 startSize;
 			private Vector2 startPos;
 			private bool _drag;
-			public ResizeControl(MindMapPage parent, Shape target, Shape shape, Direction direction) {
+			public ResizeControl(MindMapPage parent, FrameworkElement target, Shape shape, Direction direction) {
 				this.target = target;
 				this.shape = shape;
 				this.direction = direction;
@@ -314,26 +339,38 @@ namespace MindMap.Pages {
 					Vector2 delta = e.GetPosition(parent) - startMousePos;
 					switch(direction) {
 						case Direction.L:
-							target.Width = Math.Clamp(startSize.X - delta.X, 5, double.MaxValue);//clamp need working
-							Canvas.SetLeft(target, startPos.X + delta.X);
+							target.Width = Math.Clamp(startSize.X - delta.X, 5, double.MaxValue);
+							Canvas.SetLeft(target, Math.Clamp(startPos.X + delta.X, double.MinValue, startPos.X + startSize.X - 5));
 							break;
 						case Direction.LT:
+							target.Width = Math.Clamp(startSize.X - delta.X, 5, double.MaxValue);
+							Canvas.SetLeft(target, Math.Clamp(startPos.X + delta.X, double.MinValue, startPos.X + startSize.X - 5));
+							target.Height = Math.Clamp(startSize.Y - delta.Y, 5, double.MaxValue);
+							Canvas.SetTop(target, Math.Clamp(startPos.Y + delta.Y, double.MinValue, startPos.Y + startSize.Y - 5));
 							break;
 						case Direction.T:
 							target.Height = Math.Clamp(startSize.Y - delta.Y, 5, double.MaxValue);
-							Canvas.SetTop(target, startPos.Y + delta.Y);
+							Canvas.SetTop(target, Math.Clamp(startPos.Y + delta.Y, double.MinValue, startPos.Y + startSize.Y - 5));
 							break;
 						case Direction.RT:
+							target.Height = Math.Clamp(startSize.Y - delta.Y, 5, double.MaxValue);
+							Canvas.SetTop(target, Math.Clamp(startPos.Y + delta.Y, double.MinValue, startPos.Y + startSize.Y - 5));
+							target.Width = Math.Clamp(startSize.X + delta.X, 5, double.MaxValue);
 							break;
 						case Direction.R:
 							target.Width = Math.Clamp(startSize.X + delta.X, 5, double.MaxValue);
 							break;
 						case Direction.RB:
+							target.Width = Math.Clamp(startSize.X + delta.X, 5, double.MaxValue);
+							target.Height = Math.Clamp(startSize.Y + delta.Y, 5, double.MaxValue);
 							break;
 						case Direction.B:
 							target.Height = Math.Clamp(startSize.Y + delta.Y, 5, double.MaxValue);
 							break;
 						case Direction.LB:
+							target.Height = Math.Clamp(startSize.Y + delta.Y, 5, double.MaxValue);
+							target.Width = Math.Clamp(startSize.X - delta.X, 5, double.MaxValue);
+							Canvas.SetLeft(target, Math.Clamp(startPos.X + delta.X, double.MinValue, startPos.X + startSize.X - 5));
 							break;
 						default:
 							throw new Exception("Direction Type Error");
@@ -361,6 +398,9 @@ namespace MindMap.Pages {
 			public enum Direction {
 				L, LT, T, RT, R, RB, B, LB
 			}
+		}
+		private enum MouseType {
+			Left, Middle, Right
 		}
 	}
 }

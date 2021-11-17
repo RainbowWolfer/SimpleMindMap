@@ -16,13 +16,13 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 
 namespace MindMap.Pages {
-	public partial class MindMapPage: Page {
+	public partial class MindMapPage: Page {//Editor Page
 
 		public MindMapPage() {
 			InitializeComponent();
 
-			MainCanvas.MouseMove += Rect_MouseMove;
-			MainCanvas.MouseUp += Rect_MouseUp;
+			MainCanvas.MouseMove += MainCanvas_MouseMove;
+			MainCanvas.MouseUp += MainCanvas_MouseUp;
 
 			SizeChanged += (s, e) => UpdateBackgroundDot();
 		}
@@ -32,32 +32,55 @@ namespace MindMap.Pages {
 			if(_selection == null) {
 				return;
 			}
-			void Remove(Line line) {
-				if(MainCanvas.Children.Contains(line)) {
-					MainCanvas.Children.Remove(line);
+			void Remove(Shape shape) {
+				if(MainCanvas.Children.Contains(shape)) {
+					MainCanvas.Children.Remove(shape);
 				}
 			}
 			Remove(_selection.top);
 			Remove(_selection.bot);
 			Remove(_selection.left);
 			Remove(_selection.right);
+			Remove(_selection.top_left);
+			Remove(_selection.top_right);
+			Remove(_selection.bot_left);
+			Remove(_selection.bot_right);
 		}
 
 		private void CreateResizePanel(Shape target) {
 			ClearResizePanel();
-			Style style = new(typeof(Line));
-			style.Setters.Add(new Setter(Shape.StrokeProperty, Brushes.Gray));
-			style.Setters.Add(new Setter(Shape.StrokeDashArrayProperty, new DoubleCollection(new double[] { 3, 2 })));
-			style.Setters.Add(new Setter(Shape.StrokeThicknessProperty, (double)3));
-			Line top = new() { Style = style };
-			Line bottom = new() { Style = style };
-			Line left = new() { Style = style };
-			Line right = new() { Style = style };
+			Style style_line = new(typeof(Line));
+			style_line.Setters.Add(new Setter(Shape.StrokeProperty, Brushes.Gray));
+			style_line.Setters.Add(new Setter(Shape.StrokeDashArrayProperty, new DoubleCollection(new double[] { 3, 0 })));
+			style_line.Setters.Add(new Setter(Shape.StrokeThicknessProperty, (double)3));
+			//line pattern cannot handle mousedown, consider using rectangle -> stroke
+			Line top = new() { Style = style_line };
+			Line bottom = new() { Style = style_line };
+			Line left = new() { Style = style_line };
+			Line right = new() { Style = style_line };
 			MainCanvas.Children.Add(top);
 			MainCanvas.Children.Add(bottom);
 			MainCanvas.Children.Add(left);
 			MainCanvas.Children.Add(right);
-			_selection = new ResizePanel(target, top, bottom, left, right);
+
+			Style style_rect = new(typeof(Rectangle));
+			style_rect.Setters.Add(new Setter(Shape.FillProperty, Brushes.Transparent));
+			style_rect.Setters.Add(new Setter(WidthProperty, (double)10));
+			style_rect.Setters.Add(new Setter(HeightProperty, (double)10));
+			style_rect.Setters.Add(new Setter(Shape.StrokeThicknessProperty, (double)2));
+			style_rect.Setters.Add(new Setter(Shape.StrokeProperty, Brushes.Gray));
+			style_rect.Setters.Add(new Setter(Shape.StrokeDashArrayProperty, new DoubleCollection(new double[] { 3, 2 })));
+
+			Rectangle top_left = new() { Style = style_rect };
+			Rectangle top_right = new() { Style = style_rect };
+			Rectangle bot_left = new() { Style = style_rect };
+			Rectangle bot_right = new() { Style = style_rect };
+			MainCanvas.Children.Add(top_left);
+			MainCanvas.Children.Add(top_right);
+			MainCanvas.Children.Add(bot_left);
+			MainCanvas.Children.Add(bot_right);
+
+			_selection = new ResizePanel(this, target, top, bottom, left, right, top_left, top_right, bot_left, bot_right);
 			UpdateResizePanel();
 		}
 
@@ -66,7 +89,7 @@ namespace MindMap.Pages {
 				return;
 			}
 			Vector2 startPoint = new(Canvas.GetLeft(_selection.target), Canvas.GetTop(_selection.target));
-			Vector2 size = new(_selection.target.ActualWidth, _selection.target.ActualHeight);
+			Vector2 size = new(_selection.target.Width, _selection.target.Height);
 
 			_selection.top.X1 = startPoint.X;
 			_selection.top.Y1 = startPoint.Y;
@@ -87,6 +110,19 @@ namespace MindMap.Pages {
 			_selection.right.Y1 = startPoint.Y;
 			_selection.right.X2 = startPoint.X + size.X;
 			_selection.right.Y2 = startPoint.Y + size.Y;
+
+			Canvas.SetLeft(_selection.top_left, startPoint.X - _selection.top_left.Width / 2);
+			Canvas.SetTop(_selection.top_left, startPoint.Y - _selection.top_left.Height / 2);
+
+			Canvas.SetLeft(_selection.top_right, startPoint.X + size.X - _selection.top_right.Width / 2);
+			Canvas.SetTop(_selection.top_right, startPoint.Y - _selection.top_right.Height / 2);
+
+			Canvas.SetLeft(_selection.bot_left, startPoint.X - _selection.bot_left.Width / 2);
+			Canvas.SetTop(_selection.bot_left, startPoint.Y + size.Y - _selection.bot_left.Height / 2);
+
+			Canvas.SetLeft(_selection.bot_right, startPoint.X + size.X - _selection.bot_right.Width / 2);
+			Canvas.SetTop(_selection.bot_right, startPoint.Y + size.Y - _selection.bot_right.Height / 2);
+
 		}
 
 		private readonly Dictionary<Vector2, Shape> backgroundPool = new();
@@ -131,7 +167,7 @@ namespace MindMap.Pages {
 		private Vector2 startPos;//check for click
 		private Shape? current;
 		private bool hasMoved;
-		private void Rect_MouseMove(object sender, MouseEventArgs e) {
+		private void MainCanvas_MouseMove(object sender, MouseEventArgs e) {
 			if(current == null || e.MouseDevice.LeftButton != MouseButtonState.Pressed) {
 				return;
 			}
@@ -156,11 +192,12 @@ namespace MindMap.Pages {
 			hasMoved = false;
 		}
 
-		private void Rect_MouseUp(object sender, MouseButtonEventArgs e) {
+		private void ResizeControl_MouseDown(object sender, MouseButtonEventArgs e) {
+
+		}
+
+		private void MainCanvas_MouseUp(object sender, MouseButtonEventArgs e) {
 			if(current != null && startPos == e.GetPosition(MainCanvas) && !hasMoved) {
-				Debug.WriteLine("This is a click");
-				//current.Width += 20;
-				//current.Height += 20;
 				CreateResizePanel(current);
 			}
 			current = null;
@@ -204,15 +241,126 @@ namespace MindMap.Pages {
 			public Line left;
 			public Line right;
 
-			public ResizePanel(Shape target, Line top, Line bot, Line left, Line right) {
+			public Rectangle top_left;
+			public Rectangle top_right;
+			public Rectangle bot_left;
+			public Rectangle bot_right;
+
+			public ResizeControl control_top;
+			public ResizeControl control_bot;
+			public ResizeControl control_left;
+			public ResizeControl control_right;
+			public ResizeControl control_top_left;
+			public ResizeControl control_top_right;
+			public ResizeControl control_bot_left;
+			public ResizeControl control_bot_right;
+
+			public ResizePanel(MindMapPage parent, Shape target, Line top, Line bot, Line left, Line right, Rectangle top_left, Rectangle top_right, Rectangle bot_left, Rectangle bot_right) {
 				this.target = target;
 				this.top = top;
 				this.bot = bot;
 				this.left = left;
 				this.right = right;
+				this.top_left = top_left;
+				this.top_right = top_right;
+				this.bot_left = bot_left;
+				this.bot_right = bot_right;
+
+				control_top = new ResizeControl(parent, target, top, ResizeControl.Direction.T);
+				control_bot = new ResizeControl(parent, target, bot, ResizeControl.Direction.B);
+				control_left = new ResizeControl(parent, target, left, ResizeControl.Direction.L);
+				control_right = new ResizeControl(parent, target, right, ResizeControl.Direction.R);
+
+				control_top_left = new ResizeControl(parent, target, top_left, ResizeControl.Direction.LT);
+				control_top_right = new ResizeControl(parent, target, top_right, ResizeControl.Direction.RT);
+				control_bot_left = new ResizeControl(parent, target, bot_left, ResizeControl.Direction.LB);
+				control_bot_right = new ResizeControl(parent, target, bot_right, ResizeControl.Direction.RB);
+
 			}
 
 			public bool IsValid => target != null && top != null && bot != null && left != null && right != null;
+		}
+
+		private class ResizeControl {
+			public Shape target;
+			public Shape shape;
+			public Direction direction;
+
+			private Vector2 startMousePos;
+			private Vector2 startSize;
+			private Vector2 startPos;
+			private bool _drag;
+			public ResizeControl(MindMapPage parent, Shape target, Shape shape, Direction direction) {
+				this.target = target;
+				this.shape = shape;
+				this.direction = direction;
+				shape.MouseEnter += (s, e) => {
+					parent.Cursor = GetCursor();
+				};
+				shape.MouseLeave += (s, e) => {
+					parent.Cursor = null;
+				};
+				shape.MouseDown += (s, e) => {
+					_drag = true;
+					startMousePos = e.GetPosition(parent);
+					startSize = new Vector2(target.Width, target.Height);
+					startPos = new Vector2(Canvas.GetLeft(target), Canvas.GetTop(target));
+					Mouse.Capture(shape);
+				};
+				parent.MainCanvas.MouseMove += (s, e) => {
+					if(!_drag) {
+						return;
+					}
+					Vector2 delta = e.GetPosition(parent) - startMousePos;
+					switch(direction) {
+						case Direction.L:
+							target.Width = Math.Clamp(startSize.X - delta.X, 5, double.MaxValue);//clamp need working
+							Canvas.SetLeft(target, startPos.X + delta.X);
+							break;
+						case Direction.LT:
+							break;
+						case Direction.T:
+							target.Height = Math.Clamp(startSize.Y - delta.Y, 5, double.MaxValue);
+							Canvas.SetTop(target, startPos.Y + delta.Y);
+							break;
+						case Direction.RT:
+							break;
+						case Direction.R:
+							target.Width = Math.Clamp(startSize.X + delta.X, 5, double.MaxValue);
+							break;
+						case Direction.RB:
+							break;
+						case Direction.B:
+							target.Height = Math.Clamp(startSize.Y + delta.Y, 5, double.MaxValue);
+							break;
+						case Direction.LB:
+							break;
+						default:
+							throw new Exception("Direction Type Error");
+					}
+					parent.UpdateResizePanel();
+				};
+				parent.MainCanvas.MouseUp += (s, e) => {
+					_drag = false;
+					Mouse.Capture(null);
+				};
+			}
+
+			private Cursor GetCursor() => direction switch {
+				Direction.L => Cursors.SizeWE,
+				Direction.LT => Cursors.SizeNWSE,
+				Direction.T => Cursors.SizeNS,
+				Direction.RT => Cursors.SizeNESW,
+				Direction.R => Cursors.SizeWE,
+				Direction.RB => Cursors.SizeNWSE,
+				Direction.B => Cursors.SizeNS,
+				Direction.LB => Cursors.SizeNESW,
+				_ => throw new Exception("Cursor Type Error"),
+			};
+
+			public enum Direction {
+				L, LT, T, RT, R, RB, B, LB
+			}
 		}
 	}
 }

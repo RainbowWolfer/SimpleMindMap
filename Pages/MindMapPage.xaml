@@ -26,10 +26,7 @@
 				<!--Only for detecting contacting canvas through mouse-->
 				<Rectangle x:Name="BackgroundRectangle" Fill="Transparent" MouseDown="BackgroundRectangle_MouseDown" MouseMove="BackgroundRectangle_MouseMove" 				MouseUp="BackgroundRectangle_MouseUp"/>
 				<Canvas x:Name="MainCanvas" Loaded="MainCanvas_Loaded">
-					<Canvas x:Name="BackgroundCanvas">
-						<!--Resize Cornor Rectangle-->
-						<Rectangle Fill="Transparent" Width="10" Height="10" Margin="10" StrokeThickness="1" Stroke="Gray" StrokeDashArray="3 2"/>
-					</Canvas>
+					<Canvas x:Name="BackgroundCanvas"/>
 					<Canvas.RenderTransform>
 						<TransformGroup>
 							<TranslateTransform x:Name="MainCanvas_TranslateTransform" X="0" Y="0"/>

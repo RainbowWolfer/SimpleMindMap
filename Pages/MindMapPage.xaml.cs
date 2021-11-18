@@ -1,4 +1,5 @@
 ﻿using MindMap.Entities;
+using MindMap.Entities.Elements;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -28,7 +29,7 @@ namespace MindMap.Pages {
 		}
 
 		private ResizePanel? _selection;
-		private void ClearResizePanel() {
+		public void ClearResizePanel() {
 			if(_selection == null) {
 				return;
 			}
@@ -47,12 +48,9 @@ namespace MindMap.Pages {
 			Remove(_selection.bot_right);
 		}
 
-		private void Deselect() {
-			if(_selection != null && _selection.target is Grid grid) {
-				if(grid.Children.Cast<UIElement>().FirstOrDefault(i => i is TextBox box) is TextBox box) {
-					grid.Children.Add(new TextBlock() { Text = string.IsNullOrEmpty(box.Text) ? "(No Text)" : box.Text, TextWrapping = TextWrapping.Wrap, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center, FontSize = 15 });
-					grid.Children.Remove(box);
-				}
+		public void Deselect() {
+			if(_selection != null && elements.ContainsKey(_selection.target)) {
+				elements[_selection.target].Deselect();
 			}
 		}
 
@@ -158,48 +156,67 @@ namespace MindMap.Pages {
 			}
 		}
 
+		private readonly Dictionary<FrameworkElement, Element> elements = new();
+
+		private void AddToElementsDictionary(Element value) {
+			FrameworkElement? key = value.CreateFramework(MainCanvas);
+			key.MouseDown += Element_MouseDown;
+			elements.Add(key, value);
+		}
+
+		private void AddElement(Type type) {
+			if(type == typeof(MyRectangle)) {
+				AddToElementsDictionary(new MyRectangle(this));
+			} else if(type == typeof(TextGrid)) {
+				AddToElementsDictionary(new TextGrid(this));
+			} else if(type == typeof(MyEllipse)) {
+				AddToElementsDictionary(new MyEllipse(this));
+			}
+		}
+
+		public void RemoveElement(Element element) {
+			if(element.Target == null || !elements.ContainsKey(element.Target) || !MainCanvas.Children.Contains(element.Target)) {
+				return;
+			}
+			Deselect();
+			ClearResizePanel();
+			elements.Remove(element.Target);
+			MainCanvas.Children.Remove(element.Target);
+		}
+
+		private void Element_MouseDown(object sender, MouseButtonEventArgs e) {
+			FrameworkElement? target = sender as FrameworkElement;
+			current = target;
+			if(current != _selection?.target) {
+				ClearResizePanel();
+				Deselect();
+			}
+			startPos = e.GetPosition(MainCanvas);
+			offset = startPos - new Vector2(Canvas.GetLeft(target), Canvas.GetTop(target));
+			Mouse.Capture(sender as UIElement);
+			hasMoved = false;
+			if(e.MouseDevice.LeftButton == MouseButtonState.Pressed) {
+				mouseType = MouseType.Left;
+			} else if(e.MouseDevice.RightButton == MouseButtonState.Pressed) {
+				mouseType = MouseType.Right;
+			} else if(e.MouseDevice.MiddleButton == MouseButtonState.Pressed) {
+				mouseType = MouseType.Middle;
+			}
+
+		}
+
 		private void AddRectableButton_Click(object sender, RoutedEventArgs e) {
-			Rectangle rect = new() {
-				Width = 50,
-				Height = 50,
-				Fill = new SolidColorBrush(Colors.Red),
-				RenderTransform = new TranslateTransform(0, 0),
-			};
-			rect.SetValue(Canvas.TopProperty, 0.0);
-			rect.SetValue(Canvas.LeftProperty, 0.0);
-			rect.MouseDown += Rect_MouseDown;
-			MainCanvas.Children.Add(rect);
+			AddElement(typeof(MyRectangle));
 		}
 
 		private void AddGridButton_Click(object sender, RoutedEventArgs e) {
-			Grid grid = new() {
-				Width = 200,
-				Height = 200,
-				Background = Brushes.Gray,
-				RenderTransform = new TranslateTransform(0, 0),
-			};
-			grid.SetValue(Canvas.TopProperty, 0.0);
-			grid.SetValue(Canvas.LeftProperty, 0.0);
-			grid.MouseDown += Rect_MouseDown;
-			grid.Children.Add(new TextBlock() { Text = "Input Your Text", TextWrapping = TextWrapping.Wrap, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center, FontSize = 15 });
-			MainCanvas.Children.Add(grid);
+			AddElement(typeof(TextGrid));
 		}
 
 		private void AddEllipseButton_Click(object sender, RoutedEventArgs e) {
-			Ellipse el = new() {
-				Width = 50,
-				Height = 50,
-				Fill = new SolidColorBrush(Colors.Red),
-				RenderTransform = new TranslateTransform(0, 0),
-			};
-			el.SetValue(Canvas.TopProperty, 0.0);
-			el.SetValue(Canvas.LeftProperty, 0.0);
-			el.MouseDown += Rect_MouseDown;
-			MainCanvas.Children.Add(el);
+			AddElement(typeof(MyEllipse));
 		}
 
-		private int clickCount = 0;
-		private int lastClickTimeStamp;
 		private Vector2 offset;
 		private Vector2 startPos;//check for click
 		private FrameworkElement? current;
@@ -218,66 +235,32 @@ namespace MindMap.Pages {
 			UpdateResizePanel();
 		}
 
-		private void Rect_MouseDown(object sender, MouseButtonEventArgs e) {
-			FrameworkElement? target = sender as FrameworkElement;
-			current = target;
-			if(current != _selection?.target) {
-				ClearResizePanel();
-				Deselect();
-			}
-			startPos = e.GetPosition(MainCanvas);
-			offset = startPos - new Vector2(Canvas.GetLeft(target), Canvas.GetTop(target));
-			Mouse.Capture(sender as UIElement);
-			hasMoved = false;
-			if(e.MouseDevice.LeftButton == MouseButtonState.Pressed) {
-				mouseType = MouseType.Left;
-				clickCount = e.Timestamp - lastClickTimeStamp <= 200 ? clickCount + 1 : 0;
-				lastClickTimeStamp = e.Timestamp;
-				if(clickCount == 1) {
-					Debug.WriteLine("This is double click");
-					if(current is Grid grid) {
-						if(grid.Children.Cast<UIElement>().FirstOrDefault(i => i is TextBlock) is TextBlock tb) {
-							var box = new TextBox() {
-								Text = tb.Text,
-								TextWrapping = TextWrapping.Wrap,
-								HorizontalAlignment = HorizontalAlignment.Stretch,
-								VerticalAlignment = VerticalAlignment.Stretch,
-								TextAlignment = TextAlignment.Center,
-								Padding = new Thickness(20),
-								FontSize = 15,
-								AcceptsReturn = true,
-								AcceptsTab = true,
-							};
-							box.KeyDown += (s, e) => {
-								if(e.Key == Key.Escape) {
-									ClearResizePanel();
-									Deselect();
-								}
-							};
-							grid.Children.Add(box);
-							grid.Children.Remove(tb);
-							box.Focus();
-						}
-					}
-				}
-			} else if(e.MouseDevice.RightButton == MouseButtonState.Pressed) {
-				mouseType = MouseType.Right;
-			} else if(e.MouseDevice.MiddleButton == MouseButtonState.Pressed) {
-				mouseType = MouseType.Middle;
-			}
-		}
-
+		private int clickCount = 0;
+		private int lastClickTimeStamp;
 		private void MainCanvas_MouseUp(object sender, MouseButtonEventArgs e) {
 			if(current != null && startPos == e.GetPosition(MainCanvas) && !hasMoved) {
+				Element? element = elements.ContainsKey(current) ? elements[current] : null;
 				switch(mouseType) {
 					case MouseType.Left:
 						CreateResizePanel(current);
+						Debug.WriteLine("left mouse");
+						clickCount = e.Timestamp - lastClickTimeStamp <= 500 ? clickCount + 1 : 0;
+						lastClickTimeStamp = e.Timestamp;
+						Debug.WriteLine(clickCount);
+						if(clickCount == 1) {
+							Debug.WriteLine("This is double click");
+							element?.DoubleClick();
+						} else {
+							element?.LeftClick();//care
+						}
 						break;
 					case MouseType.Middle:
 						Debug.WriteLine("middle mouse");
+						element?.MiddleClick();
 						break;
 					case MouseType.Right:
 						Debug.WriteLine("flyout menu");
+						element?.RightClick();
 						break;
 					default:
 						throw new Exception($"Mouse Type Error {mouseType}");
@@ -319,7 +302,7 @@ namespace MindMap.Pages {
 
 
 		private class ResizePanel {
-			public FrameworkElement target;//FrameworkElement
+			public FrameworkElement target;
 			public Line top;
 			public Line bot;
 			public Line left;

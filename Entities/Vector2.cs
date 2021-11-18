@@ -16,6 +16,10 @@ namespace MindMap.Entities {
 		public static readonly Vector2 Zero = new();
 		public static readonly Vector2 One = new(1, 1);
 
+		public static double Distance(Vector2 a, Vector2 b) {
+			return Math.Sqrt(Math.Pow(a.X - b.X, 2) + Math.Pow(a.Y - b.Y, 2));
+		}
+
 		public Vector2() {
 			X = 0;
 			Y = 0;

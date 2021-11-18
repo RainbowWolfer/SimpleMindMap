@@ -17,7 +17,7 @@ namespace MindMap.Entities.Elements {
 		}
 
 		public override FrameworkElement? Target => _ellipse;
-		public override FrameworkElement CreateFramework(Canvas mainCanvas) {
+		public override FrameworkElement CreateFramework() {
 			_ellipse = new Ellipse() {
 				Width = 50,
 				Height = 50,
@@ -26,8 +26,8 @@ namespace MindMap.Entities.Elements {
 			};
 			_ellipse.SetValue(Canvas.TopProperty, 0.0);
 			_ellipse.SetValue(Canvas.LeftProperty, 0.0);
-
-			mainCanvas.Children.Add(_ellipse);
+			
+			MainCanvas.Children.Add(_ellipse);
 			return _ellipse;
 		}
 

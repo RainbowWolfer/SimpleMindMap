@@ -47,7 +47,7 @@ namespace MindMap.Entities.Elements {
 		}
 
 		public override FrameworkElement? Target => _root;
-		public override FrameworkElement CreateFramework(Canvas mainCanvas) {
+		public override FrameworkElement CreateFramework() {
 			_root = new Grid() {
 				Width = 200,
 				Height = 200,
@@ -72,7 +72,7 @@ namespace MindMap.Entities.Elements {
 			_root.ContextMenu.Items.Add(item);
 			_root.ContextMenu.PlacementTarget = _root;
 
-			mainCanvas.Children.Add(_root);
+			MainCanvas.Children.Add(_root);
 			return _root;
 		}
 

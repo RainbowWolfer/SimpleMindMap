@@ -1,5 +1,6 @@
 ﻿using MindMap.Entities;
 using MindMap.Entities.Elements;
+using MindMap.Entities.Frames;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -28,108 +29,20 @@ namespace MindMap.Pages {
 			SizeChanged += (s, e) => UpdateBackgroundDot();
 		}
 
-		private ResizePanel? _selection;
+		private static ResizeFrame? Selection => ResizeFrame.Current;
+
 		public void ClearResizePanel() {
-			if(_selection == null) {
-				return;
+			Selection?.ClearResizeFrame(MainCanvas);
+			if(previous != null && elements.ContainsKey(previous)) {
+				elements[previous].SetConnectionsFrameVisible(true);
+				elements[previous].UpdateConnectionsFrame();
 			}
-			void Remove(Shape shape) {
-				if(MainCanvas.Children.Contains(shape)) {
-					MainCanvas.Children.Remove(shape);
-				}
-			}
-			Remove(_selection.top);
-			Remove(_selection.bot);
-			Remove(_selection.left);
-			Remove(_selection.right);
-			Remove(_selection.top_left);
-			Remove(_selection.top_right);
-			Remove(_selection.bot_left);
-			Remove(_selection.bot_right);
 		}
 
 		public void Deselect() {
-			if(_selection != null && elements.ContainsKey(_selection.target)) {
-				elements[_selection.target].Deselect();
+			if(Selection != null && elements.ContainsKey(Selection.target)) {
+				elements[Selection.target].Deselect();
 			}
-		}
-
-		private void CreateResizePanel(FrameworkElement target) {
-			ClearResizePanel();
-			Style style_line = new(typeof(Line));
-			style_line.Setters.Add(new Setter(Shape.StrokeProperty, Brushes.Black));
-			style_line.Setters.Add(new Setter(Shape.StrokeDashArrayProperty, new DoubleCollection(new double[] { 3, 0.5 })));
-			style_line.Setters.Add(new Setter(Shape.StrokeThicknessProperty, (double)3));
-			//line pattern cannot handle mousedown, consider using rectangle -> stroke
-			Line top = new() { Style = style_line };
-			Line bottom = new() { Style = style_line };
-			Line left = new() { Style = style_line };
-			Line right = new() { Style = style_line };
-			MainCanvas.Children.Add(top);
-			MainCanvas.Children.Add(bottom);
-			MainCanvas.Children.Add(left);
-			MainCanvas.Children.Add(right);
-
-			Style style_rect = new(typeof(Rectangle));
-			style_rect.Setters.Add(new Setter(Shape.FillProperty, Brushes.Transparent));
-			style_rect.Setters.Add(new Setter(WidthProperty, (double)10));
-			style_rect.Setters.Add(new Setter(HeightProperty, (double)10));
-			style_rect.Setters.Add(new Setter(Shape.StrokeThicknessProperty, (double)3));
-			style_rect.Setters.Add(new Setter(Shape.StrokeProperty, Brushes.Black));
-			style_rect.Setters.Add(new Setter(Shape.StrokeDashArrayProperty, new DoubleCollection(new double[] { 3, 1 })));
-
-			Rectangle top_left = new() { Style = style_rect };
-			Rectangle top_right = new() { Style = style_rect };
-			Rectangle bot_left = new() { Style = style_rect };
-			Rectangle bot_right = new() { Style = style_rect };
-			MainCanvas.Children.Add(top_left);
-			MainCanvas.Children.Add(top_right);
-			MainCanvas.Children.Add(bot_left);
-			MainCanvas.Children.Add(bot_right);
-
-			_selection = new ResizePanel(this, target, top, bottom, left, right, top_left, top_right, bot_left, bot_right);
-			UpdateResizePanel();
-		}
-
-		private void UpdateResizePanel() {
-			if(_selection == null || !_selection.IsValid) {
-				return;
-			}
-			Vector2 startPoint = new(Canvas.GetLeft(_selection.target), Canvas.GetTop(_selection.target));
-			Vector2 size = new(_selection.target.Width, _selection.target.Height);
-
-			_selection.top.X1 = startPoint.X;
-			_selection.top.Y1 = startPoint.Y;
-			_selection.top.X2 = startPoint.X + size.X;
-			_selection.top.Y2 = startPoint.Y;
-
-			_selection.bot.X1 = startPoint.X;
-			_selection.bot.Y1 = startPoint.Y + size.Y;
-			_selection.bot.X2 = startPoint.X + size.X;
-			_selection.bot.Y2 = startPoint.Y + size.Y;
-
-			_selection.left.X1 = startPoint.X;
-			_selection.left.Y1 = startPoint.Y;
-			_selection.left.X2 = startPoint.X;
-			_selection.left.Y2 = startPoint.Y + size.Y;
-
-			_selection.right.X1 = startPoint.X + size.X;
-			_selection.right.Y1 = startPoint.Y;
-			_selection.right.X2 = startPoint.X + size.X;
-			_selection.right.Y2 = startPoint.Y + size.Y;
-
-			Canvas.SetLeft(_selection.top_left, startPoint.X - _selection.top_left.Width / 2);
-			Canvas.SetTop(_selection.top_left, startPoint.Y - _selection.top_left.Height / 2);
-
-			Canvas.SetLeft(_selection.top_right, startPoint.X + size.X - _selection.top_right.Width / 2);
-			Canvas.SetTop(_selection.top_right, startPoint.Y - _selection.top_right.Height / 2);
-
-			Canvas.SetLeft(_selection.bot_left, startPoint.X - _selection.bot_left.Width / 2);
-			Canvas.SetTop(_selection.bot_left, startPoint.Y + size.Y - _selection.bot_left.Height / 2);
-
-			Canvas.SetLeft(_selection.bot_right, startPoint.X + size.X - _selection.bot_right.Width / 2);
-			Canvas.SetTop(_selection.bot_right, startPoint.Y + size.Y - _selection.bot_right.Height / 2);
-
 		}
 
 		private readonly Dictionary<Vector2, Shape> backgroundPool = new();
@@ -158,8 +71,17 @@ namespace MindMap.Pages {
 
 		private readonly Dictionary<FrameworkElement, Element> elements = new();
 
+		public List<(Element, List<Ellipse>)> GetAllConnectionDots() {
+			List<(Element, List<Ellipse>)> result = new();
+			foreach(Element item in elements.Values) {
+				result.Add((item, item.GetAllConnectionDots()));
+			}
+			return result;
+		}
+
 		private void AddToElementsDictionary(Element value) {
-			FrameworkElement? key = value.CreateFramework(MainCanvas);
+			FrameworkElement? key = value.CreateFramework();
+			value.CreateConnectionsFrame();
 			key.MouseDown += Element_MouseDown;
 			elements.Add(key, value);
 		}
@@ -187,7 +109,7 @@ namespace MindMap.Pages {
 		private void Element_MouseDown(object sender, MouseButtonEventArgs e) {
 			FrameworkElement? target = sender as FrameworkElement;
 			current = target;
-			if(current != _selection?.target) {
+			if(current != Selection?.target) {
 				ClearResizePanel();
 				Deselect();
 			}
@@ -232,9 +154,14 @@ namespace MindMap.Pages {
 			Canvas.SetLeft(current, mouse_position.X - offset.X);
 			Canvas.SetTop(current, mouse_position.Y - offset.Y);
 
-			UpdateResizePanel();
+			Selection?.UpdateResizeFrame();
+
+			if(current != null && elements.ContainsKey(current)) {
+				elements[current].UpdateConnectionsFrame();
+			}
 		}
 
+		private FrameworkElement? previous;
 		private int clickCount = 0;
 		private int lastClickTimeStamp;
 		private void MainCanvas_MouseUp(object sender, MouseButtonEventArgs e) {
@@ -242,9 +169,10 @@ namespace MindMap.Pages {
 				Element? element = elements.ContainsKey(current) ? elements[current] : null;
 				switch(mouseType) {
 					case MouseType.Left:
-						CreateResizePanel(current);
+						ResizeFrame.Create(this, current);
+						element?.SetConnectionsFrameVisible(false);
 						Debug.WriteLine("left mouse");
-						clickCount = e.Timestamp - lastClickTimeStamp <= 500 ? clickCount + 1 : 0;
+						clickCount = previous == current && e.Timestamp - lastClickTimeStamp <= 500 ? clickCount + 1 : 0;
 						lastClickTimeStamp = e.Timestamp;
 						Debug.WriteLine(clickCount);
 						if(clickCount == 1) {
@@ -265,6 +193,7 @@ namespace MindMap.Pages {
 					default:
 						throw new Exception($"Mouse Type Error {mouseType}");
 				}
+				previous = current;
 			}
 			current = null;
 			Mouse.Capture(null);
@@ -301,146 +230,6 @@ namespace MindMap.Pages {
 		}
 
 
-		private class ResizePanel {
-			public FrameworkElement target;
-			public Line top;
-			public Line bot;
-			public Line left;
-			public Line right;
-
-			public Rectangle top_left;
-			public Rectangle top_right;
-			public Rectangle bot_left;
-			public Rectangle bot_right;
-
-			public ResizeControl control_top;
-			public ResizeControl control_bot;
-			public ResizeControl control_left;
-			public ResizeControl control_right;
-			public ResizeControl control_top_left;
-			public ResizeControl control_top_right;
-			public ResizeControl control_bot_left;
-			public ResizeControl control_bot_right;
-
-			public ResizePanel(MindMapPage parent, FrameworkElement target, Line top, Line bot, Line left, Line right, Rectangle top_left, Rectangle top_right, Rectangle bot_left, Rectangle bot_right) {
-				this.target = target;
-				this.top = top;
-				this.bot = bot;
-				this.left = left;
-				this.right = right;
-				this.top_left = top_left;
-				this.top_right = top_right;
-				this.bot_left = bot_left;
-				this.bot_right = bot_right;
-
-				control_top = new ResizeControl(parent, target, top, ResizeControl.Direction.T);
-				control_bot = new ResizeControl(parent, target, bot, ResizeControl.Direction.B);
-				control_left = new ResizeControl(parent, target, left, ResizeControl.Direction.L);
-				control_right = new ResizeControl(parent, target, right, ResizeControl.Direction.R);
-
-				control_top_left = new ResizeControl(parent, target, top_left, ResizeControl.Direction.LT);
-				control_top_right = new ResizeControl(parent, target, top_right, ResizeControl.Direction.RT);
-				control_bot_left = new ResizeControl(parent, target, bot_left, ResizeControl.Direction.LB);
-				control_bot_right = new ResizeControl(parent, target, bot_right, ResizeControl.Direction.RB);
-
-			}
-
-			public bool IsValid => target != null && top != null && bot != null && left != null && right != null;
-		}
-
-		private class ResizeControl {
-			public FrameworkElement target;
-			public Shape shape;
-			public Direction direction;
-
-			private Vector2 startMousePos;
-			private Vector2 startSize;
-			private Vector2 startPos;
-			private bool _drag;
-			public ResizeControl(MindMapPage parent, FrameworkElement target, Shape shape, Direction direction) {
-				this.target = target;
-				this.shape = shape;
-				this.direction = direction;
-				shape.MouseEnter += (s, e) => {
-					parent.Cursor = GetCursor();
-				};
-				shape.MouseLeave += (s, e) => {
-					parent.Cursor = null;
-				};
-				shape.MouseDown += (s, e) => {
-					_drag = true;
-					startMousePos = e.GetPosition(parent);
-					startSize = new Vector2(target.Width, target.Height);
-					startPos = new Vector2(Canvas.GetLeft(target), Canvas.GetTop(target));
-					Mouse.Capture(shape);
-				};
-				parent.MainCanvas.MouseMove += (s, e) => {
-					if(!_drag) {
-						return;
-					}
-					Vector2 delta = e.GetPosition(parent) - startMousePos;
-					switch(direction) {
-						case Direction.L:
-							target.Width = Math.Clamp(startSize.X - delta.X, 5, double.MaxValue);
-							Canvas.SetLeft(target, Math.Clamp(startPos.X + delta.X, double.MinValue, startPos.X + startSize.X - 5));
-							break;
-						case Direction.LT:
-							target.Width = Math.Clamp(startSize.X - delta.X, 5, double.MaxValue);
-							Canvas.SetLeft(target, Math.Clamp(startPos.X + delta.X, double.MinValue, startPos.X + startSize.X - 5));
-							target.Height = Math.Clamp(startSize.Y - delta.Y, 5, double.MaxValue);
-							Canvas.SetTop(target, Math.Clamp(startPos.Y + delta.Y, double.MinValue, startPos.Y + startSize.Y - 5));
-							break;
-						case Direction.T:
-							target.Height = Math.Clamp(startSize.Y - delta.Y, 5, double.MaxValue);
-							Canvas.SetTop(target, Math.Clamp(startPos.Y + delta.Y, double.MinValue, startPos.Y + startSize.Y - 5));
-							break;
-						case Direction.RT:
-							target.Height = Math.Clamp(startSize.Y - delta.Y, 5, double.MaxValue);
-							Canvas.SetTop(target, Math.Clamp(startPos.Y + delta.Y, double.MinValue, startPos.Y + startSize.Y - 5));
-							target.Width = Math.Clamp(startSize.X + delta.X, 5, double.MaxValue);
-							break;
-						case Direction.R:
-							target.Width = Math.Clamp(startSize.X + delta.X, 5, double.MaxValue);
-							break;
-						case Direction.RB:
-							target.Width = Math.Clamp(startSize.X + delta.X, 5, double.MaxValue);
-							target.Height = Math.Clamp(startSize.Y + delta.Y, 5, double.MaxValue);
-							break;
-						case Direction.B:
-							target.Height = Math.Clamp(startSize.Y + delta.Y, 5, double.MaxValue);
-							break;
-						case Direction.LB:
-							target.Height = Math.Clamp(startSize.Y + delta.Y, 5, double.MaxValue);
-							target.Width = Math.Clamp(startSize.X - delta.X, 5, double.MaxValue);
-							Canvas.SetLeft(target, Math.Clamp(startPos.X + delta.X, double.MinValue, startPos.X + startSize.X - 5));
-							break;
-						default:
-							throw new Exception("Direction Type Error");
-					}
-					parent.UpdateResizePanel();
-				};
-				parent.MainCanvas.MouseUp += (s, e) => {
-					_drag = false;
-					Mouse.Capture(null);
-				};
-			}
-
-			private Cursor GetCursor() => direction switch {
-				Direction.L => Cursors.SizeWE,
-				Direction.LT => Cursors.SizeNWSE,
-				Direction.T => Cursors.SizeNS,
-				Direction.RT => Cursors.SizeNESW,
-				Direction.R => Cursors.SizeWE,
-				Direction.RB => Cursors.SizeNWSE,
-				Direction.B => Cursors.SizeNS,
-				Direction.LB => Cursors.SizeNESW,
-				_ => throw new Exception("Cursor Type Error"),
-			};
-
-			public enum Direction {
-				L, LT, T, RT, R, RB, B, LB
-			}
-		}
 		private enum MouseType {
 			Left, Middle, Right
 		}

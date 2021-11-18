@@ -28,7 +28,9 @@
 				<!--Only for detecting contacting canvas through mouse-->
 				<Rectangle x:Name="BackgroundRectangle" Fill="Transparent" MouseDown="BackgroundRectangle_MouseDown" MouseMove="BackgroundRectangle_MouseMove" MouseUp="BackgroundRectangle_MouseUp"/>
 				<Canvas x:Name="MainCanvas" Loaded="MainCanvas_Loaded">
-					<Canvas x:Name="BackgroundCanvas"/>
+					<Canvas x:Name="BackgroundCanvas">
+						<Ellipse Height="10" Width="10" Fill="Transparent" Margin="10" StrokeThickness="3" Stroke="Black"/>
+					</Canvas>
 					<Canvas.RenderTransform>
 						<TransformGroup>
 							<TranslateTransform x:Name="MainCanvas_TranslateTransform" X="0" Y="0"/>

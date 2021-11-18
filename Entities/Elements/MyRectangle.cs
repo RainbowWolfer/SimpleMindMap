@@ -19,7 +19,7 @@ namespace MindMap.Entities.Elements {
 
 		public override FrameworkElement? Target => _rect;
 
-		public override FrameworkElement CreateFramework(Canvas mainCanvas) {
+		public override FrameworkElement CreateFramework() {
 			_rect = new Rectangle() {
 				Width = 50,
 				Height = 50,
@@ -29,7 +29,7 @@ namespace MindMap.Entities.Elements {
 			_rect.SetValue(Canvas.TopProperty, 0.0);
 			_rect.SetValue(Canvas.LeftProperty, 0.0);
 
-			mainCanvas.Children.Add(_rect);
+			MainCanvas.Children.Add(_rect);
 			return _rect;
 		}
 

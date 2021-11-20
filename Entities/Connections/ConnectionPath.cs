@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
 
@@ -26,7 +27,7 @@ namespace MindMap.Entities.Connections {
 			this.from = from;
 			this.to = to;
 			this.Path = CreatePath(from.GetPosition(), to.GetPosition());
-			mainCanvas.Children.Add(Path);
+			Initialize();
 		}
 
 		public ConnectionPath(Canvas mainCanvas, ConnectionControl from, Vector2 to) {
@@ -35,7 +36,31 @@ namespace MindMap.Entities.Connections {
 			this.from = from;
 			this.to = null;
 			this.Path = CreatePath(from.GetPosition(), to);
-			mainCanvas.Children.Add(Path);
+			Initialize();
+		}
+
+		private Vector2 lastMousePosition;
+		private bool isRightClick;
+		private void Initialize() {
+			_mainCanvas.Children.Add(this.Path);
+			if(!IsPreview) {
+				FlyoutMenu.CreateBase(this.Path, (s, e) => ConnectionsManager.Remove(this));
+				Path.MouseDown += (s, e) => {
+					if(e.MouseDevice.RightButton == MouseButtonState.Pressed) {
+						isRightClick = true;
+						lastMousePosition = e.GetPosition(_mainCanvas);
+					} else {
+						isRightClick = false;
+					}
+				};
+				Path.MouseUp += (s, e) => {
+					if(isRightClick && e.GetPosition(_mainCanvas) == lastMousePosition) {
+						Path.ContextMenu.IsOpen = true;
+					}
+				};
+				Path.MouseEnter += (s, e) => Path.Stroke = Brushes.Gray;
+				Path.MouseLeave += (s, e) => Path.Stroke = Brushes.Black;
+			}
 		}
 
 		public void ClearFromCanvas() {
@@ -65,8 +90,8 @@ namespace MindMap.Entities.Connections {
 		public static Geometry CreateGeometry(Vector2 from, Vector2 to) {
 			return Geometry.Parse(
 						$"M {from.X},{from.Y} " +
-						$"C {from.X + (to.X - from.X) * 0.8},{from.Y} " +
-						$"{from.X + (to.X - from.X) * 0.2},{to.Y} " +
+						$"C {from.X + (to.X - from.X) * 0.5},{from.Y} " +
+						$"{from.X + (to.X - from.X) * 0.5},{to.Y} " +
 						$"{to.X},{to.Y}");
 		}
 

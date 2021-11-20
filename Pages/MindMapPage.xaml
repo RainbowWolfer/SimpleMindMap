@@ -19,6 +19,7 @@
 			<Button x:Name="AddRectableButton" Content="Add Rectangle" Click="AddRectableButton_Click"/>
 			<Button x:Name="AddGridButton" Content="Add Grid" Click="AddGridButton_Click"/>
 			<Button x:Name="AddEllipseButton" Content="Add Ellipse" Click="AddEllipseButton_Click"/>
+			<Button x:Name="DebugButton" Content="Debug" Click="DebugButton_Click"/>
 		</StackPanel>
 		<Border Grid.Column="1" BorderBrush="Gray" BorderThickness="2,0,0,0" ClipToBounds="True">
 			<Border.RenderTransform>

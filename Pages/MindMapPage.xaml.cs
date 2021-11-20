@@ -23,11 +23,21 @@ namespace MindMap.Pages {
 
 		public MindMapPage() {
 			InitializeComponent();
+			ConnectionsManager.Initialize(MainCanvas);
 
 			MainCanvas.MouseMove += MainCanvas_MouseMove;
 			MainCanvas.MouseUp += MainCanvas_MouseUp;
 
 			SizeChanged += (s, e) => UpdateBackgroundDot();
+			this.KeyDown += (s, e) => {
+				if(e.Key == Key.Escape) {
+					_drag = false;
+				}
+			};
+		}
+
+		private void DebugButton_Click(object sender, RoutedEventArgs e) {
+			ConnectionsManager.DebugConnections();
 		}
 
 		private static ResizeFrame? Selection => ResizeFrame.Current;

@@ -32,18 +32,7 @@ namespace MindMap.Entities.Elements {
 
 		public void SetConnectionsFrameVisible(bool visible) => connectionsFrame?.SetVisible(visible);
 
-		public List<ConnectionControl> GetAllConnectionDots() {
-			if(connectionsFrame == null) {
-				return new List<ConnectionControl>();
-			}
-			return connectionsFrame.topDots.Concat(
-				connectionsFrame.botDots.Concat(
-					connectionsFrame.leftDots.Concat(
-						connectionsFrame.rightDots
-					)
-				)
-			).ToList();
-		}
+		public List<ConnectionControl> GetAllConnectionDots() => connectionsFrame == null ? new List<ConnectionControl>() : connectionsFrame.AllDots;
 
 		public abstract FrameworkElement CreateFramework();
 		public abstract FrameworkElement? Target { get; }

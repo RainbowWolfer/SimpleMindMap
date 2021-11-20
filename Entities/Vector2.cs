@@ -25,6 +25,11 @@ namespace MindMap.Entities {
 			Y = 0;
 		}
 
+		public Vector2(double size) {
+			X = size;
+			Y = size;
+		}
+
 		public Vector2(double x, double y) {
 			this.X = x;
 			this.Y = y;

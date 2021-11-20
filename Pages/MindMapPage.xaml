@@ -29,7 +29,8 @@
 				<Rectangle x:Name="BackgroundRectangle" Fill="Transparent" MouseDown="BackgroundRectangle_MouseDown" MouseMove="BackgroundRectangle_MouseMove" MouseUp="BackgroundRectangle_MouseUp"/>
 				<Canvas x:Name="MainCanvas" Loaded="MainCanvas_Loaded">
 					<Canvas x:Name="BackgroundCanvas">
-						<Ellipse Height="10" Width="10" Fill="Transparent" Margin="10" StrokeThickness="3" Stroke="Black"/>
+						<!--<Path Stroke="Black" Data="M 10,100 C 10,300 300,-200 300,100" />
+						<Path Stroke="Black" Data="M 0,0 C 80,0 20,100 100,100" />-->
 					</Canvas>
 					<Canvas.RenderTransform>
 						<TransformGroup>

@@ -63,15 +63,6 @@ namespace MindMap.Entities.Elements {
 			};
 			_root.Children.Add(_textBlock);
 
-			_root.ContextMenu = new ContextMenu();
-			MenuItem item = new() {
-				Header = "Delete",
-				Icon = Icons.CreateIcon("\uE74D"),
-			};
-			item.Click += (sender, args) => Delete();
-			_root.ContextMenu.Items.Add(item);
-			_root.ContextMenu.PlacementTarget = _root;
-
 			MainCanvas.Children.Add(_root);
 			return _root;
 		}

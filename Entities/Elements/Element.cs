@@ -22,17 +22,19 @@ namespace MindMap.Entities.Elements {
 
 		public void CreateConnectionsFrame() {
 			if(Target != null) {
-				connectionsFrame = new ConnectionsFrame(this.parent, Target);
+				connectionsFrame = new ConnectionsFrame(this.parent, this);
 			}
 		}
-		public void UpdateConnectionsFrame() {
+
+		public void UpdateConnectionsFrame() {//also includes connected dots
 			connectionsFrame?.UpdateConnections();
 		}
 
 		public void SetConnectionsFrameVisible(bool visible) => connectionsFrame?.SetVisible(visible);
-		public List<Ellipse> GetAllConnectionDots() {
+
+		public List<ConnectionControl> GetAllConnectionDots() {
 			if(connectionsFrame == null) {
-				return new List<Ellipse>();
+				return new List<ConnectionControl>();
 			}
 			return connectionsFrame.topDots.Concat(
 				connectionsFrame.botDots.Concat(
@@ -46,12 +48,22 @@ namespace MindMap.Entities.Elements {
 		public abstract FrameworkElement CreateFramework();
 		public abstract FrameworkElement? Target { get; }
 
+		public virtual void CreateFlyoutMenu() {
+			if(Target == null) {
+				return;
+			}
+			FlyoutMenu.CreateBase(Target, (s, e) => Delete());
+		}
+
 		public abstract void DoubleClick();
 		public abstract void LeftClick();
 		public abstract void MiddleClick();
 		public abstract void RightClick();
 		public abstract void Deselect();
 
-		public virtual void Delete() => parent.RemoveElement(this);
+		public virtual void Delete() {
+			parent.RemoveElement(this);
+			connectionsFrame?.ClearConnections();
+		}
 	}
 }

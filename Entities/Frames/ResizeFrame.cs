@@ -57,17 +57,17 @@ namespace MindMap.Entities.Frames {
 			return Current;
 		}
 
-		public FrameworkElement target;
+		public readonly FrameworkElement target;
 
-		public Line top;
-		public Line bot;
-		public Line left;
-		public Line right;
+		public readonly Line top;
+		public readonly Line bot;
+		public readonly Line left;
+		public readonly Line right;
 
-		public Rectangle top_left;
-		public Rectangle top_right;
-		public Rectangle bot_left;
-		public Rectangle bot_right;
+		public readonly Rectangle top_left;
+		public readonly Rectangle top_right;
+		public readonly Rectangle bot_left;
+		public readonly Rectangle bot_right;
 
 		private readonly ResizeControl _control_top;
 		private readonly ResizeControl _control_bot;
@@ -162,9 +162,9 @@ namespace MindMap.Entities.Frames {
 
 
 		private class ResizeControl {
-			public FrameworkElement target;
-			public Shape shape;
-			public Direction direction;
+			public readonly FrameworkElement target;
+			public readonly Shape shape;
+			public readonly Direction direction;
 
 			private Vector2 startMousePos;
 			private Vector2 startSize;
@@ -231,6 +231,9 @@ namespace MindMap.Entities.Frames {
 							throw new Exception("Direction Type Error");
 					}
 					Current?.UpdateResizeFrame();
+					if(parent.elements.ContainsKey(target)) {
+						parent.elements[target].UpdateConnectionsFrame();
+					}
 				};
 				parent.MainCanvas.MouseUp += (s, e) => {
 					_drag = false;

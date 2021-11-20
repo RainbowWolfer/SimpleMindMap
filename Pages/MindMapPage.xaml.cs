@@ -1,4 +1,5 @@
 ﻿using MindMap.Entities;
+using MindMap.Entities.Connections;
 using MindMap.Entities.Elements;
 using MindMap.Entities.Frames;
 using System;
@@ -45,6 +46,23 @@ namespace MindMap.Pages {
 			}
 		}
 
+		private ConnectionPath? previewLine;
+
+		public void UpdatePreviewLine(ConnectionControl from, Vector2 to) {
+			if(previewLine == null) {
+				previewLine = new ConnectionPath(MainCanvas, from, to);
+			}
+			previewLine.Update(to);
+		}
+
+		public void ClearPreviewLine() {
+			if(previewLine == null) {
+				return;
+			}
+			MainCanvas.Children.Remove(previewLine.Path);
+			previewLine = null;
+		}
+
 		private readonly Dictionary<Vector2, Shape> backgroundPool = new();
 		private const int SIZE = 4;
 		private const int GAP = 20;
@@ -69,19 +87,23 @@ namespace MindMap.Pages {
 			}
 		}
 
-		private readonly Dictionary<FrameworkElement, Element> elements = new();
+		public readonly Dictionary<FrameworkElement, Element> elements = new();
 
-		public List<(Element, List<Ellipse>)> GetAllConnectionDots() {
-			List<(Element, List<Ellipse>)> result = new();
+		public List<ConnectionControl> GetAllConnectionDots(Element? self) {
+			List<ConnectionControl> result = new();
 			foreach(Element item in elements.Values) {
-				result.Add((item, item.GetAllConnectionDots()));
+				if(item == self) {
+					continue;
+				}
+				item.GetAllConnectionDots().ForEach(result.Add);
 			}
 			return result;
 		}
 
 		private void AddToElementsDictionary(Element value) {
-			FrameworkElement? key = value.CreateFramework();
+			FrameworkElement key = value.CreateFramework();
 			value.CreateConnectionsFrame();
+			value.CreateFlyoutMenu();
 			key.MouseDown += Element_MouseDown;
 			elements.Add(key, value);
 		}

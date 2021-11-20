@@ -15,19 +15,20 @@ using System.Windows.Shapes;
 
 namespace MindMap.Entities.Frames {
 	public class ConnectionsFrame {
-		public readonly List<Ellipse> topDots = new();
-		public readonly List<Ellipse> botDots = new();
-		public readonly List<Ellipse> leftDots = new();
-		public readonly List<Ellipse> rightDots = new();
+		public readonly List<ConnectionControl> topDots = new();
+		public readonly List<ConnectionControl> botDots = new();
+		public readonly List<ConnectionControl> leftDots = new();
+		public readonly List<ConnectionControl> rightDots = new();
+
+		public readonly List<ConnectionPath> connected = new();//by others
 
 		public const short SIZE = 10;
 
-		private FrameworkElement _target;
-		private Canvas _mainCanvas;
+		public readonly Element _target;
+		public FrameworkElement? Framework => _target.Target;
 
-		public ConnectionsFrame(MindMapPage parent, FrameworkElement target) {
+		public ConnectionsFrame(MindMapPage parent, Element target) {
 			this._target = target;
-			this._mainCanvas = parent.MainCanvas;
 
 			Style style = new(typeof(Ellipse));
 			style.Setters.Add(new Setter(FrameworkElement.HeightProperty, (double)SIZE));
@@ -41,20 +42,10 @@ namespace MindMap.Entities.Frames {
 			Ellipse left = new() { Style = style };
 			Ellipse right = new() { Style = style };
 
-			topDots.Add(top);
-			botDots.Add(bot);
-			leftDots.Add(left);
-			rightDots.Add(right);
-
-			_ = new ConnectionControl(parent, top);
-			_ = new ConnectionControl(parent, bot);
-			_ = new ConnectionControl(parent, left);
-			_ = new ConnectionControl(parent, right);
-
-			this._mainCanvas.Children.Add(top);
-			this._mainCanvas.Children.Add(bot);
-			this._mainCanvas.Children.Add(left);
-			this._mainCanvas.Children.Add(right);
+			topDots.Add(new ConnectionControl(this, parent, top));
+			botDots.Add(new ConnectionControl(this, parent, bot));
+			leftDots.Add(new ConnectionControl(this, parent, left));
+			rightDots.Add(new ConnectionControl(this, parent, right));
 
 			UpdateConnections();
 		}
@@ -65,90 +56,154 @@ namespace MindMap.Entities.Frames {
 		}
 
 		public void UpdateConnections() {
-			CalculateStartPositionAndSize(_target, out Vector2 startPos, out Vector2 size);
+			if(Framework == null) {
+				return;
+			}
+			CalculateStartPositionAndSize(Framework, out Vector2 startPos, out Vector2 size);
 			if(topDots.Count >= 1) {
-				foreach(Ellipse top in topDots) {
-					Canvas.SetLeft(top, startPos.X + size.X / (topDots.Count + 1) - SIZE / 2);
-					Canvas.SetTop(top, startPos.Y - SIZE / 2);
+				foreach(ConnectionControl top in topDots) {
+					Canvas.SetLeft(top.target, startPos.X + size.X / (topDots.Count + 1) - SIZE / 2);
+					Canvas.SetTop(top.target, startPos.Y - SIZE / 2);
+					top.Connection?.Update();
 				}
 			}
 			if(botDots.Count >= 1) {
-				foreach(Ellipse bot in botDots) {
-					Canvas.SetLeft(bot, startPos.X + size.X / (botDots.Count + 1) - SIZE / 2);
-					Canvas.SetTop(bot, startPos.Y + size.Y - SIZE / 2);
+				foreach(ConnectionControl bot in botDots) {
+					Canvas.SetLeft(bot.target, startPos.X + size.X / (botDots.Count + 1) - SIZE / 2);
+					Canvas.SetTop(bot.target, startPos.Y + size.Y - SIZE / 2);
+					bot.Connection?.Update();
 				}
 			}
 			if(leftDots.Count >= 1) {
-				foreach(Ellipse left in leftDots) {
-					Canvas.SetLeft(left, startPos.X - SIZE / 2);
-					Canvas.SetTop(left, startPos.Y + size.Y / (leftDots.Count + 1) - SIZE / 2);
+				foreach(ConnectionControl left in leftDots) {
+					Canvas.SetLeft(left.target, startPos.X - SIZE / 2);
+					Canvas.SetTop(left.target, startPos.Y + size.Y / (leftDots.Count + 1) - SIZE / 2);
+					left.Connection?.Update();
 				}
 			}
 			if(rightDots.Count >= 1) {
-				foreach(Ellipse right in rightDots) {
-					Canvas.SetLeft(right, startPos.X + size.X - SIZE / 2);
-					Canvas.SetTop(right, startPos.Y + size.Y / (rightDots.Count + 1) - SIZE / 2);
+				foreach(ConnectionControl right in rightDots) {
+					Canvas.SetLeft(right.target, startPos.X + size.X - SIZE / 2);
+					Canvas.SetTop(right.target, startPos.Y + size.Y / (rightDots.Count + 1) - SIZE / 2);
+					right.Connection?.Update();
 				}
 			}
+			if(connected.Count >= 1) {
+				foreach(ConnectionPath item in connected) {
+					item.Update();
+				}
+			}
+		}
+
+		public void ClearConnections() {
+			connected.ForEach(d => d.ClearFromCanvas());
+			leftDots.ForEach(d => d.Clear());
+			rightDots.ForEach(d => d.Clear());
+			topDots.ForEach(d => d.Clear());
+			botDots.ForEach(d => d.Clear());
+
 		}
 
 		public void SetVisible(bool visible) {
-			foreach(Ellipse item in leftDots.Concat(rightDots).Concat(topDots).Concat(botDots)) {
-				item.Visibility = visible ? Visibility.Visible : Visibility.Hidden;
+			foreach(ConnectionControl item in leftDots.Concat(rightDots).Concat(topDots).Concat(botDots)) {
+				item.target.Visibility = visible ? Visibility.Visible : Visibility.Hidden;
 			}
 		}
 
-		private class ConnectionControl {
-			private Canvas _mainCanvas;
-			private bool _drag;
-			private MindMapPage _parent;
+	}
 
-			private List<(Element, List<Ellipse>)> dots = new();
-			public ConnectionControl(MindMapPage parent, Ellipse target) {
-				this._mainCanvas = parent.MainCanvas;
-				this._parent = parent;
-				target.MouseDown += Target_MouseDown;
-				target.MouseEnter += Target_MouseEnter;
-				target.MouseLeave += Target_MouseLeave;
-				parent.MainCanvas.MouseMove += Canvas_MouseMove;
-				parent.MainCanvas.MouseUp += Canvas_MouseUp;
-			}
+	public class ConnectionControl {
+		public readonly Ellipse target;
+		public readonly ConnectionsFrame container;
 
-			private void Target_MouseLeave(object sender, MouseEventArgs e) {
+		private readonly Canvas _mainCanvas;
+		private readonly MindMapPage _parent;
+		private bool _drag;
+
+		public ConnectionPath? Connection { get; private set; }
+
+		private List<ConnectionControl> otherDots = new();
+		private ConnectionControl? desiredDot;
+		private const double MIN_CONNECTION_DISTANCE = 5.0;
+		public ConnectionControl(ConnectionsFrame container, MindMapPage parent, Ellipse target) {
+			this.container = container;
+			this._mainCanvas = parent.MainCanvas;
+			this._parent = parent;
+			this.target = target;
+			this._mainCanvas.Children.Add(target);
+			target.MouseDown += Target_MouseDown;
+			target.MouseEnter += Target_MouseEnter;
+			target.MouseLeave += Target_MouseLeave;
+			parent.BackgroundRectangle.MouseMove += Canvas_MouseMove;
+			parent.BackgroundRectangle.PreviewMouseUp += Canvas_MouseUp;
+			parent.MainCanvas.MouseMove += Canvas_MouseMove;
+			parent.MainCanvas.PreviewMouseUp += Canvas_MouseUp;
+		}
+
+		private void Target_MouseLeave(object sender, MouseEventArgs e) {
+			if(!_drag) {
 				_parent.Cursor = null;
 			}
+		}
 
-			private void Target_MouseEnter(object sender, MouseEventArgs e) {
+		private void Target_MouseEnter(object sender, MouseEventArgs e) {
+			if(!_drag) {
 				_parent.Cursor = Cursors.Cross;
 			}
+		}
 
-			private void DrawPreviewLine() {
+		public Vector2 GetPosition() {
+			return new Vector2(Canvas.GetLeft(target), Canvas.GetTop(target)) + new Vector2(ConnectionsFrame.SIZE) / 2;
+		}
 
+		private void Canvas_MouseUp(object sender, MouseButtonEventArgs e) {
+			_drag = false;
+			_parent.Cursor = null;
+			_parent.ClearPreviewLine();
+			if(desiredDot != null) {
+				this.Connection = new ConnectionPath(_mainCanvas, this, desiredDot);
+				desiredDot.container.connected.Add(this.Connection);
+				desiredDot = null;
 			}
+		}
 
-			private void Canvas_MouseUp(object sender, MouseButtonEventArgs e) {
-				_drag = false;
+		public void ClearLine() {
+			if(this.Connection == null) {
+				return;
 			}
+			this.Connection.ClearFromCanvas();
+			this.Connection = null;
+		}
 
-			private void Canvas_MouseMove(object sender, MouseEventArgs e) {
-				if(!_drag) {
-					return;
+		public void Clear() {
+			if(this._mainCanvas.Children.Contains(target)) {
+				this._mainCanvas.Children.Remove(target);
+			}
+			ClearLine();
+		}
+
+		private void Canvas_MouseMove(object sender, MouseEventArgs e) {
+			if(!_drag) {
+				return;
+			}
+			bool found = false;
+			Vector2 pos = e.GetPosition(_mainCanvas);
+			foreach(ConnectionControl item in otherDots) {
+				Vector2 itemPos = new Vector2(Canvas.GetLeft(item.target), Canvas.GetTop(item.target)) + new Vector2(ConnectionsFrame.SIZE) / 2;
+				double distance = Vector2.Distance(pos, itemPos);
+				if(distance < MIN_CONNECTION_DISTANCE) {
+					desiredDot = item;
+					found = true;
+					break;
 				}
-				Vector2 pos = e.GetPosition(_mainCanvas);
-
-				foreach((Element, List<Ellipse>) list in dots) {
-					foreach(Ellipse item in list.Item2) {
-						Vector2 itemPos = new(Canvas.GetLeft(item), Canvas.GetTop(item));
-						double distance = Vector2.Distance(pos, itemPos);
-						Debug.WriteLine($"distance to {item} is {distance}");
-					}
-				}
 			}
+			_parent.Cursor = found ? Cursors.Hand : Cursors.Cross;
+			_parent.UpdatePreviewLine(this, e.GetPosition(_mainCanvas));
+		}
 
-			private void Target_MouseDown(object sender, MouseButtonEventArgs e) {
-				_drag = true;
-				dots = _parent.GetAllConnectionDots();
-			}
+		private void Target_MouseDown(object sender, MouseButtonEventArgs e) {
+			_drag = true;
+			otherDots = _parent.GetAllConnectionDots(container._target);
 		}
 	}
 }

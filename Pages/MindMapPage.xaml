@@ -3,6 +3,7 @@
 	  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
 	  xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+	  xmlns:wpfx="http://schemas.xceed.com/wpf/xaml/toolkit"
 	  xmlns:local="clr-namespace:MindMap.Pages"
 	  mc:Ignorable="d" 
 	  d:DesignHeight="450" d:DesignWidth="800"
@@ -18,32 +19,50 @@
 	<Grid>
 		<Grid.ColumnDefinitions>
 			<ColumnDefinition Width="170"/>
+			<ColumnDefinition Width="auto"/>
 			<ColumnDefinition Width="*"/>
 		</Grid.ColumnDefinitions>
-		<StackPanel>
-			<TextBlock Text="This is Tool Menu" Margin="10" FontSize="18"/>
-			<Button x:Name="AddRectableButton" Content="Add Rectangle" Click="AddRectableButton_Click" Style="{StaticResource MenuButton}"/>
-			<Button x:Name="AddEllipseButton" Content="Add Ellipse" Click="AddEllipseButton_Click" Style="{StaticResource MenuButton}"/>
-			<Button x:Name="DebugButton" Content="Debug" Click="DebugButton_Click" Style="{StaticResource MenuButton}"/>
-			<TabControl>
-				<TabItem Header="1">
-					<Grid>
-						<TextBlock Text="1"/>
-					</Grid>
+		<Grid>
+			<Grid.RowDefinitions>
+				<RowDefinition Height="auto"/>
+				<RowDefinition Height="*"/>
+			</Grid.RowDefinitions>
+			<TextBlock Text="MindMap.mp*" HorizontalAlignment="Center"/>
+			<TabControl Grid.Row="1">
+				<TabItem Header="Elements" Width="83">
+					<ScrollViewer VerticalScrollBarVisibility="Auto">
+						<StackPanel>
+							<Expander Header="Rectangles">
+								<StackPanel>
+									<Button Content="Normal Rectangle" Click="AddRectableButton_Click" Style="{StaticResource MenuButton}"/>
+								</StackPanel>
+							</Expander>
+							<Expander Header="Ellipses">
+								<StackPanel>
+									<Button Content="Normal Ellipse" Click="AddRectableButton_Click" Style="{StaticResource MenuButton}"/>
+								</StackPanel>
+							</Expander>
+						</StackPanel>
+					</ScrollViewer>
 				</TabItem>
-				<TabItem Header="2">
-					<Grid>
-						<TextBlock Text="2"/>
-					</Grid>
-				</TabItem>
-				<TabItem Header="3">
-					<Grid>
-						<TextBlock Text="3"/>
-					</Grid>
+				<TabItem Header="Properties" Width="83">
+					<ScrollViewer VerticalScrollBarVisibility="Auto">
+						<StackPanel x:Name="ElementPropertiesPanel">
+							<!-- SelectionChanged=""-->
+							<ComboBox SelectedIndex="0">
+								<ComboBoxItem Content="1"/>
+								<ComboBoxItem Content="2"/>
+								<ComboBoxItem Content="4121"/>
+								<ComboBoxItem Content="3"/>
+								<ComboBoxItem Content="4"/>
+							</ComboBox>
+						</StackPanel>
+					</ScrollViewer>
 				</TabItem>
 			</TabControl>
-		</StackPanel>
-		<Border Grid.Column="1" BorderBrush="Gray" BorderThickness="2,0,0,0" ClipToBounds="True">
+		</Grid>
+		<Rectangle Grid.Column="1" Width="2" Fill="Gray"/>
+		<Border Grid.Column="2" ClipToBounds="True">
 			<Grid>
 				<!--Only for detecting contacting canvas through mouse-->
 				<Rectangle x:Name="BackgroundRectangle" Fill="Transparent" MouseDown="BackgroundRectangle_MouseDown" MouseMove="BackgroundRectangle_MouseMove" MouseUp="BackgroundRectangle_MouseUp"/>

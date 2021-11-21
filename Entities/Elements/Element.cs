@@ -12,6 +12,7 @@ using System.Windows.Shapes;
 
 namespace MindMap.Entities.Elements {
 	public abstract class Element {
+		public long ID { get; private set; }
 		protected MindMapPage parent;
 
 		protected ConnectionsFrame? connectionsFrame;
@@ -21,6 +22,7 @@ namespace MindMap.Entities.Elements {
 
 		public Element(MindMapPage parent) {
 			this.parent = parent;
+			ID = DateTime.Now.Ticks + GetHashCode();
 		}
 
 		public void CreateConnectionsFrame() {
@@ -40,6 +42,8 @@ namespace MindMap.Entities.Elements {
 		public virtual void CreateFlyoutMenu() {
 			FlyoutMenu.CreateBase(Target, (s, e) => Delete());
 		}
+
+		public abstract List<Panel> CreatePropertiesList();
 
 		public abstract void UpdateStyle();
 

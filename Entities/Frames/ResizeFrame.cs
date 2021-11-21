@@ -69,6 +69,7 @@ namespace MindMap.Entities.Frames {
 		public readonly Rectangle bot_left;
 		public readonly Rectangle bot_right;
 
+#pragma warning disable IDE0052 // Remove unread private members
 		private readonly ResizeControl _control_top;
 		private readonly ResizeControl _control_bot;
 		private readonly ResizeControl _control_left;
@@ -77,6 +78,7 @@ namespace MindMap.Entities.Frames {
 		private readonly ResizeControl _control_top_right;
 		private readonly ResizeControl _control_bot_left;
 		private readonly ResizeControl _control_bot_right;
+#pragma warning restore IDE0052 // Remove unread private members
 
 		public ResizeFrame(MindMapPage parent, FrameworkElement target, Line top, Line bot, Line left, Line right, Rectangle top_left, Rectangle top_right, Rectangle bot_left, Rectangle bot_right) {
 			this.target = target;

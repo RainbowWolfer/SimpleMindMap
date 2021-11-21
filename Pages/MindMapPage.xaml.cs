@@ -20,7 +20,6 @@ using System.Windows.Shapes;
 
 namespace MindMap.Pages {
 	public partial class MindMapPage: Page {//Editor Page
-
 		public MindMapPage() {
 			InitializeComponent();
 			ConnectionsManager.Initialize(MainCanvas);
@@ -29,11 +28,8 @@ namespace MindMap.Pages {
 			MainCanvas.MouseUp += MainCanvas_MouseUp;
 
 			SizeChanged += (s, e) => UpdateBackgroundDot();
-			this.KeyDown += (s, e) => {
-				if(e.Key == Key.Escape) {
-					_drag = false;
-				}
-			};
+
+			HideElementProperties();
 		}
 
 		private void DebugButton_Click(object sender, RoutedEventArgs e) {
@@ -54,6 +50,7 @@ namespace MindMap.Pages {
 			if(Selection != null && elements.ContainsKey(Selection.target)) {
 				elements[Selection.target].Deselect();
 			}
+			HideElementProperties();
 		}
 
 		private ConnectionPath? previewLine;
@@ -98,6 +95,23 @@ namespace MindMap.Pages {
 		}
 
 		public readonly Dictionary<FrameworkElement, Element> elements = new();
+
+		public void ShowElementProperties(Element element) {
+			ElementPropertiesPanel.Children.Clear();
+			foreach(Panel item in element.CreatePropertiesList()) {
+				ElementPropertiesPanel.Children.Add(item);
+			}
+		}
+
+		public void HideElementProperties() {
+			ElementPropertiesPanel.Children.Clear();
+			ElementPropertiesPanel.Children.Add(new TextBlock() {
+				Text = "(No Selection)",
+				HorizontalAlignment = HorizontalAlignment.Center,
+				FontSize = 14,
+				Margin = new Thickness(0, 10, 0, 0),
+			});
+		}
 
 		public List<ConnectionControl> GetAllConnectionDots(Element self) {
 			List<ConnectionControl> result = new();
@@ -205,6 +219,9 @@ namespace MindMap.Pages {
 							element?.DoubleClick();
 						} else {
 							element?.LeftClick();//care
+							if(element != null) {
+								ShowElementProperties(element);
+							}
 						}
 						break;
 					case MouseType.Middle:
@@ -222,6 +239,7 @@ namespace MindMap.Pages {
 			}
 			current = null;
 			Mouse.Capture(null);
+			_drag = false;
 		}
 
 		private bool _drag;
@@ -248,12 +266,13 @@ namespace MindMap.Pages {
 			_drag = false;
 			ClearResizePanel();
 			Deselect();
+			current = null;
+			Mouse.Capture(null);
 		}
 
 		private void MainCanvas_Loaded(object sender, RoutedEventArgs e) {
 			UpdateBackgroundDot();
 		}
-
 
 		private enum MouseType {
 			Left, Middle, Right

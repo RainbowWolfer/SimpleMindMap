@@ -180,5 +180,9 @@ namespace MindMap.Entities.Elements {
 				_root.Children.Add(MyTextBlock);
 			}
 		}
+
+		public override List<Panel> CreatePropertiesList() {
+			throw new NotImplementedException();
+		}
 	}
 }

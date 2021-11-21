@@ -9,9 +9,10 @@ using System.Windows.Media;
 
 namespace MindMap.Entities.Elements.Interfaces {
 	public interface ITextGrid {
-		public string Text { get; set; }
 		public TextBox MyTextBox { get; set; }
 		public TextBlock MyTextBlock { get; set; }
+
+		public string Text { get; set; }
 		public FontFamily FontFamily { get; set; }
 		public FontWeight FontWeight { get; set; }
 		public double FontSize { get; set; }

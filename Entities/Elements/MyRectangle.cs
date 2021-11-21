@@ -11,6 +11,7 @@ using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Media;
 using System.Windows.Shapes;
+using Xceed.Wpf.Toolkit;
 
 namespace MindMap.Entities.Elements {
 	public class MyRectangle: Element, ITextGrid, IBorderBasedStyle {
@@ -38,27 +39,45 @@ namespace MindMap.Entities.Elements {
 		}
 		public Brush Background {
 			get => background;
-			set => background = value;
+			set {
+				background = value;
+				UpdateStyle();
+			}
 		}
 		public Brush BorderColor {
 			get => borderColor;
-			set => borderColor = value;
+			set {
+				borderColor = value;
+				UpdateStyle();
+			}
 		}
 		public Thickness BorderThickness {
 			get => borderThickness;
-			set => borderThickness = value;
+			set {
+				borderThickness = value;
+				UpdateStyle();
+			}
 		}
 		public FontFamily FontFamily {
 			get => fontFamily;
-			set => fontFamily = value;
+			set {
+				fontFamily = value;
+				UpdateStyle();
+			}
 		}
 		public FontWeight FontWeight {
 			get => fontWeight;
-			set => fontWeight = value;
+			set {
+				fontWeight = value;
+				UpdateStyle();
+			}
 		}
 		public double FontSize {
 			get => fontSize;
-			set => fontSize = value;
+			set {
+				fontSize = value;
+				UpdateStyle();
+			}
 		}
 
 		public Style TextBlockStyle {
@@ -182,6 +201,23 @@ namespace MindMap.Entities.Elements {
 		public void UpdateText() {
 			MyTextBlock.Text = Text;
 			MyTextBox.Text = Text;
+		}
+
+		public override List<Panel> CreatePropertiesList() {
+			return new() {
+				PropertiesPanel.ColorInput("Background Color", Background,
+					color => Background = new SolidColorBrush(color)
+				),
+				PropertiesPanel.ColorInput("Border Color", BorderColor,
+					color => BorderColor = new SolidColorBrush(color)
+				),
+				PropertiesPanel.SliderInput("Border Thickness", BorderThickness.Left, 0, 5,
+					value => BorderThickness = new Thickness(value)
+				),
+				PropertiesPanel.FontSelector("Font Family", FontFamily,
+					value => FontFamily = value
+				, FontsList.AvailableFonts),
+			};
 		}
 	}
 }

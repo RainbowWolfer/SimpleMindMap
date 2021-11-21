@@ -16,14 +16,15 @@ namespace MindMap.Entities.Elements {
 
 		protected ConnectionsFrame? connectionsFrame;
 		protected Canvas MainCanvas => parent.MainCanvas;
+
+		public abstract FrameworkElement Target { get; }
+
 		public Element(MindMapPage parent) {
 			this.parent = parent;
 		}
 
 		public void CreateConnectionsFrame() {
-			if(Target != null) {
-				connectionsFrame = new ConnectionsFrame(this.parent, this);
-			}
+			connectionsFrame = new ConnectionsFrame(this.parent, this);
 		}
 
 		public void UpdateConnectionsFrame() {//also includes connected dots
@@ -34,15 +35,13 @@ namespace MindMap.Entities.Elements {
 
 		public List<ConnectionControl> GetAllConnectionDots() => connectionsFrame == null ? new List<ConnectionControl>() : connectionsFrame.AllDots;
 
-		public abstract FrameworkElement CreateFramework();
-		public abstract FrameworkElement? Target { get; }
+		//public abstract FrameworkElement CreateFramework();
 
 		public virtual void CreateFlyoutMenu() {
-			if(Target == null) {
-				return;
-			}
 			FlyoutMenu.CreateBase(Target, (s, e) => Delete());
 		}
+
+		public abstract void UpdateStyle();
 
 		public abstract void DoubleClick();
 		public abstract void LeftClick();

@@ -9,6 +9,12 @@
 	  d:Background="Gray"
 	  Title="MindMapPage">
 
+	<Page.Resources>
+		<Style x:Key="MenuButton" TargetType="Button">
+			<Setter Property="Margin" Value="10,2,10,2"/>
+			<Setter Property="Height" Value="25"/>
+		</Style>
+	</Page.Resources>
 	<Grid>
 		<Grid.ColumnDefinitions>
 			<ColumnDefinition Width="170"/>
@@ -16,23 +22,33 @@
 		</Grid.ColumnDefinitions>
 		<StackPanel>
 			<TextBlock Text="This is Tool Menu" Margin="10" FontSize="18"/>
-			<Button x:Name="AddRectableButton" Content="Add Rectangle" Click="AddRectableButton_Click"/>
-			<Button x:Name="AddGridButton" Content="Add Grid" Click="AddGridButton_Click"/>
-			<Button x:Name="AddEllipseButton" Content="Add Ellipse" Click="AddEllipseButton_Click"/>
-			<Button x:Name="DebugButton" Content="Debug" Click="DebugButton_Click"/>
+			<Button x:Name="AddRectableButton" Content="Add Rectangle" Click="AddRectableButton_Click" Style="{StaticResource MenuButton}"/>
+			<Button x:Name="AddEllipseButton" Content="Add Ellipse" Click="AddEllipseButton_Click" Style="{StaticResource MenuButton}"/>
+			<Button x:Name="DebugButton" Content="Debug" Click="DebugButton_Click" Style="{StaticResource MenuButton}"/>
+			<TabControl>
+				<TabItem Header="1">
+					<Grid>
+						<TextBlock Text="1"/>
+					</Grid>
+				</TabItem>
+				<TabItem Header="2">
+					<Grid>
+						<TextBlock Text="2"/>
+					</Grid>
+				</TabItem>
+				<TabItem Header="3">
+					<Grid>
+						<TextBlock Text="3"/>
+					</Grid>
+				</TabItem>
+			</TabControl>
 		</StackPanel>
 		<Border Grid.Column="1" BorderBrush="Gray" BorderThickness="2,0,0,0" ClipToBounds="True">
-			<Border.RenderTransform>
-				<TranslateTransform X="0" Y="0"/>
-			</Border.RenderTransform>
 			<Grid>
 				<!--Only for detecting contacting canvas through mouse-->
 				<Rectangle x:Name="BackgroundRectangle" Fill="Transparent" MouseDown="BackgroundRectangle_MouseDown" MouseMove="BackgroundRectangle_MouseMove" MouseUp="BackgroundRectangle_MouseUp"/>
 				<Canvas x:Name="MainCanvas" Loaded="MainCanvas_Loaded">
-					<Canvas x:Name="BackgroundCanvas">
-						<!--<Path Stroke="Black" Data="M 10,100 C 10,300 300,-200 300,100" />
-						<Path Stroke="Black" Data="M 0,0 C 80,0 20,100 100,100" />-->
-					</Canvas>
+					<Canvas x:Name="BackgroundCanvas"/>
 					<Canvas.RenderTransform>
 						<TransformGroup>
 							<TranslateTransform x:Name="MainCanvas_TranslateTransform" X="0" Y="0"/>

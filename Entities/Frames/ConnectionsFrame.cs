@@ -31,7 +31,7 @@ namespace MindMap.Entities.Frames {
 		public const short SIZE = 10;
 
 		public readonly Element _target;
-		public FrameworkElement? Framework => _target.Target;
+		public FrameworkElement Framework => _target.Target;
 
 		public ConnectionsFrame(MindMapPage parent, Element target) {
 			this._target = target;
@@ -62,9 +62,6 @@ namespace MindMap.Entities.Frames {
 		}
 
 		public void UpdateConnections() {
-			if(Framework == null) {
-				return;
-			}
 			CalculateStartPositionAndSize(Framework, out Vector2 startPos, out Vector2 size);
 			if(topDots.Count >= 1) {
 				foreach(ConnectionControl top in topDots) {

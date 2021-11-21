@@ -99,7 +99,7 @@ namespace MindMap.Pages {
 
 		public readonly Dictionary<FrameworkElement, Element> elements = new();
 
-		public List<ConnectionControl> GetAllConnectionDots(Element? self) {
+		public List<ConnectionControl> GetAllConnectionDots(Element self) {
 			List<ConnectionControl> result = new();
 			foreach(Element item in elements.Values) {
 				if(item == self) {
@@ -111,25 +111,22 @@ namespace MindMap.Pages {
 		}
 
 		private void AddToElementsDictionary(Element value) {
-			FrameworkElement key = value.CreateFramework();
 			value.CreateConnectionsFrame();
 			value.CreateFlyoutMenu();
-			key.MouseDown += Element_MouseDown;
-			elements.Add(key, value);
+			value.Target.MouseDown += Element_MouseDown;
+			elements.Add(value.Target, value);
 		}
 
 		private void AddElement(Type type) {
 			if(type == typeof(MyRectangle)) {
 				AddToElementsDictionary(new MyRectangle(this));
-			} else if(type == typeof(TextGrid)) {
-				AddToElementsDictionary(new TextGrid(this));
 			} else if(type == typeof(MyEllipse)) {
 				AddToElementsDictionary(new MyEllipse(this));
 			}
 		}
 
 		public void RemoveElement(Element element) {
-			if(element.Target == null || !elements.ContainsKey(element.Target) || !MainCanvas.Children.Contains(element.Target)) {
+			if(!elements.ContainsKey(element.Target) || !MainCanvas.Children.Contains(element.Target)) {
 				return;
 			}
 			Deselect();
@@ -161,10 +158,6 @@ namespace MindMap.Pages {
 
 		private void AddRectableButton_Click(object sender, RoutedEventArgs e) {
 			AddElement(typeof(MyRectangle));
-		}
-
-		private void AddGridButton_Click(object sender, RoutedEventArgs e) {
-			AddElement(typeof(TextGrid));
 		}
 
 		private void AddEllipseButton_Click(object sender, RoutedEventArgs e) {

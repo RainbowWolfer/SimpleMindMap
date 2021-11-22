@@ -25,6 +25,7 @@ namespace MindMap.Entities.Elements {
 		private FontFamily fontFamily;
 		private FontWeight fontWeight;
 		private double fontSize;
+		private Color fontColor;
 
 		public override FrameworkElement Target => _root;
 
@@ -79,10 +80,18 @@ namespace MindMap.Entities.Elements {
 				UpdateStyle();
 			}
 		}
+		public Color FontColor {
+			get => fontColor;
+			set {
+				fontColor = value;
+				UpdateStyle();
+			}
+		}
 
 		public Style TextBlockStyle {
 			get {
 				Style style = new(typeof(TextBlock));
+				style.Setters.Add(new Setter(TextBlock.ForegroundProperty, new SolidColorBrush(FontColor)));
 				style.Setters.Add(new Setter(TextBlock.FontFamilyProperty, FontFamily));
 				style.Setters.Add(new Setter(TextBlock.FontWeightProperty, FontWeight));
 				style.Setters.Add(new Setter(TextBlock.FontSizeProperty, FontSize));
@@ -98,6 +107,7 @@ namespace MindMap.Entities.Elements {
 		public Style TextBoxStyle {
 			get {
 				Style style = new(typeof(TextBox));
+				style.Setters.Add(new Setter(TextBlock.ForegroundProperty, new SolidColorBrush(FontColor)));
 				style.Setters.Add(new Setter(Control.FontFamilyProperty, FontFamily));
 				style.Setters.Add(new Setter(Control.FontWeightProperty, FontWeight));
 				style.Setters.Add(new Setter(Control.FontSizeProperty, FontSize));
@@ -130,6 +140,7 @@ namespace MindMap.Entities.Elements {
 			this.fontFamily = new FontFamily("Microsoft YaHei UI");
 			this.fontWeight = FontWeights.Regular;
 			this.fontSize = 15;
+			this.fontColor = Colors.Black;
 
 			_root = new Border() {
 				Width = 250,
@@ -203,21 +214,8 @@ namespace MindMap.Entities.Elements {
 			MyTextBox.Text = Text;
 		}
 
-		public override List<Panel> CreatePropertiesList() {
-			return new() {
-				PropertiesPanel.ColorInput("Background Color", Background,
-					color => Background = new SolidColorBrush(color)
-				),
-				PropertiesPanel.ColorInput("Border Color", BorderColor,
-					color => BorderColor = new SolidColorBrush(color)
-				),
-				PropertiesPanel.SliderInput("Border Thickness", BorderThickness.Left, 0, 5,
-					value => BorderThickness = new Thickness(value)
-				),
-				PropertiesPanel.FontSelector("Font Family", FontFamily,
-					value => FontFamily = value
-				, FontsList.AvailableFonts),
-			};
+		public override Panel CreateElementProperties() {
+			return new StackPanel();
 		}
 	}
 }

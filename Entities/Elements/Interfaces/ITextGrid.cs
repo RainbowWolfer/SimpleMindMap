@@ -16,6 +16,7 @@ namespace MindMap.Entities.Elements.Interfaces {
 		public FontFamily FontFamily { get; set; }
 		public FontWeight FontWeight { get; set; }
 		public double FontSize { get; set; }
+		public Color FontColor { get; set; }
 
 		public void UpdateText();
 		public void ShowTextBox();

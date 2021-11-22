@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Media;
@@ -14,6 +15,17 @@ namespace MindMap.Entities {
 			StackPanel panel = new();
 			panel.Children.Add(new TextBlock() {
 				Text = $"{title}:",
+			});
+			return panel;
+		}
+
+		public static StackPanel SectionTitle(string title) {
+			StackPanel panel = new();
+			panel.Children.Add(new Separator());
+			panel.Children.Add(new TextBlock() {
+				Text = title,
+				FontSize = 14,
+				HorizontalAlignment = HorizontalAlignment.Center,
 			});
 			return panel;
 		}
@@ -64,13 +76,8 @@ namespace MindMap.Entities {
 			panel.Children.Add(picker);
 			return panel;
 		}
-		public static StackPanel ColorInput(string title, Brush initBrush, Action<Color> OnColorChanged) => ColorInput(title, initBrush is SolidColorBrush solid ? solid.Color : Colors.White, OnColorChanged);
-
-
-		public static StackPanel FontSelector(string title, string initFont, Action<string> OnFontChanged) {
-			StackPanel panel = CreateBase(title);
-
-			return panel;
+		public static StackPanel ColorInput(string title, Brush initBrush, Action<Color> OnColorChanged) {
+			return ColorInput(title, initBrush is SolidColorBrush solid ? solid.Color : Colors.White, OnColorChanged);
 		}
 
 		public static StackPanel FontSelector(string title, FontFamily initFont, Action<FontFamily> OnFontChanged, params string[] availableFonts) {
@@ -88,6 +95,22 @@ namespace MindMap.Entities {
 				}
 			};
 			panel.Children.Add(comboBox);
+			return panel;
+		}
+
+		public static StackPanel ComboSelector<T>(string title, T initData, Action<T> OnValueChanged, params T[] selections) {
+			StackPanel panel = CreateBase(title);
+			ComboBox comboBox = new() {
+				SelectedIndex = selections.ToList().IndexOf(initData),
+			};
+			foreach(T item in selections) {
+				comboBox.Items.Add(new ComboBoxItem() { Content = item });
+			}
+			comboBox.SelectionChanged += (s, e) => {
+				if(e.AddedItems != null && e.AddedItems.Count > 0 && e.AddedItems[0] is ComboBoxItem item) {
+					OnValueChanged.Invoke((T)item.Content);
+				}
+			};
 			return panel;
 		}
 	}

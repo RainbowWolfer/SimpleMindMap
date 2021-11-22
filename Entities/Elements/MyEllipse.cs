@@ -16,6 +16,18 @@ namespace MindMap.Entities.Elements {
 		private readonly Grid _root;
 		private readonly Ellipse _ellipse;
 
+		//public struct Property {
+		//	public string text;
+		//	public FontFamily fontFamily;
+		//	public FontWeight fontWeight;
+		//	public double fontSize;
+		//	public Brush background;
+		//	public Brush borderColor;
+		//	public Thickness borderThickness;
+		//	public Color fontColor;
+		//}
+		//public Property Prop { get; private set; }
+
 		private string text;
 		private FontFamily fontFamily;
 		private FontWeight fontWeight;
@@ -23,6 +35,7 @@ namespace MindMap.Entities.Elements {
 		private Brush background;
 		private Brush borderColor;
 		private Thickness borderThickness;
+		private Color fontColor;
 
 		public override FrameworkElement Target => _root;
 
@@ -43,6 +56,13 @@ namespace MindMap.Entities.Elements {
 		public double FontSize {
 			get => fontSize;
 			set => fontSize = value;
+		}
+		public Color FontColor {
+			get => fontColor;
+			set {
+				fontColor = value;
+				UpdateStyle();
+			}
 		}
 		public Brush Background {
 			get => background;
@@ -181,7 +201,7 @@ namespace MindMap.Entities.Elements {
 			}
 		}
 
-		public override List<Panel> CreatePropertiesList() {
+		public override Panel CreateElementProperties() {
 			throw new NotImplementedException();
 		}
 	}

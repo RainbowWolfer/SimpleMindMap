@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -19,6 +20,14 @@ namespace MindMap.Entities.Connections {
 		private readonly Canvas _mainCanvas;
 
 		public Path Path { get; private set; }
+
+		public Style PathStyle {
+			get {
+				Style style = new(typeof(Path));
+				style.Setters.Add(new Setter(Shape.StrokeThicknessProperty, 2.0));
+				return style;
+			}
+		}
 
 		public bool IsPreview { get; private set; }
 		public ConnectionPath(Canvas mainCanvas, ConnectionControl from, ConnectionControl to) {
@@ -67,6 +76,13 @@ namespace MindMap.Entities.Connections {
 			if(_mainCanvas.Children.Contains(Path)) {
 				_mainCanvas.Children.Remove(Path);
 			}
+		}
+
+		public Panel CreatePropertiesPanel() {
+			StackPanel panel = new();
+			panel.Children.Add(PropertiesPanel.SectionTitle("Connection Path"));
+			//panel.Children.Add(PropertiesPanel.SliderInput("Strock Thickness"));
+			return panel;
 		}
 
 		public void Update(Vector2 to) {

@@ -15,16 +15,18 @@ using System.Windows.Shapes;
 
 namespace MindMap.Pages {
 	public partial class WelcomePage: Page {
-		public WelcomePage() {
+		private readonly MainWindow _mainWindow;
+		public WelcomePage(MainWindow mainWindow) {
 			InitializeComponent();
+			this._mainWindow = mainWindow;
 		}
 
 		private void NewFileButton_Click(object sender, RoutedEventArgs e) {
-			MainWindow.NavigateToMindMap();
+			_mainWindow.NavigateToMindMap();
 		}
 
 		private void OpenFileButton_Click(object sender, RoutedEventArgs e) {
-
+			_mainWindow.OpenFile();
 		}
 
 		private void SettingsButton_Click(object sender, RoutedEventArgs e) {

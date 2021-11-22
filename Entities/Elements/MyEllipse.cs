@@ -1,4 +1,5 @@
 ﻿using MindMap.Entities.Elements.Interfaces;
+using MindMap.Entities.Properties;
 using MindMap.Pages;
 using System;
 using System.Collections.Generic;
@@ -13,20 +14,9 @@ using System.Windows.Shapes;
 
 namespace MindMap.Entities.Elements {
 	public class MyEllipse: Element, ITextGrid, IBorderBasedStyle {
+		public override long TypeID => ID_Ellipse;
 		private readonly Grid _root;
 		private readonly Ellipse _ellipse;
-
-		//public struct Property {
-		//	public string text;
-		//	public FontFamily fontFamily;
-		//	public FontWeight fontWeight;
-		//	public double fontSize;
-		//	public Brush background;
-		//	public Brush borderColor;
-		//	public Thickness borderThickness;
-		//	public Color fontColor;
-		//}
-		//public Property Prop { get; private set; }
 
 		private string text;
 		private FontFamily fontFamily;
@@ -119,6 +109,8 @@ namespace MindMap.Entities.Elements {
 			}
 		}
 
+		public override IProperty Properties => throw new NotImplementedException();
+
 		public MyEllipse(MindMapPage parent) : base(parent) {
 			this.text = "(Hello World)";
 			this.background = Brushes.Gray;
@@ -202,7 +194,7 @@ namespace MindMap.Entities.Elements {
 		}
 
 		public override Panel CreateElementProperties() {
-			throw new NotImplementedException();
+			return new StackPanel();
 		}
 	}
 }

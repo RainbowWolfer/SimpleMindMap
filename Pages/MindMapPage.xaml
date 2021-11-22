@@ -39,7 +39,7 @@
 							</Expander>
 							<Expander Header="Ellipses">
 								<StackPanel>
-									<Button Content="Normal Ellipse" Click="AddRectableButton_Click" Style="{StaticResource MenuButton}"/>
+									<Button Content="Normal Ellipse" Click="AddEllipseButton_Click" Style="{StaticResource MenuButton}"/>
 								</StackPanel>
 							</Expander>
 						</StackPanel>

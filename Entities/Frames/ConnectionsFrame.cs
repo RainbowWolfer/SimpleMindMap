@@ -181,6 +181,7 @@ namespace MindMap.Entities.Frames {
 					found = true;
 					break;
 				}
+				_desiredDot = null;
 			}
 			_parent.Cursor = found ? Cursors.Hand : Cursors.Cross;
 			_parent.UpdatePreviewLine(this, e.GetPosition(_mainCanvas));

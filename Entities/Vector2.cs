@@ -4,13 +4,17 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
+using Newtonsoft.Json;
 
 namespace MindMap.Entities {
+	[Serializable]
 	public struct Vector2 {
 		public double X { get; set; }
 		public double Y { get; set; }
 
+		[JsonIgnore]
 		public int X_Int => (int)Math.Floor(X);
+		[JsonIgnore]
 		public int Y_Int => (int)Math.Floor(Y);
 
 		public static readonly Vector2 Zero = new();

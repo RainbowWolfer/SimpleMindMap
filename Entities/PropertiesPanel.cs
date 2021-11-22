@@ -111,6 +111,12 @@ namespace MindMap.Entities {
 					OnValueChanged.Invoke((T)item.Content);
 				}
 			};
+			panel.Children.Add(comboBox);
+			return panel;
+		}
+
+		public static StackPanel DuoNumberInput(string title) {
+			StackPanel panel = CreateBase(title);
 			return panel;
 		}
 	}

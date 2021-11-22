@@ -17,6 +17,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using static MindMap.Entities.Locals.Local;
 
 namespace MindMap.Pages {
 	public partial class MindMapPage: Page {//Editor Page
@@ -30,6 +31,16 @@ namespace MindMap.Pages {
 			SizeChanged += (s, e) => UpdateBackgroundDot();
 
 			HideElementProperties();
+		}
+
+		public void Load(ElementInfo[] infos) {
+			foreach(ElementInfo info in infos) {
+				AddToElementsDictionary(info.element_id switch {
+					Element.ID_Rectangle => new MyRectangle(this),
+					Element.ID_Ellipse => new MyEllipse(this),
+					_ => throw new Exception($"ID{info.element_id} Not Found"),
+				}, info.position);
+			}
 		}
 
 		private void DebugButton_Click(object sender, RoutedEventArgs e) {
@@ -103,6 +114,10 @@ namespace MindMap.Pages {
 			}
 		}
 
+		public void ShowElementProperties(ConnectionPath path) {
+
+		}
+
 		public void HideElementProperties() {
 			ElementPropertiesPanel.Children.Clear();
 			ElementPropertiesPanel.Children.Add(new TextBlock() {
@@ -124,18 +139,19 @@ namespace MindMap.Pages {
 			return result;
 		}
 
-		private void AddToElementsDictionary(Element value) {
+		private void AddToElementsDictionary(Element value, Vector2 position) {
 			value.CreateConnectionsFrame();
 			value.CreateFlyoutMenu();
+			value.SetPosition(position);
 			value.Target.MouseDown += Element_MouseDown;
 			elements.Add(value.Target, value);
 		}
 
 		private void AddElement(Type type) {
 			if(type == typeof(MyRectangle)) {
-				AddToElementsDictionary(new MyRectangle(this));
+				AddToElementsDictionary(new MyRectangle(this), Vector2.Zero);
 			} else if(type == typeof(MyEllipse)) {
-				AddToElementsDictionary(new MyEllipse(this));
+				AddToElementsDictionary(new MyEllipse(this), Vector2.Zero);
 			}
 		}
 

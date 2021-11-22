@@ -11,22 +11,38 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Shapes;
+using Newtonsoft.Json;
+using MindMap.Entities.Properties;
 
 namespace MindMap.Entities.Elements {
+	[JsonObject(MemberSerialization.OptIn)]
 	public abstract class Element {
-		public long ID { get; private set; }
+		public abstract long TypeID { get; }
+		public const long ID_Rectangle = 1;
+		public const long ID_Ellipse = 2;
+
 		protected MindMapPage parent;
 
 		protected ConnectionsFrame? connectionsFrame;
 		protected Canvas MainCanvas => parent.MainCanvas;
 
 		public abstract FrameworkElement Target { get; }
+		public abstract IProperty Properties { get; }
 
 		public Element(MindMapPage parent) {
 			this.parent = parent;
-			ID = DateTime.Now.Ticks + GetHashCode();
 		}
 
+		public Vector2 GetSize => new(Target.Width, Target.Height);
+		public void SetSize(Vector2 size) {
+			Target.Width = size.X;
+			Target.Height = size.Y;
+		}
+		public Vector2 GetPosition() => new(Canvas.GetLeft(Target), Canvas.GetTop(Target));
+		public void SetPosition(Vector2 position) {
+			Canvas.SetLeft(Target, position.X);
+			Canvas.SetTop(Target, position.Y);
+		}
 		public void CreateConnectionsFrame() {
 			connectionsFrame = new ConnectionsFrame(this.parent, this);
 		}
@@ -70,10 +86,10 @@ namespace MindMap.Entities.Elements {
 					PropertiesPanel.FontSelector("Font Family", text.FontFamily,
 						value => text.FontFamily = value
 					, FontsList.AvailableFonts),
-					PropertiesPanel.ComboSelector("Font Weight",text.FontWeight,
+					PropertiesPanel.ComboSelector("Font Weight", text.FontWeight,
 						value => text.FontWeight=value
-					,FontsList.AllFontWeights),
-					PropertiesPanel.SliderInput("Font Size", text.FontSize, 5, 42, 
+					, FontsList.AllFontWeights),
+					PropertiesPanel.SliderInput("Font Size", text.FontSize, 5, 42,
 						value => text.FontSize = value
 					, 1, 0),
 					PropertiesPanel.ColorInput("Font Color", text.FontColor,

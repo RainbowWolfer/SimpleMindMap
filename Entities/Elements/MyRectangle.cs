@@ -1,4 +1,5 @@
 ﻿using MindMap.Entities.Elements.Interfaces;
+using MindMap.Entities.Properties;
 using MindMap.Pages;
 using System;
 using System.Collections.Generic;
@@ -12,78 +13,101 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Media;
 using System.Windows.Shapes;
 using Xceed.Wpf.Toolkit;
+using Newtonsoft.Json;
 
 namespace MindMap.Entities.Elements {
 	public class MyRectangle: Element, ITextGrid, IBorderBasedStyle {
+		public override long TypeID => ID_Rectangle;
+
 		private readonly Border _root;
 		private readonly Grid _container;
+		private struct Property: IProperty {
+			public string text;
+			public Brush background;
+			public Brush borderColor;
+			public Thickness borderThickness;
+			public FontFamily fontFamily;
+			public FontWeight fontWeight;
+			public double fontSize;
+			public Color fontColor;
+			public CornerRadius cornerRadius;
+			public void Udpate() {
 
-		private string text;
-		private Brush background;
-		private Brush borderColor;
-		private Thickness borderThickness;
-		private FontFamily fontFamily;
-		private FontWeight fontWeight;
-		private double fontSize;
-		private Color fontColor;
+			}
+			public void Translate(string json) {
+				var v = JsonConvert.DeserializeObject<Property>(json);
+				Debug.WriteLine(v);
+				//to be tested
+			}
+		}
 
+		private Property property = new();
+		public override IProperty Properties => property;
 		public override FrameworkElement Target => _root;
 
 		public TextBox MyTextBox { get; set; }
 		public TextBlock MyTextBlock { get; set; }
 		public string Text {
-			get => text;
+			get => property.text;
 			set {
-				text = value;
+				property.text = value;
 				UpdateText();
 			}
 		}
 		public Brush Background {
-			get => background;
+			get => property.background;
 			set {
-				background = value;
+				property.background = value;
 				UpdateStyle();
 			}
 		}
 		public Brush BorderColor {
-			get => borderColor;
+			get => property.borderColor;
 			set {
-				borderColor = value;
+				property.borderColor = value;
 				UpdateStyle();
 			}
 		}
 		public Thickness BorderThickness {
-			get => borderThickness;
+			get => property.borderThickness;
 			set {
-				borderThickness = value;
+				property.borderThickness = value;
 				UpdateStyle();
 			}
 		}
 		public FontFamily FontFamily {
-			get => fontFamily;
+			get => property.fontFamily;
 			set {
-				fontFamily = value;
+				property.fontFamily = value;
 				UpdateStyle();
 			}
 		}
 		public FontWeight FontWeight {
-			get => fontWeight;
+			get => property.fontWeight;
 			set {
-				fontWeight = value;
+				property.fontWeight = value;
 				UpdateStyle();
 			}
 		}
 		public double FontSize {
-			get => fontSize;
+			get => property.fontSize;
 			set {
-				fontSize = value;
+				property.fontSize = value;
 				UpdateStyle();
 			}
 		}
 		public Color FontColor {
-			get => fontColor;
+			get => property.fontColor;
 			set {
-				fontColor = value;
+				property.fontColor = value;
+				UpdateStyle();
+			}
+		}
+
+		public CornerRadius CornerRadius {
+			get => property.cornerRadius;
+			set {
+				property.cornerRadius = value;
 				UpdateStyle();
 			}
 		}
@@ -128,19 +152,22 @@ namespace MindMap.Entities.Elements {
 				style.Setters.Add(new Setter(Border.BackgroundProperty, Background));
 				style.Setters.Add(new Setter(Border.BorderBrushProperty, BorderColor));
 				style.Setters.Add(new Setter(Border.BorderThicknessProperty, BorderThickness));
+				style.Setters.Add(new Setter(Border.CornerRadiusProperty, CornerRadius));
 				return style;
 			}
 		}
 
+
 		public MyRectangle(MindMapPage parent) : base(parent) {
-			this.text = "(Hello World)";
-			this.background = Brushes.Gray;
-			this.borderColor = Brushes.SkyBlue;
-			this.borderThickness = new Thickness(2);
-			this.fontFamily = new FontFamily("Microsoft YaHei UI");
-			this.fontWeight = FontWeights.Regular;
-			this.fontSize = 15;
-			this.fontColor = Colors.Black;
+			property.text = "(Hello World)";
+			property.background = Brushes.Gray;
+			property.borderColor = Brushes.SkyBlue;
+			property.borderThickness = new Thickness(2);
+			property.fontFamily = new FontFamily("Microsoft YaHei UI");
+			property.fontWeight = FontWeights.Regular;
+			property.fontSize = 15;
+			property.fontColor = Colors.Black;
+			property.cornerRadius = new CornerRadius(0);
 
 			_root = new Border() {
 				Width = 250,
@@ -158,7 +185,6 @@ namespace MindMap.Entities.Elements {
 			ShowTextBlock();
 
 			MainCanvas.Children.Add(_root);
-
 			UpdateStyle();
 			UpdateText();
 		}
@@ -215,7 +241,12 @@ namespace MindMap.Entities.Elements {
 		}
 
 		public override Panel CreateElementProperties() {
-			return new StackPanel();
+			StackPanel panel = new();
+			panel.Children.Add(PropertiesPanel.SectionTitle("Rectangle"));
+			panel.Children.Add(PropertiesPanel.SliderInput("Cornder Radius", CornerRadius.TopLeft, 0, 100,
+				value => CornerRadius = new CornerRadius(value)
+			));
+			return panel;
 		}
 	}
 }

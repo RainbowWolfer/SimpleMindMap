@@ -39,7 +39,7 @@ namespace MindMap.Pages {
 					Element.ID_Rectangle => new MyRectangle(this),
 					Element.ID_Ellipse => new MyEllipse(this),
 					_ => throw new Exception($"ID{info.element_id} Not Found"),
-				}, info.position);
+				}, info.position, info.size);
 			}
 		}
 
@@ -139,10 +139,13 @@ namespace MindMap.Pages {
 			return result;
 		}
 
-		private void AddToElementsDictionary(Element value, Vector2 position) {
+		private void AddToElementsDictionary(Element value, Vector2 position, Vector2 size = default) {
+			value.SetPosition(position);
+			if(size != default) {
+				value.SetSize(size);
+			}
 			value.CreateConnectionsFrame();
 			value.CreateFlyoutMenu();
-			value.SetPosition(position);
 			value.Target.MouseDown += Element_MouseDown;
 			elements.Add(value.Target, value);
 		}

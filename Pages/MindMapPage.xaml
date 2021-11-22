@@ -32,12 +32,12 @@
 				<TabItem Header="Elements" Width="83">
 					<ScrollViewer VerticalScrollBarVisibility="Auto">
 						<StackPanel>
-							<Expander Header="Rectangles">
+							<Expander Header="Rectangles" IsExpanded="True">
 								<StackPanel>
 									<Button Content="Normal Rectangle" Click="AddRectableButton_Click" Style="{StaticResource MenuButton}"/>
 								</StackPanel>
 							</Expander>
-							<Expander Header="Ellipses">
+							<Expander Header="Ellipses" IsExpanded="True">
 								<StackPanel>
 									<Button Content="Normal Ellipse" Click="AddEllipseButton_Click" Style="{StaticResource MenuButton}"/>
 								</StackPanel>

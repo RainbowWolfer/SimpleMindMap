@@ -33,7 +33,7 @@ namespace MindMap.Entities.Elements {
 			this.parent = parent;
 		}
 
-		public Vector2 GetSize => new(Target.Width, Target.Height);
+		public Vector2 GetSize() => new(Target.Width, Target.Height);
 		public void SetSize(Vector2 size) {
 			Target.Width = size.X;
 			Target.Height = size.Y;

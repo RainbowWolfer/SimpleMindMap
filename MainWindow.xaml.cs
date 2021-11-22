@@ -45,7 +45,7 @@ namespace MindMap {
 			}
 			string json = await File.ReadAllTextAsync("WriteText.txt");
 			Debug.WriteLine(json);
-			var result = Local.Load(json);
+			Local.ElementInfo[] result = Local.Load(json);
 			_mindMapPage?.Load(result);
 		}
 

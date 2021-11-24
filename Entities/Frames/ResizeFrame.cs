@@ -13,6 +13,8 @@ using System.Windows.Shapes;
 namespace MindMap.Entities.Frames {
 	public class ResizeFrame {
 		public static ResizeFrame? Current { get; set; }
+		public const double SIZE = 15;
+		public const double STROKE = 3;
 		public static ResizeFrame Create(MindMapPage parent, FrameworkElement target) {
 			Canvas mainCanvas = parent.MainCanvas;
 			Current?.ClearResizeFrame(mainCanvas);
@@ -20,7 +22,7 @@ namespace MindMap.Entities.Frames {
 			Style style_line = new(typeof(Line));
 			style_line.Setters.Add(new Setter(Shape.StrokeProperty, Brushes.Black));
 			style_line.Setters.Add(new Setter(Shape.StrokeDashArrayProperty, new DoubleCollection(new double[] { 3, 0.5 })));
-			style_line.Setters.Add(new Setter(Shape.StrokeThicknessProperty, (double)3));
+			style_line.Setters.Add(new Setter(Shape.StrokeThicknessProperty, STROKE));
 
 			//line pattern cannot handle mousedown, consider using rectangle -> stroke
 			Line top = new() { Style = style_line };
@@ -35,8 +37,8 @@ namespace MindMap.Entities.Frames {
 
 			Style style_rect = new(typeof(Rectangle));
 			style_rect.Setters.Add(new Setter(Shape.FillProperty, Brushes.Transparent));
-			style_rect.Setters.Add(new Setter(FrameworkElement.WidthProperty, (double)10));
-			style_rect.Setters.Add(new Setter(FrameworkElement.HeightProperty, (double)10));
+			style_rect.Setters.Add(new Setter(FrameworkElement.WidthProperty, SIZE));
+			style_rect.Setters.Add(new Setter(FrameworkElement.HeightProperty, SIZE));
 			style_rect.Setters.Add(new Setter(Shape.StrokeThicknessProperty, (double)3));
 			style_rect.Setters.Add(new Setter(Shape.StrokeProperty, Brushes.Black));
 			style_rect.Setters.Add(new Setter(Shape.StrokeDashArrayProperty, new DoubleCollection(new double[] { 3, 1 })));

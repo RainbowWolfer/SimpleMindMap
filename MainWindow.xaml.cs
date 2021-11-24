@@ -45,8 +45,10 @@ namespace MindMap {
 			}
 			string json = await File.ReadAllTextAsync("WriteText.txt");
 			Debug.WriteLine(json);
-			Local.ElementInfo[] result = Local.Load(json);
-			_mindMapPage?.Load(result);
+			Local.EverythingInfo? result = Local.Load(json);
+			if(result != null) {
+				_mindMapPage?.Load(result);
+			}
 		}
 
 		private void NewFileMenuItem_Click(object sender, RoutedEventArgs e) {

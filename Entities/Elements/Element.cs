@@ -15,11 +15,12 @@ using Newtonsoft.Json;
 using MindMap.Entities.Properties;
 
 namespace MindMap.Entities.Elements {
-	[JsonObject(MemberSerialization.OptIn)]
 	public abstract class Element {
 		public abstract long TypeID { get; }
 		public const long ID_Rectangle = 1;
 		public const long ID_Ellipse = 2;
+
+		public abstract string ID { get; protected set; }
 
 		protected MindMapPage parent;
 
@@ -33,6 +34,9 @@ namespace MindMap.Entities.Elements {
 			this.parent = parent;
 		}
 
+		protected string AssignID(Type type) => $"{type.Name} ({parent.elements.Count + 1})";
+		protected string AssignID(string type) => $"{type} ({parent.elements.Count + 1})";
+
 		public Vector2 GetSize() => new(Target.Width, Target.Height);
 		public void SetSize(Vector2 size) {
 			Target.Width = size.X;
@@ -43,8 +47,13 @@ namespace MindMap.Entities.Elements {
 			Canvas.SetLeft(Target, position.X);
 			Canvas.SetTop(Target, position.Y);
 		}
+
 		public void CreateConnectionsFrame() {
 			connectionsFrame = new ConnectionsFrame(this.parent, this);
+		}
+
+		public ConnectionControl? GetConnectionControlByID(string id) {
+			return connectionsFrame?.GetControlByID(id);
 		}
 
 		public void UpdateConnectionsFrame() {//also includes connected dots

@@ -1,4 +1,5 @@
 ﻿using MindMap.Entities.Frames;
+using MindMap.Pages;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -6,14 +7,19 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Controls;
+using static MindMap.Entities.Locals.Local;
 
 namespace MindMap.Entities.Connections {
 	public static class ConnectionsManager {
 		private static List<Connection> Connections { get; } = new();
 		private static Canvas? _mainCanvas;
+		private static MindMapPage? _parent;
 
-		public static void Initialize(Canvas mainCanvas) {
-			_mainCanvas = mainCanvas;
+		public static ConnectionPath? CurrentSelection { get; set; }
+
+		public static void Initialize(MindMapPage mindMapPage) {
+			_parent = mindMapPage;
+			_mainCanvas = mindMapPage.MainCanvas;
 		}
 
 		public static bool CheckDuplicate(ConnectionControl from, ConnectionControl to) {
@@ -58,12 +64,29 @@ namespace MindMap.Entities.Connections {
 			}
 		}
 
+		public static void ShowProperties(ConnectionPath path) {
+			_parent?.ShowConnectionPathProperties(path);
+		}
+
 		public static void DebugConnections() {
 			Debug.WriteLine("START");
 			foreach(Connection c in Connections) {
-				Debug.WriteLine($"{c.Path} | {c.From} | {c.To}");
+				Debug.WriteLine($"{c.Path} | {c.From.ID} | {c.To.ID}");
 			}
 			Debug.WriteLine("END");
+		}
+
+		public static ConnectionInfo[] ConvertInfo() {
+			List<ConnectionInfo> result = new();
+			foreach(Connection item in Connections) {
+				result.Add(new ConnectionInfo(
+					item.From.Parent_ID,
+					item.From.ID,
+					item.To.Parent_ID,
+					item.To.ID
+				));
+			}
+			return result.ToArray();
 		}
 
 		private class Connection {

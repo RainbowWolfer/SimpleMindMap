@@ -18,6 +18,7 @@ using Newtonsoft.Json;
 namespace MindMap.Entities.Elements {
 	public class MyRectangle: Element, ITextGrid, IBorderBasedStyle {
 		public override long TypeID => ID_Rectangle;
+		public override string ID { get; protected set; }
 
 		private readonly Border _root;
 		private readonly Grid _container;
@@ -34,10 +35,8 @@ namespace MindMap.Entities.Elements {
 			public void Udpate() {
 
 			}
-			public void Translate(string json) {
-				var v = JsonConvert.DeserializeObject<Property>(json);
-				Debug.WriteLine(v);
-				//to be tested
+			public IProperty Translate(string json) {
+				return JsonConvert.DeserializeObject<Property>(json);
 			}
 		}
 
@@ -159,6 +158,7 @@ namespace MindMap.Entities.Elements {
 
 
 		public MyRectangle(MindMapPage parent) : base(parent) {
+			ID = AssignID("Rectangle");
 			property.text = "(Hello World)";
 			property.background = Brushes.Gray;
 			property.borderColor = Brushes.SkyBlue;
@@ -175,15 +175,30 @@ namespace MindMap.Entities.Elements {
 			};
 			_root.SetValue(Canvas.TopProperty, 0.0);
 			_root.SetValue(Canvas.LeftProperty, 0.0);
-
 			_container = new Grid();
 			_root.Child = _container;
-
 			MyTextBox = new TextBox();
 			MyTextBlock = new TextBlock();
-
 			ShowTextBlock();
+			MainCanvas.Children.Add(_root);
+			UpdateStyle();
+			UpdateText();
+		}
 
+		public MyRectangle(MindMapPage parent, string id, string propertiesJson) : base(parent) {
+			ID = id;
+			property = (Property)property.Translate(propertiesJson);
+			_root = new Border() {
+				Width = 250,
+				Height = 250,
+			};
+			_root.SetValue(Canvas.TopProperty, 0.0);
+			_root.SetValue(Canvas.LeftProperty, 0.0);
+			_container = new Grid();
+			_root.Child = _container;
+			MyTextBox = new TextBox();
+			MyTextBlock = new TextBlock();
+			ShowTextBlock();
 			MainCanvas.Children.Add(_root);
 			UpdateStyle();
 			UpdateText();
@@ -242,7 +257,7 @@ namespace MindMap.Entities.Elements {
 
 		public override Panel CreateElementProperties() {
 			StackPanel panel = new();
-			panel.Children.Add(PropertiesPanel.SectionTitle("Rectangle"));
+			panel.Children.Add(PropertiesPanel.SectionTitle($"{ID}"));
 			panel.Children.Add(PropertiesPanel.SliderInput("Cornder Radius", CornerRadius.TopLeft, 0, 100,
 				value => CornerRadius = new CornerRadius(value)
 			));

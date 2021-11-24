@@ -1,6 +1,7 @@
 ﻿using MindMap.Entities.Elements.Interfaces;
 using MindMap.Entities.Properties;
 using MindMap.Pages;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,57 +15,90 @@ using System.Windows.Shapes;
 
 namespace MindMap.Entities.Elements {
 	public class MyEllipse: Element, ITextGrid, IBorderBasedStyle {
+		public override string ID { get; protected set; }
 		public override long TypeID => ID_Ellipse;
 		private readonly Grid _root;
 		private readonly Ellipse _ellipse;
 
-		private string text;
-		private FontFamily fontFamily;
-		private FontWeight fontWeight;
-		private double fontSize;
-		private Brush background;
-		private Brush borderColor;
-		private Thickness borderThickness;
-		private Color fontColor;
+		private struct Property: IProperty {
+			public string text;
+			public FontFamily fontFamily;
+			public FontWeight fontWeight;
+			public double fontSize;
+			public Brush background;
+			public Brush borderColor;
+			public Thickness borderThickness;
+			public Color fontColor;
+			public IProperty Translate(string json) {
+				return JsonConvert.DeserializeObject<Property>(json);
+			}
+
+			public void Udpate() {
+
+			}
+		}
+		private Property property = new();
+		public override IProperty Properties => property;
 
 		public override FrameworkElement Target => _root;
 
 		public TextBox MyTextBox { get; set; }
 		public TextBlock MyTextBlock { get; set; }
 		public string Text {
-			get => text;
-			set => text = value;
+			get => property.text;
+			set {
+				property.text = value;
+				UpdateText();
+			}
 		}
 		public FontFamily FontFamily {
-			get => fontFamily;
-			set => fontFamily = value;
+			get => property.fontFamily;
+			set {
+				property.fontFamily = value;
+				UpdateStyle();
+			}
 		}
 		public FontWeight FontWeight {
-			get => fontWeight;
-			set => fontWeight = value;
+			get => property.fontWeight;
+			set {
+				property.fontWeight = value;
+				UpdateStyle();
+			}
 		}
 		public double FontSize {
-			get => fontSize;
-			set => fontSize = value;
+			get => property.fontSize;
+			set {
+				property.fontSize = value;
+				UpdateStyle();
+			}
 		}
 		public Color FontColor {
-			get => fontColor;
+			get => property.fontColor;
 			set {
-				fontColor = value;
+				property.fontColor = value;
 				UpdateStyle();
 			}
 		}
 		public Brush Background {
-			get => background;
-			set => background = value;
+			get => property.background;
+			set {
+				property.background = value;
+				UpdateStyle();
+			}
 		}
 		public Brush BorderColor {
-			get => borderColor;
-			set => borderColor = value;
+			get => property.borderColor;
+			set {
+				property.borderColor = value;
+				UpdateStyle();
+			}
 		}
 		public Thickness BorderThickness {
-			get => borderThickness;
-			set => borderThickness = value;
+			get => property.borderThickness;
+			set {
+				property.borderThickness = value;
+				UpdateStyle();
+			}
 		}
 
 		public Style TextBlockStyle {
@@ -74,6 +108,7 @@ namespace MindMap.Entities.Elements {
 				style.Setters.Add(new Setter(TextBlock.FontWeightProperty, FontWeight));
 				style.Setters.Add(new Setter(TextBlock.FontSizeProperty, FontSize));
 				style.Setters.Add(new Setter(TextBlock.PaddingProperty, new Thickness(10)));
+				style.Setters.Add(new Setter(Control.ForegroundProperty, new SolidColorBrush(FontColor)));
 				style.Setters.Add(new Setter(TextBlock.TextWrappingProperty, TextWrapping.Wrap));
 				style.Setters.Add(new Setter(TextBlock.TextAlignmentProperty, TextAlignment.Center));
 				style.Setters.Add(new Setter(FrameworkElement.HorizontalAlignmentProperty, HorizontalAlignment.Center));
@@ -88,6 +123,7 @@ namespace MindMap.Entities.Elements {
 				style.Setters.Add(new Setter(Control.FontFamilyProperty, FontFamily));
 				style.Setters.Add(new Setter(Control.FontWeightProperty, FontWeight));
 				style.Setters.Add(new Setter(Control.FontSizeProperty, FontSize));
+				style.Setters.Add(new Setter(Control.ForegroundProperty, new SolidColorBrush(FontColor)));
 				style.Setters.Add(new Setter(Control.PaddingProperty, new Thickness(10)));
 				style.Setters.Add(new Setter(TextBox.TextWrappingProperty, TextWrapping.Wrap));
 				style.Setters.Add(new Setter(TextBox.TextAlignmentProperty, TextAlignment.Center));
@@ -105,20 +141,21 @@ namespace MindMap.Entities.Elements {
 				Style style = new(typeof(Ellipse));
 				style.Setters.Add(new Setter(Shape.FillProperty, Background));
 				style.Setters.Add(new Setter(Shape.StrokeProperty, BorderColor));
+				style.Setters.Add(new Setter(Shape.StrokeThicknessProperty, BorderThickness.Top));
 				return style;
 			}
 		}
 
-		public override IProperty Properties => throw new NotImplementedException();
-
 		public MyEllipse(MindMapPage parent) : base(parent) {
-			this.text = "(Hello World)";
-			this.background = Brushes.Gray;
-			this.borderColor = Brushes.SkyBlue;
-			this.borderThickness = new Thickness(2);
-			this.fontFamily = new FontFamily("Microsoft YaHei UI");
-			this.fontWeight = FontWeights.Regular;
-			this.fontSize = 15;
+			ID = AssignID("Ellipes");
+			property.text = "(Hello World)";
+			property.background = Brushes.Gray;
+			property.borderColor = Brushes.SkyBlue;
+			property.borderThickness = new Thickness(2);
+			property.fontFamily = new FontFamily("Microsoft YaHei UI");
+			property.fontWeight = FontWeights.Regular;
+			property.fontSize = 15;
+			property.fontColor = Colors.Black;
 
 			_root = new Grid() {
 				Width = 250,
@@ -126,21 +163,33 @@ namespace MindMap.Entities.Elements {
 			};
 			_root.SetValue(Canvas.TopProperty, 0.0);
 			_root.SetValue(Canvas.LeftProperty, 0.0);
-
 			_ellipse = new Ellipse();
 			MyTextBlock = new TextBlock();
 			MyTextBox = new TextBox();
-
 			_root.Children.Add(_ellipse);
 			ShowTextBlock();
-
 			MainCanvas.Children.Add(_root);
-
 			UpdateStyle();
 			UpdateText();
-
 		}
-
+		public MyEllipse(MindMapPage parent, string id, string propertiesJson) : base(parent) {
+			ID = id;
+			property = (Property)property.Translate(propertiesJson);
+			_root = new Grid() {
+				Width = 250,
+				Height = 250,
+			};
+			_root.SetValue(Canvas.TopProperty, 0.0);
+			_root.SetValue(Canvas.LeftProperty, 0.0);
+			_ellipse = new Ellipse();
+			MyTextBlock = new TextBlock();
+			MyTextBox = new TextBox();
+			_root.Children.Add(_ellipse);
+			ShowTextBlock();
+			MainCanvas.Children.Add(_root);
+			UpdateStyle();
+			UpdateText();
+		}
 
 		public override void Deselect() {
 			ShowTextBlock();

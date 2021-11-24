@@ -20,11 +20,7 @@ namespace MindMap.Entities.Frames {
 		public readonly List<ConnectionControl> leftDots = new();
 		public readonly List<ConnectionControl> rightDots = new();
 
-		public List<ConnectionControl> AllDots {
-			get {
-				return topDots.Concat(botDots.Concat(leftDots.Concat(rightDots))).ToList();
-			}
-		}
+		public List<ConnectionControl> AllDots => topDots.Concat(botDots.Concat(leftDots.Concat(rightDots))).ToList();
 
 		//public readonly List<ConnectionPath> connected = new();//by others
 
@@ -54,6 +50,10 @@ namespace MindMap.Entities.Frames {
 			rightDots.Add(new ConnectionControl(this, parent, right));
 
 			UpdateConnections();
+		}
+
+		public ConnectionControl? GetControlByID(string id) {
+			return AllDots.Find(d => d.ID == id);
 		}
 
 		private static void CalculateStartPositionAndSize(FrameworkElement target, out Vector2 startPos, out Vector2 size) {
@@ -109,7 +109,12 @@ namespace MindMap.Entities.Frames {
 
 	}
 
+	/// <summary>
+	/// This represents dot around the element
+	/// </summary>
 	public class ConnectionControl {
+		public string Parent_ID => container._target.ID;
+		public string ID { get; private set; }
 		public readonly Ellipse target;
 		public readonly ConnectionsFrame container;
 
@@ -121,6 +126,7 @@ namespace MindMap.Entities.Frames {
 		private ConnectionControl? _desiredDot;
 		private const double MIN_CONNECTION_DISTANCE = 5.0;
 		public ConnectionControl(ConnectionsFrame container, MindMapPage parent, Ellipse target) {
+			this.ID = $"{container.AllDots.Count + 1}";
 			this.container = container;
 			this._mainCanvas = parent.MainCanvas;
 			this._parent = parent;

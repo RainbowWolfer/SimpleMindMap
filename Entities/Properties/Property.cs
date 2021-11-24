@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 
 namespace MindMap.Entities.Properties {
 	public interface IProperty {
-		public void Udpate();
-		public void Translate(string json);
+		public IProperty Translate(string json);
 	}
 }

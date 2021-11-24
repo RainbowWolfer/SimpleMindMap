@@ -2,6 +2,7 @@
 using MindMap.Entities.Connections;
 using MindMap.Entities.Elements;
 using MindMap.Entities.Frames;
+using MindMap.Entities.Locals;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -17,13 +18,12 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
-using static MindMap.Entities.Locals.Local;
 
 namespace MindMap.Pages {
 	public partial class MindMapPage: Page {//Editor Page
 		public MindMapPage() {
 			InitializeComponent();
-			ConnectionsManager.Initialize(MainCanvas);
+			ConnectionsManager.Initialize(this);
 
 			MainCanvas.MouseMove += MainCanvas_MouseMove;
 			MainCanvas.MouseUp += MainCanvas_MouseUp;
@@ -33,13 +33,23 @@ namespace MindMap.Pages {
 			HideElementProperties();
 		}
 
-		public void Load(ElementInfo[] infos) {
-			foreach(ElementInfo info in infos) {
-				AddToElementsDictionary(info.element_id switch {
-					Element.ID_Rectangle => new MyRectangle(this),
-					Element.ID_Ellipse => new MyEllipse(this),
-					_ => throw new Exception($"ID{info.element_id} Not Found"),
-				}, info.position, info.size);
+		public void Load(Local.EverythingInfo info) {
+			foreach(Local.ElementInfo ele in info.elements) {
+				AddToElementsDictionary(ele.type_id switch {
+					Element.ID_Rectangle => new MyRectangle(this, ele.element_id, ele.propertyJson),
+					Element.ID_Ellipse => new MyEllipse(this, ele.element_id, ele.propertyJson),
+					_ => throw new Exception($"ID{ele.type_id} Not Found"),
+				}, ele.position, ele.size);
+			}
+			foreach(Local.ConnectionInfo item in info.connections) {
+				Element? from = elements.Select(e => e.Value).ToList().Find(i => i.ID == item.from_parent_id);
+				ConnectionControl? fromDot = from?.GetConnectionControlByID(item.from_dot_id);
+				Element? to = elements.Select(e => e.Value).ToList().Find(i => i.ID == item.to_parent_id);
+				ConnectionControl? toDot = to?.GetConnectionControlByID(item.to_dot_id);
+				if(from == null || to == null || fromDot == null || toDot == null) {
+					continue;
+				}
+				ConnectionsManager.Add(fromDot, toDot);
 			}
 		}
 
@@ -61,6 +71,7 @@ namespace MindMap.Pages {
 			if(Selection != null && elements.ContainsKey(Selection.target)) {
 				elements[Selection.target].Deselect();
 			}
+			ConnectionsManager.CurrentSelection?.Deselect();
 			HideElementProperties();
 		}
 
@@ -114,8 +125,11 @@ namespace MindMap.Pages {
 			}
 		}
 
-		public void ShowElementProperties(ConnectionPath path) {
-
+		public void ShowConnectionPathProperties(ConnectionPath path) {
+			Deselect();
+			ClearResizePanel();
+			ElementPropertiesPanel.Children.Clear();
+			ElementPropertiesPanel.Children.Add(path.CreatePropertiesPanel());
 		}
 
 		public void HideElementProperties() {

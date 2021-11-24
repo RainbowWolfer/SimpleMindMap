@@ -49,7 +49,7 @@ namespace MindMap.Pages {
 				if(from == null || to == null || fromDot == null || toDot == null) {
 					continue;
 				}
-				ConnectionsManager.Add(fromDot, toDot);
+				ConnectionsManager.Add(fromDot, toDot, item.propertyJson);
 			}
 		}
 
@@ -67,11 +67,13 @@ namespace MindMap.Pages {
 			}
 		}
 
-		public void Deselect() {
+		public void Deselect(bool includePath = true) {
 			if(Selection != null && elements.ContainsKey(Selection.target)) {
 				elements[Selection.target].Deselect();
 			}
-			ConnectionsManager.CurrentSelection?.Deselect();
+			if(includePath) {
+				ConnectionsManager.CurrentSelection?.Deselect();
+			}
 			HideElementProperties();
 		}
 
@@ -126,7 +128,7 @@ namespace MindMap.Pages {
 		}
 
 		public void ShowConnectionPathProperties(ConnectionPath path) {
-			Deselect();
+			Deselect(false);
 			ClearResizePanel();
 			ElementPropertiesPanel.Children.Clear();
 			ElementPropertiesPanel.Children.Add(path.CreatePropertiesPanel());

@@ -32,10 +32,6 @@ namespace MindMap.Entities.Elements {
 			public IProperty Translate(string json) {
 				return JsonConvert.DeserializeObject<Property>(json);
 			}
-
-			public void Udpate() {
-
-			}
 		}
 		private Property property = new();
 		public override IProperty Properties => property;

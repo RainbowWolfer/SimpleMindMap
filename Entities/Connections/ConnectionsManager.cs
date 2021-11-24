@@ -1,5 +1,6 @@
 ﻿using MindMap.Entities.Frames;
 using MindMap.Pages;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -26,11 +27,14 @@ namespace MindMap.Entities.Connections {
 			return Connections.Any(c => c.From == from && c.To == to);
 		}
 
-		public static void Add(ConnectionControl from, ConnectionControl to) {
+		public static void Add(ConnectionControl from, ConnectionControl to, string? propertyJson = null) {
 			if(_mainCanvas == null || CheckDuplicate(from, to)) {
 				return;
 			}
-			Connections.Add(new Connection(new ConnectionPath(_mainCanvas, from, to), from, to));
+			Connections.Add(new Connection(string.IsNullOrEmpty(propertyJson) ?
+				new ConnectionPath(_mainCanvas, from, to) : 
+				new ConnectionPath(_mainCanvas, from, to, propertyJson)
+			, from, to));
 		}
 
 		public static void Remove(ConnectionPath path) {
@@ -83,7 +87,8 @@ namespace MindMap.Entities.Connections {
 					item.From.Parent_ID,
 					item.From.ID,
 					item.To.Parent_ID,
-					item.To.ID
+					item.To.ID,
+					JsonConvert.SerializeObject(item.Path.Properties)
 				));
 			}
 			return result.ToArray();

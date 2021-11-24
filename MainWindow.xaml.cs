@@ -21,7 +21,7 @@ using System.Windows.Shapes;
 
 namespace MindMap {
 	public partial class MainWindow: Window {
-		private Frame? _mainFrame;
+		private readonly Frame? _mainFrame;
 		private MindMapPage? _mindMapPage;
 		public MainWindow() {
 			InitializeComponent();

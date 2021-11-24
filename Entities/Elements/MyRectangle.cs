@@ -32,9 +32,6 @@ namespace MindMap.Entities.Elements {
 			public double fontSize;
 			public Color fontColor;
 			public CornerRadius cornerRadius;
-			public void Udpate() {
-
-			}
 			public IProperty Translate(string json) {
 				return JsonConvert.DeserializeObject<Property>(json);
 			}

@@ -78,31 +78,33 @@ namespace MindMap.Entities.Connections {
 			this.Path = CreatePath(from.GetPosition(), to);
 			Initialize();
 		}
-		//public ConnectionPath(Canvas mainCanvas, string propertiesJson) {
-		//	this.IsPreview = true;
-		//	this._mainCanvas = mainCanvas;
-		//	this.from = from;
-		//	this.to = null;
-		//	this.Path = CreatePath(from.GetPosition(), to);
-		//	Initialize();
-		//}
+
+		public ConnectionPath(Canvas mainCanvas, ConnectionControl from, ConnectionControl to, string propertiesJson) {
+			this.IsPreview = false;
+			this._mainCanvas = mainCanvas;
+			this.from = from;
+			this.to = to;
+			this.Path = CreatePath(from.GetPosition(), to.GetPosition());
+			property = (Property)property.Translate(propertiesJson);
+			Initialize(false);
+		}
 
 		private Vector2 lastMousePosition;
 		private bool isRightClick;
 		private bool isLeftClick;
 
-		private void Initialize() {
-			property.strokeThickess = 2;
-			property.strokeColor = Colors.Black;
+		private void Initialize(bool initializeProperty = true) {
 			_mainCanvas.Children.Add(this.Path);
-			_backdgroundPath = new() {
-				Data = Path.Data,
-				Stroke = new SolidColorBrush(Invert(((SolidColorBrush)Path.Stroke).Color)),
-				StrokeThickness = Path.StrokeThickness * 1.5,
-				Visibility = Visibility.Collapsed,
-			};
-			_mainCanvas.Children.Insert(_mainCanvas.Children.IndexOf(Path), _backdgroundPath);
 			if(!IsPreview) {
+				if(initializeProperty) {
+					property.strokeThickess = 3;
+					property.strokeColor = Colors.Gray;
+				}
+				_backdgroundPath = new() {
+					Data = Path.Data,
+					Visibility = Visibility.Collapsed,
+				};
+				_mainCanvas.Children.Insert(_mainCanvas.Children.IndexOf(Path), _backdgroundPath);
 				FlyoutMenu.CreateBase(this.Path, (s, e) => ConnectionsManager.Remove(this));
 				Path.MouseDown += (s, e) => {
 					if(e.MouseDevice.RightButton == MouseButtonState.Pressed) {
@@ -131,6 +133,12 @@ namespace MindMap.Entities.Connections {
 				};
 				Path.MouseEnter += (s, e) => MouseEnter();
 				Path.MouseLeave += (s, e) => MouseExit();
+				UpdateStyle();
+				UpdateBackgroundStyle();//must be after UpdateStyle()
+			} else {
+				property.strokeThickess = 3;
+				property.strokeColor = Colors.Black;
+				UpdateStyle();
 			}
 		}
 
@@ -145,7 +153,7 @@ namespace MindMap.Entities.Connections {
 				return;
 			}
 			_backdgroundPath.Visibility = Visibility.Visible;
-			_backdgroundPath.StrokeDashArray = new DoubleCollection(new double[] { 5, 1 });
+			_backdgroundPath.StrokeDashArray = new DoubleCollection(new double[] { 2, 0.5 });
 			UpdateBackgroundStyle();
 		}
 
@@ -177,7 +185,7 @@ namespace MindMap.Entities.Connections {
 		public Panel CreatePropertiesPanel() {
 			StackPanel panel = new();
 			panel.Children.Add(PropertiesPanel.SectionTitle("Connection Path"));
-			panel.Children.Add(PropertiesPanel.SliderInput("Strock Thickness", StrokeThickess, 0.5, 5,
+			panel.Children.Add(PropertiesPanel.SliderInput("Strock Thickness", StrokeThickess, 1, 8,
 				value => StrokeThickess = value
 			, 0.1, 1));
 			panel.Children.Add(PropertiesPanel.ColorInput("Strock Color", StrokeColor,
@@ -193,8 +201,10 @@ namespace MindMap.Entities.Connections {
 		}
 
 		public void UpdateBackgroundStyle() {
+			_backdgroundPath.Data = Path.Data;
 			_backdgroundPath.Stroke = Path.Stroke;
-			_backdgroundPath.StrokeThickness = Path.StrokeThickness;
+			_backdgroundPath.Stroke = new SolidColorBrush(Invert(((SolidColorBrush)Path.Stroke).Color));
+			_backdgroundPath.StrokeThickness = Path.StrokeThickness * 1.7;
 		}
 
 		public void Update(Vector2 to) {
@@ -211,8 +221,6 @@ namespace MindMap.Entities.Connections {
 		public static Path CreatePath(Vector2 from, Vector2 to) {
 			return new Path() {
 				Data = CreateGeometry(from, to),
-				Stroke = Brushes.Black,
-				StrokeThickness = 2,
 			};
 		}
 		public static Geometry CreateGeometry(Vector2 from, Vector2 to) {

@@ -1,4 +1,5 @@
-﻿using MindMap.Entities.Connections;
+﻿using Microsoft.Win32;
+using MindMap.Entities.Connections;
 using MindMap.Entities.Elements;
 using MindMap.Entities.Properties;
 using Newtonsoft.Json;
@@ -13,6 +14,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using Xceed.Wpf.Toolkit;
 
 namespace MindMap.Entities.Locals {
 	public static class Local {
@@ -23,13 +25,16 @@ namespace MindMap.Entities.Locals {
 
 
 		public static async void Save(List<Element> elements) {
+			SaveFileDialog dialog = new();
+			bool? result = dialog.ShowDialog();
+			Debug.WriteLine(dialog.FileName);
 			EverythingInfo info = new(
 				elements.Select(e => new ElementInfo(e)).ToArray(),
 				ConnectionsManager.ConvertInfo()
 			);
-
 			string json = JsonConvert.SerializeObject(info);
 
+			return;
 			await File.WriteAllTextAsync("WriteText.txt", json);
 		}
 
@@ -51,12 +56,14 @@ namespace MindMap.Entities.Locals {
 			public string from_dot_id;
 			public string to_parent_id;
 			public string to_dot_id;
+			public string propertyJson;
 			[JsonConstructor]
-			public ConnectionInfo(string from_parent_id, string from_dot_id, string to_parent_id, string to_dot_id) {
+			public ConnectionInfo(string from_parent_id, string from_dot_id, string to_parent_id, string to_dot_id, string propertyJson) {
 				this.from_parent_id = from_parent_id;
 				this.from_dot_id = from_dot_id;
 				this.to_parent_id = to_parent_id;
 				this.to_dot_id = to_dot_id;
+				this.propertyJson = propertyJson;
 			}
 		}
 

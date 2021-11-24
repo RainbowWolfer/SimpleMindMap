@@ -24,11 +24,14 @@ namespace MindMap.Entities.Connections {
 		}
 
 		public bool CheckDuplicate(ConnectionControl from, ConnectionControl to) {
-			return Connections.Any(c => c.From == from && c.To == to);
+			return Connections.Any(c => 
+				(c.From == from && c.To == to) || 
+				(c.From == to && c.To == from)
+			);
 		}
 
 		public void Add(ConnectionControl from, ConnectionControl to, string? propertyJson = null) {
-			if(_mainCanvas == null || CheckDuplicate(from, to)) {
+			if(CheckDuplicate(from, to)) {
 				return;
 			}
 			Connections.Add(new Connection(string.IsNullOrEmpty(propertyJson) ?
@@ -38,21 +41,18 @@ namespace MindMap.Entities.Connections {
 		}
 
 		public void Remove(ConnectionPath path) {
-			if(_mainCanvas == null || path.to == null) {
+			if(path.to == null) {
 				return;
 			}
 			Connection? found = Connections.Find(c => c.Path == path);
 			if(found != null) {
-				found.Path.ClearFromCanvas();
 				found.Path.ClearBackground();
+				found.Path.ClearFromCanvas();
 				Connections.Remove(found);
 			}
 		}
 
 		public void Remove(ConnectionsFrame frame) {
-			if(_mainCanvas == null) {
-				return;
-			}
 			List<Connection> founds = new();
 			foreach(ConnectionControl item in frame.AllDots) {
 				foreach(Connection c in Connections.Where(c => c.From == item || c.To == item)) {
@@ -70,7 +70,7 @@ namespace MindMap.Entities.Connections {
 		}
 
 		public void ShowProperties(ConnectionPath path) {
-			_parent?.ShowConnectionPathProperties(path);
+			_parent.ShowConnectionPathProperties(path);
 		}
 
 		public void DebugConnections() {

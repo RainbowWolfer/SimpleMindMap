@@ -40,13 +40,11 @@ namespace MindMap {
 		}
 
 		public async void OpenFile() {
-			if(_mindMapPage == null) {
-				NavigateToMindMap();
-			}
-			string json = await File.ReadAllTextAsync("WriteText.txt");
-			Debug.WriteLine(json);
-			Local.EverythingInfo? result = Local.Load(json);
+			Local.EverythingInfo? result = await Local.Load();
 			if(result != null) {
+				if(_mindMapPage == null) {
+					NavigateToMindMap();
+				}
 				_mindMapPage?.Load(result);
 			}
 		}

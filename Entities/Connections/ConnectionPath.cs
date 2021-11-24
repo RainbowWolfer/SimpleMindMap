@@ -16,7 +16,6 @@ using System.Windows.Shapes;
 
 namespace MindMap.Entities.Connections {
 	public class ConnectionPath {
-		//public Element Parent { get; private set; }
 		public readonly ConnectionControl from;
 		public ConnectionControl? to;
 		private readonly Canvas _mainCanvas;

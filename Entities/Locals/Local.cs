@@ -24,13 +24,13 @@ namespace MindMap.Entities.Locals {
 		}
 
 
-		public static async void Save(List<Element> elements) {
+		public static async void Save(List<Element> elements, ConnectionsManager connectionsManager) {
 			SaveFileDialog dialog = new();
 			bool? result = dialog.ShowDialog();
 			Debug.WriteLine(dialog.FileName);
 			EverythingInfo info = new(
 				elements.Select(e => new ElementInfo(e)).ToArray(),
-				ConnectionsManager.ConvertInfo()
+				connectionsManager.ConvertInfo()
 			);
 			string json = JsonConvert.SerializeObject(info);
 

@@ -21,9 +21,10 @@ using System.Windows.Shapes;
 
 namespace MindMap.Pages {
 	public partial class MindMapPage: Page {//Editor Page
+		public readonly ConnectionsManager connectionsManager;
 		public MindMapPage() {
 			InitializeComponent();
-			ConnectionsManager.Initialize(this);
+			connectionsManager = new ConnectionsManager(this);
 
 			MainCanvas.MouseMove += MainCanvas_MouseMove;
 			MainCanvas.MouseUp += MainCanvas_MouseUp;
@@ -49,12 +50,12 @@ namespace MindMap.Pages {
 				if(from == null || to == null || fromDot == null || toDot == null) {
 					continue;
 				}
-				ConnectionsManager.Add(fromDot, toDot, item.propertyJson);
+				connectionsManager.Add(fromDot, toDot, item.propertyJson);
 			}
 		}
 
 		private void DebugButton_Click(object sender, RoutedEventArgs e) {
-			ConnectionsManager.DebugConnections();
+			connectionsManager.DebugConnections();
 		}
 
 		private static ResizeFrame? Selection => ResizeFrame.Current;
@@ -72,7 +73,7 @@ namespace MindMap.Pages {
 				elements[Selection.target].Deselect();
 			}
 			if(includePath) {
-				ConnectionsManager.CurrentSelection?.Deselect();
+				connectionsManager.CurrentSelection?.Deselect();
 			}
 			HideElementProperties();
 		}

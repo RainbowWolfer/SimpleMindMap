@@ -70,10 +70,7 @@
 				<!--Only for detecting contacting canvas through mouse-->
 				<Rectangle x:Name="BackgroundRectangle" Fill="Transparent" MouseDown="BackgroundRectangle_MouseDown" MouseMove="BackgroundRectangle_MouseMove" MouseUp="BackgroundRectangle_MouseUp"/>
 				<Canvas x:Name="MainCanvas" Loaded="MainCanvas_Loaded">
-					<Canvas x:Name="BackgroundCanvas">
-						<Path Data="M 0,0 C 10,110 120,10 100,100" Stroke="Black" StrokeThickness="6" StrokeDashArray="5,1"/>
-						<Path Data="M 0,0 C 10,110 120,10 100,100" Stroke="Red" StrokeThickness="2"/>
-					</Canvas>
+					<Canvas x:Name="BackgroundCanvas"/>
 					<Canvas.RenderTransform>
 						<TransformGroup>
 							<TranslateTransform x:Name="MainCanvas_TranslateTransform" X="0" Y="0"/>

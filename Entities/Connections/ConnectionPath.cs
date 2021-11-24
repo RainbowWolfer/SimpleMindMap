@@ -20,6 +20,7 @@ namespace MindMap.Entities.Connections {
 		public readonly ConnectionControl from;
 		public ConnectionControl? to;
 		private readonly Canvas _mainCanvas;
+		private readonly ConnectionsManager? _connectionsManager;
 
 		private struct Property: IProperty {
 			public double strokeThickess;
@@ -61,9 +62,10 @@ namespace MindMap.Entities.Connections {
 		}
 
 		public bool IsPreview { get; private set; }
-		public ConnectionPath(Canvas mainCanvas, ConnectionControl from, ConnectionControl to) {
+		public ConnectionPath(Canvas mainCanvas, ConnectionsManager connectionsManager, ConnectionControl from, ConnectionControl to) {
 			this.IsPreview = false;
 			this._mainCanvas = mainCanvas;
+			this._connectionsManager = connectionsManager;
 			this.from = from;
 			this.to = to;
 			this.Path = CreatePath(from.GetPosition(), to.GetPosition());
@@ -79,9 +81,10 @@ namespace MindMap.Entities.Connections {
 			Initialize();
 		}
 
-		public ConnectionPath(Canvas mainCanvas, ConnectionControl from, ConnectionControl to, string propertiesJson) {
+		public ConnectionPath(Canvas mainCanvas, ConnectionsManager connectionsManager, ConnectionControl from, ConnectionControl to, string propertiesJson) {
 			this.IsPreview = false;
 			this._mainCanvas = mainCanvas;
+			this._connectionsManager = connectionsManager;
 			this.from = from;
 			this.to = to;
 			this.Path = CreatePath(from.GetPosition(), to.GetPosition());
@@ -105,7 +108,7 @@ namespace MindMap.Entities.Connections {
 					Visibility = Visibility.Collapsed,
 				};
 				_mainCanvas.Children.Insert(_mainCanvas.Children.IndexOf(Path), _backdgroundPath);
-				FlyoutMenu.CreateBase(this.Path, (s, e) => ConnectionsManager.Remove(this));
+				FlyoutMenu.CreateBase(this.Path, (s, e) => _connectionsManager?.Remove(this));
 				Path.MouseDown += (s, e) => {
 					if(e.MouseDevice.RightButton == MouseButtonState.Pressed) {
 						isRightClick = true;
@@ -127,7 +130,7 @@ namespace MindMap.Entities.Connections {
 						}
 						if(isLeftClick) {
 							Select();
-							ConnectionsManager.ShowProperties(this);
+							_connectionsManager?.ShowProperties(this);
 						}
 					}
 				};
@@ -165,7 +168,9 @@ namespace MindMap.Entities.Connections {
 		}
 
 		public void Select() {
-			ConnectionsManager.CurrentSelection = this;
+			if(_connectionsManager != null) {
+				_connectionsManager.CurrentSelection = this;
+			}
 			_isSelected = true;
 			_backdgroundPath.Visibility = Visibility.Visible;
 			_backdgroundPath.StrokeDashArray = new DoubleCollection(new double[] { 1, 0 });
@@ -173,7 +178,9 @@ namespace MindMap.Entities.Connections {
 		}
 
 		public void Deselect() {
-			ConnectionsManager.CurrentSelection = null;
+			if(_connectionsManager != null) {
+				_connectionsManager.CurrentSelection = null;
+			}
 			_isSelected = false;
 			_backdgroundPath.Visibility = Visibility.Collapsed;
 		}
@@ -216,6 +223,13 @@ namespace MindMap.Entities.Connections {
 				throw new Exception("to is null");
 			}
 			this.Path.Data = CreateGeometry(from.GetPosition(), to.GetPosition());
+		}
+
+		public void ClearBackground() {
+			if(!_mainCanvas.Children.Contains(_backdgroundPath)) {
+				return;
+			}
+			_mainCanvas.Children.Remove(_backdgroundPath);
 		}
 
 		public static Path CreatePath(Vector2 from, Vector2 to) {

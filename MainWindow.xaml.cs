@@ -57,7 +57,7 @@ namespace MindMap {
 
 		private void SaveMenuItem_Click(object sender, RoutedEventArgs e) {
 			if(_mindMapPage != null) {
-				Local.Save(_mindMapPage.elements.Select(x => x.Value).ToList());
+				Local.Save(_mindMapPage.elements.Select(x => x.Value).ToList(), _mindMapPage.connectionsManager);
 			}
 		}
 

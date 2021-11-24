@@ -26,10 +26,12 @@ namespace MindMap.Entities.Frames {
 
 		public const short SIZE = 10;
 
+		public readonly MindMapPage _parent;
 		public readonly Element _target;
 		public FrameworkElement Framework => _target.Target;
 
 		public ConnectionsFrame(MindMapPage parent, Element target) {
+			this._parent = parent;
 			this._target = target;
 
 			Style style = new(typeof(Ellipse));
@@ -67,28 +69,28 @@ namespace MindMap.Entities.Frames {
 				foreach(ConnectionControl top in topDots) {
 					Canvas.SetLeft(top.target, startPos.X + size.X / (topDots.Count + 1) - SIZE / 2);
 					Canvas.SetTop(top.target, startPos.Y - SIZE / 2);
-					ConnectionsManager.Update(top);
+					_parent.connectionsManager.Update(top);
 				}
 			}
 			if(botDots.Count >= 1) {
 				foreach(ConnectionControl bot in botDots) {
 					Canvas.SetLeft(bot.target, startPos.X + size.X / (botDots.Count + 1) - SIZE / 2);
 					Canvas.SetTop(bot.target, startPos.Y + size.Y - SIZE / 2);
-					ConnectionsManager.Update(bot);
+					_parent.connectionsManager.Update(bot);
 				}
 			}
 			if(leftDots.Count >= 1) {
 				foreach(ConnectionControl left in leftDots) {
 					Canvas.SetLeft(left.target, startPos.X - SIZE / 2);
 					Canvas.SetTop(left.target, startPos.Y + size.Y / (leftDots.Count + 1) - SIZE / 2);
-					ConnectionsManager.Update(left);
+					_parent.connectionsManager.Update(left);
 				}
 			}
 			if(rightDots.Count >= 1) {
 				foreach(ConnectionControl right in rightDots) {
 					Canvas.SetLeft(right.target, startPos.X + size.X - SIZE / 2);
 					Canvas.SetTop(right.target, startPos.Y + size.Y / (rightDots.Count + 1) - SIZE / 2);
-					ConnectionsManager.Update(right);
+					_parent.connectionsManager.Update(right);
 				}
 			}
 		}
@@ -98,7 +100,7 @@ namespace MindMap.Entities.Frames {
 			rightDots.ForEach(d => d.ClearDot());
 			topDots.ForEach(d => d.ClearDot());
 			botDots.ForEach(d => d.ClearDot());
-			ConnectionsManager.Remove(this);
+			_parent.connectionsManager.Remove(this);
 		}
 
 		public void SetVisible(bool visible) {
@@ -162,7 +164,7 @@ namespace MindMap.Entities.Frames {
 			_parent.Cursor = null;
 			_parent.ClearPreviewLine();
 			if(_desiredDot != null) {
-				ConnectionsManager.Add(this, _desiredDot);
+				_parent.connectionsManager.Add(this, _desiredDot);
 				_desiredDot = null;
 			}
 		}

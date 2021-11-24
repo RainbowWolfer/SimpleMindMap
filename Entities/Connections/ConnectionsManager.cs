@@ -1,4 +1,5 @@
 ﻿using MindMap.Entities.Frames;
+using MindMap.Entities.Locals;
 using MindMap.Pages;
 using Newtonsoft.Json;
 using System;
@@ -8,47 +9,47 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Controls;
-using static MindMap.Entities.Locals.Local;
 
 namespace MindMap.Entities.Connections {
-	public static class ConnectionsManager {
-		private static List<Connection> Connections { get; } = new();
-		private static Canvas? _mainCanvas;
-		private static MindMapPage? _parent;
+	public class ConnectionsManager {
+		private List<Connection> Connections { get; } = new();
+		private readonly Canvas _mainCanvas;
+		private readonly MindMapPage _parent;
 
-		public static ConnectionPath? CurrentSelection { get; set; }
+		public ConnectionPath? CurrentSelection { get; set; }
 
-		public static void Initialize(MindMapPage mindMapPage) {
+		public ConnectionsManager(MindMapPage mindMapPage) {
 			_parent = mindMapPage;
 			_mainCanvas = mindMapPage.MainCanvas;
 		}
 
-		public static bool CheckDuplicate(ConnectionControl from, ConnectionControl to) {
+		public bool CheckDuplicate(ConnectionControl from, ConnectionControl to) {
 			return Connections.Any(c => c.From == from && c.To == to);
 		}
 
-		public static void Add(ConnectionControl from, ConnectionControl to, string? propertyJson = null) {
+		public void Add(ConnectionControl from, ConnectionControl to, string? propertyJson = null) {
 			if(_mainCanvas == null || CheckDuplicate(from, to)) {
 				return;
 			}
 			Connections.Add(new Connection(string.IsNullOrEmpty(propertyJson) ?
-				new ConnectionPath(_mainCanvas, from, to) : 
-				new ConnectionPath(_mainCanvas, from, to, propertyJson)
+				new ConnectionPath(_mainCanvas, _parent.connectionsManager, from, to) :
+				new ConnectionPath(_mainCanvas, _parent.connectionsManager, from, to, propertyJson)
 			, from, to));
 		}
 
-		public static void Remove(ConnectionPath path) {
+		public void Remove(ConnectionPath path) {
 			if(_mainCanvas == null || path.to == null) {
 				return;
 			}
 			Connection? found = Connections.Find(c => c.Path == path);
 			if(found != null) {
 				found.Path.ClearFromCanvas();
+				found.Path.ClearBackground();
 				Connections.Remove(found);
 			}
 		}
 
-		public static void Remove(ConnectionsFrame frame) {
+		public void Remove(ConnectionsFrame frame) {
 			if(_mainCanvas == null) {
 				return;
 			}
@@ -62,17 +63,17 @@ namespace MindMap.Entities.Connections {
 			Connections.RemoveAll(c => founds.Contains(c));
 		}
 
-		public static void Update(ConnectionControl dot) {
+		public void Update(ConnectionControl dot) {
 			foreach(Connection item in Connections.Where(c => c.From == dot || c.To == dot)) {
 				item.Update();
 			}
 		}
 
-		public static void ShowProperties(ConnectionPath path) {
+		public void ShowProperties(ConnectionPath path) {
 			_parent?.ShowConnectionPathProperties(path);
 		}
 
-		public static void DebugConnections() {
+		public void DebugConnections() {
 			Debug.WriteLine("START");
 			foreach(Connection c in Connections) {
 				Debug.WriteLine($"{c.Path} | {c.From.ID} | {c.To.ID}");
@@ -80,10 +81,10 @@ namespace MindMap.Entities.Connections {
 			Debug.WriteLine("END");
 		}
 
-		public static ConnectionInfo[] ConvertInfo() {
-			List<ConnectionInfo> result = new();
+		public Local.ConnectionInfo[] ConvertInfo() {
+			List<Local.ConnectionInfo> result = new();
 			foreach(Connection item in Connections) {
-				result.Add(new ConnectionInfo(
+				result.Add(new Local.ConnectionInfo(
 					item.From.Parent_ID,
 					item.From.ID,
 					item.To.Parent_ID,

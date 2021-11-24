@@ -201,7 +201,7 @@ namespace MindMap.Entities.Elements {
 			UpdateText();
 		}
 
-		public override void UpdateStyle() {
+		protected override void UpdateStyle() {
 			_root.Style = BorderStyle;
 			MyTextBlock.Style = TextBlockStyle;
 			MyTextBox.Style = TextBoxStyle;

@@ -1,4 +1,6 @@
-﻿using MindMap.Pages;
+﻿using MindMap.Entities.Elements;
+using MindMap.Entities.Elements.Interfaces;
+using MindMap.Pages;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,7 +17,7 @@ namespace MindMap.Entities.Frames {
 		public static ResizeFrame? Current { get; set; }
 		public const double SIZE = 15;
 		public const double STROKE = 3;
-		public static ResizeFrame Create(MindMapPage parent, FrameworkElement target) {
+		public static ResizeFrame Create(MindMapPage parent, FrameworkElement target, Element element) {
 			Canvas mainCanvas = parent.MainCanvas;
 			Current?.ClearResizeFrame(mainCanvas);
 
@@ -53,13 +55,14 @@ namespace MindMap.Entities.Frames {
 			mainCanvas.Children.Add(bot_left);
 			mainCanvas.Children.Add(bot_right);
 
-			Current = new ResizeFrame(parent, target, top, bottom, left, right, top_left, top_right, bot_left, bot_right);
+			Current = new ResizeFrame(parent, target, element, top, bottom, left, right, top_left, top_right, bot_left, bot_right);
 			Current.UpdateResizeFrame();
 
 			return Current;
 		}
 
 		public readonly FrameworkElement target;
+		public readonly Element element;
 
 		public readonly Line top;
 		public readonly Line bot;
@@ -82,8 +85,9 @@ namespace MindMap.Entities.Frames {
 		private readonly ResizeControl _control_bot_right;
 #pragma warning restore IDE0052 // Remove unread private members
 
-		public ResizeFrame(MindMapPage parent, FrameworkElement target, Line top, Line bot, Line left, Line right, Rectangle top_left, Rectangle top_right, Rectangle bot_left, Rectangle bot_right) {
+		public ResizeFrame(MindMapPage parent, FrameworkElement target, Element element, Line top, Line bot, Line left, Line right, Rectangle top_left, Rectangle top_right, Rectangle bot_left, Rectangle bot_right) {
 			this.target = target;
+			this.element = element;
 			this.top = top;
 			this.bot = bot;
 			this.left = left;
@@ -93,15 +97,15 @@ namespace MindMap.Entities.Frames {
 			this.bot_left = bot_left;
 			this.bot_right = bot_right;
 
-			_control_top = new ResizeControl(parent, target, top, ResizeControl.Direction.T);
-			_control_bot = new ResizeControl(parent, target, bot, ResizeControl.Direction.B);
-			_control_left = new ResizeControl(parent, target, left, ResizeControl.Direction.L);
-			_control_right = new ResizeControl(parent, target, right, ResizeControl.Direction.R);
+			_control_top = new ResizeControl(parent, target, element, top, ResizeControl.Direction.T);
+			_control_bot = new ResizeControl(parent, target, element, bot, ResizeControl.Direction.B);
+			_control_left = new ResizeControl(parent, target, element, left, ResizeControl.Direction.L);
+			_control_right = new ResizeControl(parent, target, element, right, ResizeControl.Direction.R);
 
-			_control_top_left = new ResizeControl(parent, target, top_left, ResizeControl.Direction.LT);
-			_control_top_right = new ResizeControl(parent, target, top_right, ResizeControl.Direction.RT);
-			_control_bot_left = new ResizeControl(parent, target, bot_left, ResizeControl.Direction.LB);
-			_control_bot_right = new ResizeControl(parent, target, bot_right, ResizeControl.Direction.RB);
+			_control_top_left = new ResizeControl(parent, target, element, top_left, ResizeControl.Direction.LT);
+			_control_top_right = new ResizeControl(parent, target, element, top_right, ResizeControl.Direction.RT);
+			_control_bot_left = new ResizeControl(parent, target, element, bot_left, ResizeControl.Direction.LB);
+			_control_bot_right = new ResizeControl(parent, target, element, bot_right, ResizeControl.Direction.RB);
 		}
 
 		public bool IsValid => target != null && top != null && bot != null && left != null && right != null;
@@ -174,7 +178,7 @@ namespace MindMap.Entities.Frames {
 			private Vector2 startSize;
 			private Vector2 startPos;
 			private bool _drag;
-			public ResizeControl(MindMapPage parent, FrameworkElement target, Shape shape, Direction direction) {
+			public ResizeControl(MindMapPage parent, FrameworkElement target, Element element, Shape shape, Direction direction) {
 				this.target = target;
 				this.shape = shape;
 				this.direction = direction;
@@ -196,6 +200,12 @@ namespace MindMap.Entities.Frames {
 						return;
 					}
 					Vector2 delta = e.GetPosition(parent) - startMousePos;
+					bool holdShift = true;
+					if(holdShift) {
+						double max = Math.Min(delta.X, delta.Y);
+						delta.X = max;
+						delta.Y = max;
+					}
 					switch(direction) {
 						case Direction.L:
 							target.Width = Math.Clamp(startSize.X - delta.X, 5, double.MaxValue);
@@ -235,8 +245,9 @@ namespace MindMap.Entities.Frames {
 							throw new Exception("Direction Type Error");
 					}
 					Current?.UpdateResizeFrame();
-					if(parent.elements.ContainsKey(target)) {
-						parent.elements[target].UpdateConnectionsFrame();
+					element.UpdateConnectionsFrame();
+					if(element is IUpdate update) {
+						update.Udpate();
 					}
 				};
 				parent.MainCanvas.MouseUp += (s, e) => {

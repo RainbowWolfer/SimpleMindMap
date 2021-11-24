@@ -19,6 +19,7 @@ namespace MindMap.Entities.Elements {
 		public abstract long TypeID { get; }
 		public const long ID_Rectangle = 1;
 		public const long ID_Ellipse = 2;
+		public const long ID_Polygon = 3;
 
 		public abstract string ID { get; protected set; }
 
@@ -35,7 +36,7 @@ namespace MindMap.Entities.Elements {
 		}
 
 		protected string AssignID(Type type) => $"{type.Name} ({parent.elements.Count + 1})";
-		protected string AssignID(string type) => $"{type} ({parent.elements.Count + 1})";
+		protected string AssignID(string type) => $"{type.Trim()} ({parent.elements.Count + 1})";
 
 		public Vector2 GetSize() => new(Target.Width, Target.Height);
 		public void SetSize(Vector2 size) {
@@ -110,7 +111,7 @@ namespace MindMap.Entities.Elements {
 		}
 		public abstract Panel CreateElementProperties();
 
-		public abstract void UpdateStyle();
+		protected abstract void UpdateStyle();
 
 		public abstract void DoubleClick();
 		public abstract void LeftClick();

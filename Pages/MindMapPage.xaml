@@ -45,6 +45,11 @@
 									<Button Content="Normal Ellipse" Click="AddEllipseButton_Click" Style="{StaticResource MenuButton}"/>
 								</StackPanel>
 							</Expander>
+							<Expander Header="Polygon" IsExpanded="True">
+								<StackPanel>
+									<Button Content="Octagon" Click="AddPolygonButton_Click" Style="{StaticResource MenuButton}"/>
+								</StackPanel>
+							</Expander>
 						</StackPanel>
 					</ScrollViewer>
 				</TabItem>

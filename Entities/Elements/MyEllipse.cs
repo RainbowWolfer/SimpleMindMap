@@ -163,8 +163,8 @@ namespace MindMap.Entities.Elements {
 			MyTextBlock = new TextBlock();
 			MyTextBox = new TextBox();
 			_root.Children.Add(_ellipse);
-			ShowTextBlock();
 			MainCanvas.Children.Add(_root);
+			ShowTextBlock();
 			UpdateStyle();
 			UpdateText();
 		}
@@ -207,7 +207,7 @@ namespace MindMap.Entities.Elements {
 			_root.ContextMenu.IsOpen = true;
 		}
 
-		public override void UpdateStyle() {
+		protected override void UpdateStyle() {
 			MyTextBlock.Style = TextBlockStyle;
 			MyTextBox.Style = TextBoxStyle;
 			_ellipse.Style = EllipseStyle;
@@ -239,7 +239,7 @@ namespace MindMap.Entities.Elements {
 		}
 
 		public override Panel CreateElementProperties() {
-			return new StackPanel();
+			return PropertiesPanel.SectionTitle($"{ID}");
 		}
 	}
 }

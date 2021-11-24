@@ -172,6 +172,8 @@ namespace MindMap.Pages {
 				AddToElementsDictionary(new MyRectangle(this), Vector2.Zero);
 			} else if(type == typeof(MyEllipse)) {
 				AddToElementsDictionary(new MyEllipse(this), Vector2.Zero);
+			} else if(type == typeof(MyPolygon)) {
+				AddToElementsDictionary(new MyPolygon(this), Vector2.Zero);
 			}
 		}
 
@@ -214,6 +216,10 @@ namespace MindMap.Pages {
 			AddElement(typeof(MyEllipse));
 		}
 
+		private void AddPolygonButton_Click(object sender, RoutedEventArgs e) {
+			AddElement(typeof(MyPolygon));
+		}
+
 		private Vector2 offset;
 		private Vector2 startPos;//check for click
 		private FrameworkElement? current;
@@ -242,31 +248,32 @@ namespace MindMap.Pages {
 		private void MainCanvas_MouseUp(object sender, MouseButtonEventArgs e) {
 			if(current != null && startPos == e.GetPosition(MainCanvas) && !hasMoved) {
 				Element? element = elements.ContainsKey(current) ? elements[current] : null;
+				if(element == null) {
+					throw new Exception("it should not be null. check elements assignments");
+				}
 				switch(mouseType) {
 					case MouseType.Left:
-						ResizeFrame.Create(this, current);
-						element?.SetConnectionsFrameVisible(false);
+						ResizeFrame.Create(this, current, element);
+						element.SetConnectionsFrameVisible(false);
 						Debug.WriteLine("left mouse");
 						clickCount = previous == current && e.Timestamp - lastClickTimeStamp <= 500 ? clickCount + 1 : 0;
 						lastClickTimeStamp = e.Timestamp;
 						Debug.WriteLine(clickCount);
 						if(clickCount == 1) {
 							Debug.WriteLine("This is double click");
-							element?.DoubleClick();
+							element.DoubleClick();
 						} else {
-							element?.LeftClick();//care
-							if(element != null) {
-								ShowElementProperties(element);
-							}
+							element.LeftClick();//care
+							ShowElementProperties(element);
 						}
 						break;
 					case MouseType.Middle:
 						Debug.WriteLine("middle mouse");
-						element?.MiddleClick();
+						element.MiddleClick();
 						break;
 					case MouseType.Right:
 						Debug.WriteLine("flyout menu");
-						element?.RightClick();
+						element.RightClick();
 						break;
 					default:
 						throw new Exception($"Mouse Type Error {mouseType}");

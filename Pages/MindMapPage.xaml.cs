@@ -22,6 +22,8 @@ using System.Windows.Shapes;
 namespace MindMap.Pages {
 	public partial class MindMapPage: Page {//Editor Page
 		public readonly ConnectionsManager connectionsManager;
+		public bool holdShift;
+		private string _fileName = "(Not Saved)";
 		public MindMapPage() {
 			InitializeComponent();
 			connectionsManager = new ConnectionsManager(this);
@@ -32,9 +34,24 @@ namespace MindMap.Pages {
 			SizeChanged += (s, e) => UpdateBackgroundDot();
 
 			HideElementProperties();
+
+			FileNameText.Text = _fileName;
+
+			KeyDown += (s, e) => {
+				if(e.Key == Key.LeftShift) {
+					holdShift = true;
+				}
+			};
+			KeyUp += (s, e) => {
+				if(e.Key == Key.LeftShift) {
+					holdShift = false;
+				}
+			};
 		}
 
-		public void Load(Local.EverythingInfo info) {
+		public void Load(Local.EverythingInfo info, string fileName) {
+			_fileName = fileName;
+			FileNameText.Text = _fileName;
 			foreach(Local.ElementInfo ele in info.elements) {
 				AddToElementsDictionary(ele.type_id switch {
 					Element.ID_Rectangle => new MyRectangle(this, ele.element_id, ele.propertyJson),

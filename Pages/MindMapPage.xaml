@@ -28,8 +28,8 @@
 				<RowDefinition Height="*"/>
 			</Grid.RowDefinitions>
 			<StackPanel>
-				<Button Visibility="Visible" Content="Debug" Click="DebugButton_Click"/>
-				<TextBlock Text="MindMap.mp*" HorizontalAlignment="Center"/>
+				<!--<Button Visibility="Visible" Content="Debug" Click="DebugButton_Click"/>-->
+				<TextBlock x:Name="FileNameText" Text="MindMap.mp*" HorizontalAlignment="Center"/>
 			</StackPanel>
 			<TabControl Grid.Row="1">
 				<TabItem Header="Elements" Width="83">

@@ -217,7 +217,7 @@ namespace MindMap.Entities.Frames {
 							delta.Y = mousePosition.X < startMousePos.X ? -min : -max;
 						}
 					}
-					bool holdShift = true;
+					bool holdShift = parent.holdShift;
 					switch(direction) {
 						case Direction.L:
 							target.Width = Math.Clamp(startSize.X - delta.X, 5, double.MaxValue);

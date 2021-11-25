@@ -1,4 +1,5 @@
-﻿using MindMap.Entities.Elements;
+﻿using MindMap.Entities;
+using MindMap.Entities.Elements;
 using MindMap.Entities.Locals;
 using MindMap.Pages;
 using MindMap.SubWindows;
@@ -21,13 +22,18 @@ using System.Windows.Shapes;
 
 namespace MindMap {
 	public partial class MainWindow: Window {
-		private readonly Frame? _mainFrame;
 		private MindMapPage? _mindMapPage;
 		public MainWindow() {
 			InitializeComponent();
-			_mainFrame = MainFrame;
-			_mainFrame.NavigationService.RemoveBackEntry();
-			MainFrame.Navigate(new WelcomePage(this));
+			MainFrame.Navigated += (s, e) => MainFrame.NavigationService.RemoveBackEntry();
+
+			NavigateToMindMap();
+
+			this.KeyDown += (s, e) => {
+				Debug.WriteLine(e.Key);
+			};
+
+			_ = new ComboKeyManager(this);
 		}
 
 		private void AboutThisMenuItem_Click(object sender, RoutedEventArgs e) {
@@ -36,16 +42,15 @@ namespace MindMap {
 
 		public void NavigateToMindMap() {
 			_mindMapPage = new MindMapPage();
-			_mainFrame?.Navigate(_mindMapPage);
+			MainFrame.Navigate(_mindMapPage);
+			_mindMapPage.Focus();
 		}
 
 		public async void OpenFile() {
-			Local.EverythingInfo? result = await Local.Load();
-			if(result != null) {
-				if(_mindMapPage == null) {
-					NavigateToMindMap();
-				}
-				_mindMapPage?.Load(result);
+			Local.FileInfo? result = await Local.Load();
+			if(result != null && result.Info != null) {
+				NavigateToMindMap();
+				_mindMapPage?.Load(result.Info, result.Filename);
 			}
 		}
 

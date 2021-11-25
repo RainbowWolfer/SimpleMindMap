@@ -38,7 +38,7 @@ namespace MindMap.Entities.Locals {
 			}
 		}
 
-		public static async Task<EverythingInfo?> Load() {
+		public static async Task<FileInfo?> Load() {
 			OpenFileDialog openFileDialog = new() {
 				Filter = FILTER,
 				InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
@@ -46,9 +46,20 @@ namespace MindMap.Entities.Locals {
 			if(openFileDialog.ShowDialog() == true) {
 				Debug.WriteLine(openFileDialog.FileName);
 				string json = await File.ReadAllTextAsync(openFileDialog.FileName);
-				return JsonConvert.DeserializeObject<EverythingInfo>(json);
+				FileInfo info = new(JsonConvert.DeserializeObject<EverythingInfo>(json), openFileDialog.SafeFileName);
+				return info;
 			} else {
 				return null;
+			}
+		}
+
+		public class FileInfo {
+			public EverythingInfo? Info { get; set; }
+			public string Filename { get; set; }
+
+			public FileInfo(EverythingInfo? info, string filename) {
+				Info = info;
+				Filename = filename;
 			}
 		}
 

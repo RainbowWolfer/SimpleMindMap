@@ -29,6 +29,7 @@ namespace MindMap.Entities.Elements {
 			public FontWeight fontWeight;
 			public double fontSize;
 			public Color fontColor;
+			public int pointCount;
 			public IProperty Translate(string json) {
 				return JsonConvert.DeserializeObject<Property>(json);
 			}
@@ -96,8 +97,14 @@ namespace MindMap.Entities.Elements {
 				UpdateStyle();
 			}
 		}
+		public int PointCount {
+			get => property.pointCount;
+			set {
+				property.pointCount = value;
+				Update();
+			}
+		}
 
-		private int pointCount = 8;
 
 		private readonly Grid _root;
 		private readonly Polygon _polygon;
@@ -112,6 +119,7 @@ namespace MindMap.Entities.Elements {
 			property.fontWeight = FontWeights.Regular;
 			property.fontSize = 15;
 			property.fontColor = Colors.Black;
+			property.pointCount = 6;
 
 			_root = new Grid() {
 				Height = 250,
@@ -127,38 +135,54 @@ namespace MindMap.Entities.Elements {
 			ShowTextBlock();
 			UpdateStyle();
 			UpdateText();
-			DrawPolygon(pointCount);
+			DrawPolygon(PointCount);
+		}
+
+		public MyPolygon(MindMapPage parent, string id, string propertiesJson) : base(parent) {
+			ID = id;
+			property = (Property)property.Translate(propertiesJson);
+
+			_root = new Grid() {
+				Height = 250,
+				Width = 250,
+			};
+			_root.SetValue(Canvas.TopProperty, 0.0);
+			_root.SetValue(Canvas.LeftProperty, 0.0);
+			_polygon = new Polygon();
+			_root.Children.Add(_polygon);
+			MyTextBlock = new TextBlock();
+			MyTextBox = new TextBox();
+			MainCanvas.Children.Add(_root);
+			ShowTextBlock();
+			UpdateStyle();
+			UpdateText();
+			DrawPolygon(PointCount);
 		}
 
 		public void DrawPolygon(int pointCount) {
-			Point[] points = new Point[pointCount];
+			Point[] points = new Point[pointCount + 1];
 			double anglePerGon = Math.PI * 2 / pointCount;
-			double radius = _root.Width / 2;//should be in width & height
-			double a = radius * Math.PI * 2 / pointCount;
-			Point point = new(radius, radius);
-			for(int i = 0; i < pointCount; i++) {
-				Debug.WriteLine(point);
+			double radiusX = _root.Width / 2;
+			double radiusY = _root.Height / 2;
+			Point point = new(radiusX, 0);
+			for(int i = 0; i < points.Length; i++) {
 				points[i] = new Point(point.X, point.Y);
-				point.X = radius + Math.Cos(i * anglePerGon) * a;
-				point.Y = radius + Math.Sin(i * anglePerGon) * a;
+				point.X = radiusX * Math.Cos(i * anglePerGon);
+				point.Y = radiusY * Math.Sin(i * anglePerGon);
+			}
+			for(int i = 0; i < points.Length; i++) {
+				points[i].X += radiusX;
+				points[i].Y += radiusY;
 			}
 			_polygon.Points = new PointCollection(points);
-			//_polygon.Points = new PointCollection(new Point[] {
-			//	new Point(20,00),
-			//	new Point(40,00),
-			//	new Point(60,20),
-			//	new Point(60,40),
-			//	new Point(40,60),
-			//	new Point(20,60),
-			//	new Point(00,40),
-			//	new Point(00,20),
-			//});
 		}
 
 		public override Panel CreateElementProperties() {
 			StackPanel panel = new();
 			panel.Children.Add(PropertiesPanel.SectionTitle($"{ID}"));
-
+			panel.Children.Add(PropertiesPanel.SliderInput("Polygon Points", PointCount, 3, 20,
+				value => PointCount = (int)value
+			, 1, 0));
 			return panel;
 		}
 
@@ -235,8 +259,8 @@ namespace MindMap.Entities.Elements {
 			MyTextBox.Text = Text;
 		}
 
-		public void Udpate() {
-			DrawPolygon(pointCount);
+		public void Update() {
+			DrawPolygon(PointCount);
 		}
 	}
 }

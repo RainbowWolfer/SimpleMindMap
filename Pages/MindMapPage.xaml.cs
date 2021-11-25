@@ -39,6 +39,7 @@ namespace MindMap.Pages {
 				AddToElementsDictionary(ele.type_id switch {
 					Element.ID_Rectangle => new MyRectangle(this, ele.element_id, ele.propertyJson),
 					Element.ID_Ellipse => new MyEllipse(this, ele.element_id, ele.propertyJson),
+					Element.ID_Polygon => new MyPolygon(this, ele.element_id, ele.propertyJson),
 					_ => throw new Exception($"ID{ele.type_id} Not Found"),
 				}, ele.position, ele.size);
 			}

@@ -3,6 +3,7 @@ using MindMap.Entities.Elements.Interfaces;
 using MindMap.Pages;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -199,19 +200,31 @@ namespace MindMap.Entities.Frames {
 					if(!_drag) {
 						return;
 					}
-					Vector2 delta = e.GetPosition(parent) - startMousePos;
-					bool holdShift = true;
-					if(holdShift) {
-						double max = Math.Min(delta.X, delta.Y);
-						delta.X = max;
-						delta.Y = max;
+					Vector2 mousePosition = e.GetPosition(parent);
+					Vector2 delta = mousePosition - startMousePos;
+					void NormalizeA(bool active) {
+						if(active) {
+							double d = Math.Min(delta.X, delta.Y);
+							delta.X = d;
+							delta.Y = d;
+						}
 					}
+					void NormalizeB(bool active) {
+						if(active) {
+							double min = Math.Min(delta.X, delta.Y);
+							double max = Math.Max(delta.X, delta.Y);
+							delta.X = mousePosition.X < startMousePos.X ? min : max;
+							delta.Y = mousePosition.X < startMousePos.X ? -min : -max;
+						}
+					}
+					bool holdShift = true;
 					switch(direction) {
 						case Direction.L:
 							target.Width = Math.Clamp(startSize.X - delta.X, 5, double.MaxValue);
 							Canvas.SetLeft(target, Math.Clamp(startPos.X + delta.X, double.MinValue, startPos.X + startSize.X - 5));
 							break;
 						case Direction.LT:
+							NormalizeA(holdShift);
 							target.Width = Math.Clamp(startSize.X - delta.X, 5, double.MaxValue);
 							Canvas.SetLeft(target, Math.Clamp(startPos.X + delta.X, double.MinValue, startPos.X + startSize.X - 5));
 							target.Height = Math.Clamp(startSize.Y - delta.Y, 5, double.MaxValue);
@@ -222,6 +235,7 @@ namespace MindMap.Entities.Frames {
 							Canvas.SetTop(target, Math.Clamp(startPos.Y + delta.Y, double.MinValue, startPos.Y + startSize.Y - 5));
 							break;
 						case Direction.RT:
+							NormalizeB(holdShift);
 							target.Height = Math.Clamp(startSize.Y - delta.Y, 5, double.MaxValue);
 							Canvas.SetTop(target, Math.Clamp(startPos.Y + delta.Y, double.MinValue, startPos.Y + startSize.Y - 5));
 							target.Width = Math.Clamp(startSize.X + delta.X, 5, double.MaxValue);
@@ -230,6 +244,7 @@ namespace MindMap.Entities.Frames {
 							target.Width = Math.Clamp(startSize.X + delta.X, 5, double.MaxValue);
 							break;
 						case Direction.RB:
+							NormalizeA(holdShift);
 							target.Width = Math.Clamp(startSize.X + delta.X, 5, double.MaxValue);
 							target.Height = Math.Clamp(startSize.Y + delta.Y, 5, double.MaxValue);
 							break;
@@ -237,6 +252,7 @@ namespace MindMap.Entities.Frames {
 							target.Height = Math.Clamp(startSize.Y + delta.Y, 5, double.MaxValue);
 							break;
 						case Direction.LB:
+							NormalizeB(holdShift);
 							target.Height = Math.Clamp(startSize.Y + delta.Y, 5, double.MaxValue);
 							target.Width = Math.Clamp(startSize.X - delta.X, 5, double.MaxValue);
 							Canvas.SetLeft(target, Math.Clamp(startPos.X + delta.X, double.MinValue, startPos.X + startSize.X - 5));
@@ -247,7 +263,7 @@ namespace MindMap.Entities.Frames {
 					Current?.UpdateResizeFrame();
 					element.UpdateConnectionsFrame();
 					if(element is IUpdate update) {
-						update.Udpate();
+						update.Update();
 					}
 				};
 				parent.MainCanvas.MouseUp += (s, e) => {

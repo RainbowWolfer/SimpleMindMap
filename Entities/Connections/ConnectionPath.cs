@@ -238,10 +238,10 @@ namespace MindMap.Entities.Connections {
 		}
 		public static Geometry CreateGeometry(Vector2 from, Vector2 to) {
 			return Geometry.Parse(
-						$"M {from.X},{from.Y} " +
-						$"C {from.X + (to.X - from.X) * 0.5},{from.Y} " +
-						$"{from.X + (to.X - from.X) * 0.5},{to.Y} " +
-						$"{to.X},{to.Y}");
+				$"M {from.X},{from.Y} " +
+				$"C {from.X + (to.X - from.X) * 0.5},{from.Y} " +
+				$"{from.X + (to.X - from.X) * 0.5},{to.Y} " +
+				$"{to.X},{to.Y}");
 		}
 
 

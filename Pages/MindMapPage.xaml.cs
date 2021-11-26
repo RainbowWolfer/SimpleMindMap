@@ -46,6 +46,7 @@ namespace MindMap.Pages {
 			HideElementProperties();
 
 			FileNameText.Text = fileName;
+			CreatedDateText.Text = $"Created Date ({DateTime.Now})";
 
 			SavingPanel.Visibility = Visibility.Collapsed;
 			LoadingPanel.Visibility = Visibility.Collapsed;
@@ -53,11 +54,27 @@ namespace MindMap.Pages {
 			MainWindow.Instance?.KeyManager.Register(
 				() => holdShift = true,
 				() => holdShift = false,
-			Key.LeftShift);
+			false, Key.LeftShift);
 			MainWindow.Instance?.KeyManager.Register(
 				() => Save(),
 				() => { },
-			Key.LeftCtrl, Key.S);
+			true, Key.LeftCtrl, Key.S);
+		}
+
+		//private Task? OprationHintTextTask = null;
+		public async void SetSetOprationHintText(string text, int delay = 5000) {
+			//if(OprationHintTextTask != null) {
+			//	OprationHintTextTask.Dispose();
+			//}
+			//OprationHintTextTask = Task.Run(async () => await SetOprationHintTextAsync(text, delay));
+			await SetOprationHintTextAsync(text, delay);
+		}
+
+		private async Task SetOprationHintTextAsync(string text, int delay) {
+			OprationHintText.Visibility = Visibility.Visible;
+			OprationHintText.Text = text;
+			await Task.Delay(delay);
+			OprationHintText.Visibility = Visibility.Collapsed;
 		}
 
 		public async void Save() {
@@ -66,15 +83,18 @@ namespace MindMap.Pages {
 			FileName = _path[(_path.LastIndexOf('\\') + 1)..];
 			ElementsChanged = false;
 			//set window title
+			//set created time
 			SavingPanel.Visibility = Visibility.Collapsed;
+			SetSetOprationHintText("Saved Successfully");
 		}
 
-		public async void Load(Local.EverythingInfo info, string path, string fileName) {
+		public async void Load(Local.MapInfo mapInfo, FileInfo fileInfo) {
 			LoadingPanel.Visibility = Visibility.Visible;
-			FileName = fileName;
-			_path = path;
+			FileName = fileInfo.FileName;
+			_path = fileInfo.FilePath;
+			CreatedDateText.Text = $"Created Date ({fileInfo.CreatedDate})";
 
-			foreach(Local.ElementInfo ele in info.elements) {
+			foreach(Local.ElementInfo ele in mapInfo.elements) {
 				AddToElementsDictionary(ele.type_id switch {
 					Element.ID_Rectangle => new MyRectangle(this, ele.element_id, ele.propertyJson),
 					Element.ID_Ellipse => new MyEllipse(this, ele.element_id, ele.propertyJson),
@@ -83,7 +103,7 @@ namespace MindMap.Pages {
 				}, ele.position, ele.size);
 				await Task.Delay(1);
 			}
-			foreach(Local.ConnectionInfo item in info.connections) {
+			foreach(Local.ConnectionInfo item in mapInfo.connections) {
 				Element? from = elements.Select(e => e.Value).ToList().Find(i => i.ID == item.from_parent_id);
 				ConnectionControl? fromDot = from?.GetConnectionControlByID(item.from_dot_id);
 				Element? to = elements.Select(e => e.Value).ToList().Find(i => i.ID == item.to_parent_id);
@@ -95,6 +115,7 @@ namespace MindMap.Pages {
 				await Task.Delay(1);
 			}
 			LoadingPanel.Visibility = Visibility.Collapsed;
+			SetSetOprationHintText("Loaded Successfully");
 		}
 
 		private void DebugButton_Click(object sender, RoutedEventArgs e) {

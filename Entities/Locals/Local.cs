@@ -36,7 +36,7 @@ namespace MindMap.Entities.Locals {
 				}
 			}
 
-			EverythingInfo info = new(
+			MapInfo info = new(
 				elements.Select(e => new ElementInfo(e)).ToArray(),
 				connectionsManager.ConvertInfo()
 			);
@@ -69,7 +69,7 @@ namespace MindMap.Entities.Locals {
 		//	throw new NotImplementedException();
 		//}
 
-		public static async Task<LocalFileInfo?> Load() {
+		public static async Task<LocalInfo?> Load() {
 			OpenFileDialog openFileDialog = new() {
 				Filter = FILTER,
 				InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
@@ -78,40 +78,43 @@ namespace MindMap.Entities.Locals {
 				Debug.WriteLine(openFileDialog.FileName);
 				string json = await File.ReadAllTextAsync(openFileDialog.FileName);
 				string converted = BinaryToString(json);
-				LocalFileInfo info = new(JsonConvert.DeserializeObject<EverythingInfo>(converted), openFileDialog.FileName, openFileDialog.SafeFileName);
+				LocalInfo info = new(
+					JsonConvert.DeserializeObject<MapInfo>(converted),
+					openFileDialog.SafeFileName,
+					openFileDialog.FileName,
+					File.GetCreationTime(openFileDialog.FileName)
+				); ;
 				return info;
 			} else {
 				return null;
 			}
 		}
 
-		public class LocalFileInfo {
-			public EverythingInfo? Info { get; private set; }
-			public string Filename { get; private set; }
-			public string Path { get; private set; }
+		public class LocalInfo {
+			public MapInfo? MapInfo { get; private set; }
+			public FileInfo FileInfo { get; private set; }
 
-			public LocalFileInfo(EverythingInfo? info, string path, string filename) {
-				Info = info;
-				Filename = filename;
-				Path = path;
+			public LocalInfo(MapInfo? info, string filename, string path, DateTime date) {
+				MapInfo = info;
+				FileInfo = new FileInfo(filename, path, date);
 			}
 		}
 
-		public class EverythingInfo {
-			public ElementInfo[] elements;
-			public ConnectionInfo[] connections;
-			public EverythingInfo(ElementInfo[] elements, ConnectionInfo[] connections) {
+		public class MapInfo {
+			public readonly ElementInfo[] elements;
+			public readonly ConnectionInfo[] connections;
+			public MapInfo(ElementInfo[] elements, ConnectionInfo[] connections) {
 				this.elements = elements;
 				this.connections = connections;
 			}
 		}
 
 		public class ConnectionInfo {
-			public string from_parent_id;
-			public string from_dot_id;
-			public string to_parent_id;
-			public string to_dot_id;
-			public string propertyJson;
+			public readonly string from_parent_id;
+			public readonly string from_dot_id;
+			public readonly string to_parent_id;
+			public readonly string to_dot_id;
+			public readonly string propertyJson;
 			[JsonConstructor]
 			public ConnectionInfo(string from_parent_id, string from_dot_id, string to_parent_id, string to_dot_id, string propertyJson) {
 				this.from_parent_id = from_parent_id;
@@ -123,11 +126,11 @@ namespace MindMap.Entities.Locals {
 		}
 
 		public class ElementInfo {
-			public long type_id;
-			public string element_id;
-			public string propertyJson;
-			public Vector2 position;
-			public Vector2 size;
+			public readonly long type_id;
+			public readonly string element_id;
+			public readonly string propertyJson;
+			public readonly Vector2 position;
+			public readonly Vector2 size;
 			[JsonConstructor]
 			public ElementInfo(long type_id, string element_id, string propertyJson, Vector2 position, Vector2 size) {
 				this.type_id = type_id;

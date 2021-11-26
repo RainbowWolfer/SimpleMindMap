@@ -14,6 +14,9 @@ namespace MindMap.Entities {
 		private readonly List<Key> current = new();
 		public ComboKeyManager(Window target) {
 			target.KeyDown += (s, e) => {
+				if(e.Key == Key.System) {
+					return;
+				}
 				if(!current.Contains(e.Key)) {
 					current.Add(e.Key);
 				}
@@ -52,15 +55,18 @@ namespace MindMap.Entities {
 						default:
 							throw new Exception($"KeyState({state}) not found");
 					}
+					if(item.resetAfterKeyDown) {
+						current.Clear();
+					}
 				}
 			}
 		}
 
-		public void Register(Action keyDown, Action keyUp, params Key[] keys) {
+		public void Register(Action keyDown, Action keyUp, bool resetAfterKeyDown, params Key[] keys) {
 			if(CheckKeysExisted(keys)) {
 				return;
 			}
-			pool.Add(new Combo(keyDown, keyUp, keys));
+			pool.Add(new Combo(keyDown, keyUp, keys, resetAfterKeyDown));
 		}
 
 		private bool CheckKeysExisted(Key[] keys) => FindByKeys(keys) != null;
@@ -100,10 +106,12 @@ namespace MindMap.Entities {
 			public Action keyDown;
 			public Action keyUp;
 			public Key[] keys;
-			public Combo(Action keyDown, Action keyUp, Key[] keys) {
+			public bool resetAfterKeyDown;
+			public Combo(Action keyDown, Action keyUp, Key[] keys, bool resetAfterKeyDown = false) {
 				this.keyDown = keyDown;
 				this.keyUp = keyUp;
 				this.keys = keys;
+				this.resetAfterKeyDown = resetAfterKeyDown;
 			}
 		}
 	}

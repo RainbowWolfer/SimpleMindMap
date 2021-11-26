@@ -122,6 +122,7 @@ namespace MindMap.Entities.Elements {
 		public virtual void Delete() {
 			parent.RemoveElement(this);
 			connectionsFrame?.ClearConnections();
+			parent.UpdateCount();
 		}
 	}
 }

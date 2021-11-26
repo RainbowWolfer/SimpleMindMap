@@ -47,10 +47,10 @@ namespace MindMap {
 		}
 
 		public async void OpenFile() {
-			Local.LocalFileInfo? result = await Local.Load();
-			if(result != null && result.Info != null) {
+			Local.LocalInfo? result = await Local.Load();
+			if(result != null && result.MapInfo != null) {
 				NavigateToMindMap();
-				_mindMapPage?.Load(result.Info, result.Path, result.Filename);
+				_mindMapPage?.Load(result.MapInfo, result.FileInfo);
 			}
 		}
 

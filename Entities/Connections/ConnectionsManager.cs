@@ -16,6 +16,7 @@ namespace MindMap.Entities.Connections {
 		private readonly Canvas _mainCanvas;
 		private readonly MindMapPage _parent;
 
+		public int Count => Connections.Count;
 		public ConnectionPath? CurrentSelection { get; set; }
 
 		public ConnectionsManager(MindMapPage mindMapPage) {
@@ -38,6 +39,7 @@ namespace MindMap.Entities.Connections {
 				new ConnectionPath(_mainCanvas, _parent.connectionsManager, from, to) :
 				new ConnectionPath(_mainCanvas, _parent.connectionsManager, from, to, propertyJson)
 			, from, to));
+			_parent.UpdateCount();
 		}
 
 		public void Remove(ConnectionPath path) {
@@ -50,6 +52,7 @@ namespace MindMap.Entities.Connections {
 				found.Path.ClearFromCanvas();
 				Connections.Remove(found);
 			}
+			_parent.UpdateCount();
 		}
 
 		public void Remove(ConnectionsFrame frame) {

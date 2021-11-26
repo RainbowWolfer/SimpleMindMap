@@ -23,22 +23,53 @@ namespace MindMap.Entities.Locals {
 
 		}
 
-		public static async void Save(List<Element> elements, ConnectionsManager connectionsManager) {
-			SaveFileDialog dialog = new() {
-				Filter = FILTER,
-				InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
-			};
-			if(dialog.ShowDialog() == true) {
-				EverythingInfo info = new(
-					elements.Select(e => new ElementInfo(e)).ToArray(),
-					connectionsManager.ConvertInfo()
-				);
-				string json = JsonConvert.SerializeObject(info);
-				await File.WriteAllTextAsync(dialog.FileName, json);
+		public static async Task<string> Save(List<Element> elements, ConnectionsManager connectionsManager, string filePath = "") {
+			if(string.IsNullOrEmpty(filePath)) {
+				SaveFileDialog dialog = new() {
+					Filter = FILTER,
+					InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
+				};
+				if(dialog.ShowDialog() == true) {
+					filePath = dialog.FileName;
+				} else {
+					return filePath;
+				}
 			}
+
+			EverythingInfo info = new(
+				elements.Select(e => new ElementInfo(e)).ToArray(),
+				connectionsManager.ConvertInfo()
+			);
+			string json = JsonConvert.SerializeObject(info);
+			string converted = StringToBinary(json);
+			await File.WriteAllTextAsync(filePath, converted);
+
+			//var fi = new FileInfo("", "");
+			//fi.FileChanged += Fi_FileChanged;
+			return filePath;
 		}
 
-		public static async Task<FileInfo?> Load() {
+		public static string StringToBinary(string data) {
+			string result = "";
+			foreach(char c in data.ToCharArray()) {
+				result += Convert.ToString(c, 2).PadLeft(8, '0');
+			}
+			return result;
+		}
+
+		public static string BinaryToString(string data) {
+			List<byte> byteList = new();
+			for(int i = 0; i < data.Length; i += 8) {
+				byteList.Add(Convert.ToByte(data.Substring(i, 8), 2));
+			}
+			return Encoding.ASCII.GetString(byteList.ToArray());
+		}
+
+		//private static void Fi_FileChanged(object? sender, EventArgs e) {
+		//	throw new NotImplementedException();
+		//}
+
+		public static async Task<LocalFileInfo?> Load() {
 			OpenFileDialog openFileDialog = new() {
 				Filter = FILTER,
 				InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
@@ -46,20 +77,23 @@ namespace MindMap.Entities.Locals {
 			if(openFileDialog.ShowDialog() == true) {
 				Debug.WriteLine(openFileDialog.FileName);
 				string json = await File.ReadAllTextAsync(openFileDialog.FileName);
-				FileInfo info = new(JsonConvert.DeserializeObject<EverythingInfo>(json), openFileDialog.SafeFileName);
+				string converted = BinaryToString(json);
+				LocalFileInfo info = new(JsonConvert.DeserializeObject<EverythingInfo>(converted), openFileDialog.FileName, openFileDialog.SafeFileName);
 				return info;
 			} else {
 				return null;
 			}
 		}
 
-		public class FileInfo {
-			public EverythingInfo? Info { get; set; }
-			public string Filename { get; set; }
+		public class LocalFileInfo {
+			public EverythingInfo? Info { get; private set; }
+			public string Filename { get; private set; }
+			public string Path { get; private set; }
 
-			public FileInfo(EverythingInfo? info, string filename) {
+			public LocalFileInfo(EverythingInfo? info, string path, string filename) {
 				Info = info;
 				Filename = filename;
+				Path = path;
 			}
 		}
 

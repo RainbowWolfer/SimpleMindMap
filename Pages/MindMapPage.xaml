@@ -22,6 +22,10 @@
 			<ColumnDefinition Width="auto"/>
 			<ColumnDefinition Width="*"/>
 		</Grid.ColumnDefinitions>
+		<Grid.RowDefinitions>
+			<RowDefinition Height="*"/>
+			<RowDefinition Height="auto"/>
+		</Grid.RowDefinitions>
 		<Grid>
 			<Grid.RowDefinitions>
 				<RowDefinition Height="auto"/>
@@ -86,5 +90,36 @@
 				</Canvas>
 			</Grid>
 		</Border>
+		<Grid Grid.Row="1" Grid.ColumnSpan="3" Height="20" Background="White">
+			<!--
+				Save Progress
+				Load Progress
+				Elements Count
+				Connectons Count
+				Created Date
+				Last Modified Date
+			-->
+			<StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+				<StackPanel x:Name="LoadingPanel" Orientation="Horizontal" Margin="10,0,0,0" VerticalAlignment="Center">
+					<TextBlock Text="Loading" Margin="0,0,5,0"/>
+					<ProgressBar Width="100" Height="15" IsIndeterminate="True"/>
+				</StackPanel>
+				<StackPanel x:Name="SavingPanel" Orientation="Horizontal" Margin="10,0,0,0" VerticalAlignment="Center">
+					<TextBlock Text="Saving" Margin="0,0,5,0"/>
+					<ProgressBar Width="100" Height="15" IsIndeterminate="True"/>
+				</StackPanel>
+			</StackPanel>
+			<StackPanel HorizontalAlignment="Right" Orientation="Horizontal" VerticalAlignment="Center">
+				<StackPanel Orientation="Horizontal" Margin="0,0,10,0" VerticalAlignment="Center">
+					<TextBlock Text="&#xE18A;" VerticalAlignment="Center" FontFamily="Segoe MDL2 Assets"/>
+					<TextBlock x:Name="ElementsCountText" Text=" : 0" VerticalAlignment="Center" Margin="0,0,10,0"/>
+					<TextBlock Text="&#xE1D9;" VerticalAlignment="Center" FontFamily="Segoe MDL2 Assets"/>
+					<TextBlock x:Name="ConnectionsCountText" Text=" : 0" VerticalAlignment="Center"/>
+				</StackPanel>
+				<StackPanel Orientation="Horizontal" Margin="0,0,10,0" VerticalAlignment="Center">
+					<TextBlock x:Name="CreatedDateText" Text="Created Date (2021.11.26)"/>
+				</StackPanel>
+			</StackPanel>
+		</Grid>
 	</Grid>
 </Page>

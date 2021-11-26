@@ -1,6 +1,7 @@
 ﻿using MindMap.Entities;
 using MindMap.Entities.Connections;
 using MindMap.Entities.Elements;
+using MindMap.Entities.Elements.Interfaces;
 using MindMap.Entities.Frames;
 using MindMap.Entities.Locals;
 using System;
@@ -23,7 +24,16 @@ namespace MindMap.Pages {
 	public partial class MindMapPage: Page {//Editor Page
 		public readonly ConnectionsManager connectionsManager;
 		public bool holdShift;
-		private string _fileName = "(Not Saved)";
+		private string _path = "";
+		private string fileName = "(Not Saved)";
+		private bool elementsChanged = false;
+		public string FileName {
+			get => fileName;
+			set {
+				fileName = value;
+				FileNameText.Text = FileName + (ElementsChanged ? "*" : "");
+			}
+		}
 		public MindMapPage() {
 			InitializeComponent();
 			connectionsManager = new ConnectionsManager(this);
@@ -35,23 +45,35 @@ namespace MindMap.Pages {
 
 			HideElementProperties();
 
-			FileNameText.Text = _fileName;
+			FileNameText.Text = fileName;
 
-			KeyDown += (s, e) => {
-				if(e.Key == Key.LeftShift) {
-					holdShift = true;
-				}
-			};
-			KeyUp += (s, e) => {
-				if(e.Key == Key.LeftShift) {
-					holdShift = false;
-				}
-			};
+			SavingPanel.Visibility = Visibility.Collapsed;
+			LoadingPanel.Visibility = Visibility.Collapsed;
+
+			MainWindow.Instance?.KeyManager.Register(
+				() => holdShift = true,
+				() => holdShift = false,
+			Key.LeftShift);
+			MainWindow.Instance?.KeyManager.Register(
+				() => Save(),
+				() => { },
+			Key.LeftCtrl, Key.S);
 		}
 
-		public void Load(Local.EverythingInfo info, string fileName) {
-			_fileName = fileName;
-			FileNameText.Text = _fileName;
+		public async void Save() {
+			SavingPanel.Visibility = Visibility.Visible;
+			_path = await Local.Save(elements.Values.ToList(), connectionsManager, _path);
+			FileName = _path[(_path.LastIndexOf('\\') + 1)..];
+			ElementsChanged = false;
+			//set window title
+			SavingPanel.Visibility = Visibility.Collapsed;
+		}
+
+		public async void Load(Local.EverythingInfo info, string path, string fileName) {
+			LoadingPanel.Visibility = Visibility.Visible;
+			FileName = fileName;
+			_path = path;
+
 			foreach(Local.ElementInfo ele in info.elements) {
 				AddToElementsDictionary(ele.type_id switch {
 					Element.ID_Rectangle => new MyRectangle(this, ele.element_id, ele.propertyJson),
@@ -59,6 +81,7 @@ namespace MindMap.Pages {
 					Element.ID_Polygon => new MyPolygon(this, ele.element_id, ele.propertyJson),
 					_ => throw new Exception($"ID{ele.type_id} Not Found"),
 				}, ele.position, ele.size);
+				await Task.Delay(1);
 			}
 			foreach(Local.ConnectionInfo item in info.connections) {
 				Element? from = elements.Select(e => e.Value).ToList().Find(i => i.ID == item.from_parent_id);
@@ -69,7 +92,9 @@ namespace MindMap.Pages {
 					continue;
 				}
 				connectionsManager.Add(fromDot, toDot, item.propertyJson);
+				await Task.Delay(1);
 			}
+			LoadingPanel.Visibility = Visibility.Collapsed;
 		}
 
 		private void DebugButton_Click(object sender, RoutedEventArgs e) {
@@ -77,6 +102,14 @@ namespace MindMap.Pages {
 		}
 
 		private static ResizeFrame? Selection => ResizeFrame.Current;
+
+		public bool ElementsChanged {
+			get => elementsChanged;
+			set {
+				elementsChanged = value;
+				FileNameText.Text = FileName + (ElementsChanged ? "*" : "");
+			}
+		}
 
 		public void ClearResizePanel() {
 			Selection?.ClearResizeFrame(MainCanvas);
@@ -174,6 +207,11 @@ namespace MindMap.Pages {
 			return result;
 		}
 
+		public void UpdateCount() {
+			ConnectionsCountText.Text = $" : {connectionsManager.Count}";
+			ElementsCountText.Text = $" : {elements.Count}";
+		}
+
 		private void AddToElementsDictionary(Element value, Vector2 position, Vector2 size = default) {
 			value.SetPosition(position);
 			if(size != default) {
@@ -183,6 +221,9 @@ namespace MindMap.Pages {
 			value.CreateFlyoutMenu();
 			value.Target.MouseDown += Element_MouseDown;
 			elements.Add(value.Target, value);
+			if(value is IUpdate update) {
+				update.Update();
+			}
 		}
 
 		private void AddElement(Type type) {
@@ -193,6 +234,7 @@ namespace MindMap.Pages {
 			} else if(type == typeof(MyPolygon)) {
 				AddToElementsDictionary(new MyPolygon(this), Vector2.Zero);
 			}
+			UpdateCount();
 		}
 
 		public void RemoveElement(Element element) {
@@ -203,6 +245,7 @@ namespace MindMap.Pages {
 			ClearResizePanel();
 			elements.Remove(element.Target);
 			MainCanvas.Children.Remove(element.Target);
+			UpdateCount();
 		}
 
 		private void Element_MouseDown(object sender, MouseButtonEventArgs e) {

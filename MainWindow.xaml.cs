@@ -22,18 +22,18 @@ using System.Windows.Shapes;
 
 namespace MindMap {
 	public partial class MainWindow: Window {
+		public static MainWindow? Instance { get; private set; }
 		private MindMapPage? _mindMapPage;
+
+		public ComboKeyManager KeyManager;
 		public MainWindow() {
+			Instance = this;
 			InitializeComponent();
 			MainFrame.Navigated += (s, e) => MainFrame.NavigationService.RemoveBackEntry();
+			KeyManager = new ComboKeyManager(this);
 
-			NavigateToMindMap();
-
-			this.KeyDown += (s, e) => {
-				Debug.WriteLine(e.Key);
-			};
-
-			_ = new ComboKeyManager(this);
+			//NavigateToMindMap();
+			MainFrame.Navigate(new WelcomePage(this));
 		}
 
 		private void AboutThisMenuItem_Click(object sender, RoutedEventArgs e) {
@@ -47,10 +47,10 @@ namespace MindMap {
 		}
 
 		public async void OpenFile() {
-			Local.FileInfo? result = await Local.Load();
+			Local.LocalFileInfo? result = await Local.Load();
 			if(result != null && result.Info != null) {
 				NavigateToMindMap();
-				_mindMapPage?.Load(result.Info, result.Filename);
+				_mindMapPage?.Load(result.Info, result.Path, result.Filename);
 			}
 		}
 
@@ -60,7 +60,7 @@ namespace MindMap {
 
 		private void SaveMenuItem_Click(object sender, RoutedEventArgs e) {
 			if(_mindMapPage != null) {
-				Local.Save(_mindMapPage.elements.Select(x => x.Value).ToList(), _mindMapPage.connectionsManager);
+				_mindMapPage.Save();
 			}
 		}
 

@@ -160,6 +160,7 @@ namespace MindMap.Entities.Elements {
 		}
 
 		public void DrawPolygon(int pointCount) {
+			Debug.WriteLine("Start");
 			Point[] points = new Point[pointCount + 1];
 			double anglePerGon = Math.PI * 2 / pointCount;
 			double radiusX = _root.Width / 2;
@@ -170,6 +171,18 @@ namespace MindMap.Entities.Elements {
 				point.X = radiusX * Math.Cos(i * anglePerGon);
 				point.Y = radiusY * Math.Sin(i * anglePerGon);
 			}
+			double dY = points.Max(p => p.Y) - points.Min(p => p.Y);
+			double dX = points.Max(p => p.X) - points.Min(p => p.X);
+			double deltaY = (_root.Height - dY) / 2;
+			for(int i = 0; i < points.Length; i++) {
+				if((int)points[i].Y < 0) {
+					points[i].Y -= deltaY;
+				} else if((int)points[i].Y > 0) {
+					points[i].Y += deltaY;
+				}
+				points[i].X = (points[i].X - dX / 2) * _root.Width / dX + dX / 2;// not working correctly
+			}
+
 			for(int i = 0; i < points.Length; i++) {
 				points[i].X += radiusX;
 				points[i].Y += radiusY;

@@ -44,8 +44,6 @@ namespace MindMap.Entities.Locals {
 			string converted = StringToBinary(json);
 			await File.WriteAllTextAsync(filePath, converted);
 
-			//var fi = new FileInfo("", "");
-			//fi.FileChanged += Fi_FileChanged;
 			return filePath;
 		}
 
@@ -65,10 +63,6 @@ namespace MindMap.Entities.Locals {
 			return Encoding.ASCII.GetString(byteList.ToArray());
 		}
 
-		//private static void Fi_FileChanged(object? sender, EventArgs e) {
-		//	throw new NotImplementedException();
-		//}
-
 		public static async Task<LocalInfo?> Load() {
 			OpenFileDialog openFileDialog = new() {
 				Filter = FILTER,
@@ -83,7 +77,7 @@ namespace MindMap.Entities.Locals {
 					openFileDialog.SafeFileName,
 					openFileDialog.FileName,
 					File.GetCreationTime(openFileDialog.FileName)
-				); ;
+				);
 				return info;
 			} else {
 				return null;

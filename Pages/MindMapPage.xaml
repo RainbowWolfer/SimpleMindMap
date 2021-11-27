@@ -54,7 +54,7 @@
 									<Button Content="Octagon" Click="AddPolygonButton_Click" Style="{StaticResource MenuButton}"/>
 								</StackPanel>
 							</Expander>
-							<Expander Header="Paste Board" IsExpanded="True">
+							<Expander Header="Clipboard" IsExpanded="True">
 
 							</Expander>
 						</StackPanel>

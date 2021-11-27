@@ -30,7 +30,7 @@ namespace MindMap.Entities {
 				}
 			};
 
-			DebugKeys();
+			//DebugKeys();
 		}
 
 		private async void DebugKeys() {

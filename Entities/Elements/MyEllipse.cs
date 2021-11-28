@@ -43,6 +43,8 @@ namespace MindMap.Entities.Elements {
 		public string Text {
 			get => property.text;
 			set {
+				//submit old value to history
+				//it is before assigning new value
 				property.text = value;
 				UpdateText();
 			}
@@ -50,6 +52,9 @@ namespace MindMap.Entities.Elements {
 		public FontFamily FontFamily {
 			get => property.fontFamily;
 			set {
+				parent.editHistory.SubmitByElementPropertyChanged(this,
+					property with { fontFamily = value }
+				);
 				property.fontFamily = value;
 				UpdateStyle();
 			}
@@ -153,38 +158,33 @@ namespace MindMap.Entities.Elements {
 			property.fontSize = 15;
 			property.fontColor = Colors.Black;
 
-			_root = new Grid() {
-				Width = 250,
-				Height = 250,
-			};
-			_root.SetValue(Canvas.TopProperty, 0.0);
-			_root.SetValue(Canvas.LeftProperty, 0.0);
+			_root = new Grid();
 			_ellipse = new Ellipse();
 			MyTextBlock = new TextBlock();
 			MyTextBox = new TextBox();
-			_root.Children.Add(_ellipse);
-			MainCanvas.Children.Add(_root);
-			ShowTextBlock();
-			UpdateStyle();
-			UpdateText();
 		}
 		public MyEllipse(MindMapPage parent, string id, string propertiesJson) : base(parent) {
 			ID = id;
 			property = (Property)property.Translate(propertiesJson);
-			_root = new Grid() {
-				Width = 250,
-				Height = 250,
-			};
-			_root.SetValue(Canvas.TopProperty, 0.0);
-			_root.SetValue(Canvas.LeftProperty, 0.0);
+			_root = new Grid();
 			_ellipse = new Ellipse();
 			MyTextBlock = new TextBlock();
 			MyTextBox = new TextBox();
+		}
+
+		public override void SetFramework() {
+			_root.Children.Clear();
 			_root.Children.Add(_ellipse);
+			if(!MainCanvas.Children.Contains(_root)) {
+				MainCanvas.Children.Add(_root);
+			}
 			ShowTextBlock();
-			MainCanvas.Children.Add(_root);
 			UpdateStyle();
 			UpdateText();
+		}
+
+		public override void SetProperty(IProperty property) {
+			this.property = (Property)property;
 		}
 
 		public override void Deselect() {

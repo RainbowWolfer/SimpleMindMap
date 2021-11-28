@@ -4,6 +4,7 @@ using MindMap.Entities.Elements;
 using MindMap.Entities.Elements.Interfaces;
 using MindMap.Entities.Frames;
 using MindMap.Entities.Locals;
+using MindMap.Entities.Properties;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -23,6 +24,7 @@ using System.Windows.Shapes;
 namespace MindMap.Pages {
 	public partial class MindMapPage: Page {//Editor Page
 		public readonly ConnectionsManager connectionsManager;
+		public readonly EditHistory editHistory;
 		public bool holdShift;
 		private string _path = "";
 		private string fileName = "(Not Saved)";
@@ -37,6 +39,7 @@ namespace MindMap.Pages {
 		public MindMapPage() {
 			InitializeComponent();
 			connectionsManager = new ConnectionsManager(this);
+			editHistory = new EditHistory(this);
 
 			MainCanvas.MouseMove += MainCanvas_MouseMove;
 			MainCanvas.MouseUp += MainCanvas_MouseUp;
@@ -117,6 +120,10 @@ namespace MindMap.Pages {
 			LoadingPanel.Visibility = Visibility.Collapsed;
 			SetSetOprationHintText("Loaded Successfully");
 		}
+
+		public void Redo() => editHistory.Redo();
+
+		public void Undo() => editHistory.Undo();
 
 		private void DebugButton_Click(object sender, RoutedEventArgs e) {
 			connectionsManager.DebugConnections();
@@ -233,10 +240,21 @@ namespace MindMap.Pages {
 			ElementsCountText.Text = $" : {elements.Count}";
 		}
 
-		private void AddToElementsDictionary(Element value, Vector2 position, Vector2 size = default) {
+		public void AddElementFromHistory(Element target) {
+			AddToElementsDictionary(target,
+				target.GetPosition(),
+				target.GetSize(),
+				target.Properties,
+				false
+			);
+		}
+
+		private void AddToElementsDictionary(Element value, Vector2 position, Vector2 size, IProperty? property = null, bool submitEditHistory = true) {
 			value.SetPosition(position);
-			if(size != default) {
-				value.SetSize(size);
+			value.SetSize(size == default ? value.DefaultSize : size);
+			value.SetFramework();
+			if(property != null) {
+				value.SetProperty(property);
 			}
 			value.CreateConnectionsFrame();
 			value.CreateFlyoutMenu();
@@ -245,15 +263,18 @@ namespace MindMap.Pages {
 			if(value is IUpdate update) {
 				update.Update();
 			}
+			if(submitEditHistory) {
+				editHistory.SubmitByElementCreated(value);
+			}
 		}
 
 		private void AddElement(Type type) {
 			if(type == typeof(MyRectangle)) {
-				AddToElementsDictionary(new MyRectangle(this), Vector2.Zero);
+				AddToElementsDictionary(new MyRectangle(this), Vector2.Zero, default);
 			} else if(type == typeof(MyEllipse)) {
-				AddToElementsDictionary(new MyEllipse(this), Vector2.Zero);
+				AddToElementsDictionary(new MyEllipse(this), Vector2.Zero, default);
 			} else if(type == typeof(MyPolygon)) {
-				AddToElementsDictionary(new MyPolygon(this), Vector2.Zero);
+				AddToElementsDictionary(new MyPolygon(this), Vector2.Zero, default);
 			}
 			UpdateCount();
 		}

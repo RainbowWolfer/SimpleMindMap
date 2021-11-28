@@ -121,46 +121,40 @@ namespace MindMap.Entities.Elements {
 			property.fontColor = Colors.Black;
 			property.pointCount = 6;
 
-			_root = new Grid() {
-				Height = 250,
-				Width = 250,
-			};
-			_root.SetValue(Canvas.TopProperty, 0.0);
-			_root.SetValue(Canvas.LeftProperty, 0.0);
+			_root = new Grid();
 			_polygon = new Polygon();
-			_root.Children.Add(_polygon);
 			MyTextBlock = new TextBlock();
 			MyTextBox = new TextBox();
-			MainCanvas.Children.Add(_root);
-			ShowTextBlock();
-			UpdateStyle();
-			UpdateText();
-			DrawPolygon(PointCount);
 		}
 
 		public MyPolygon(MindMapPage parent, string id, string propertiesJson) : base(parent) {
 			ID = id;
 			property = (Property)property.Translate(propertiesJson);
 
-			_root = new Grid() {
-				Height = 250,
-				Width = 250,
-			};
-			_root.SetValue(Canvas.TopProperty, 0.0);
-			_root.SetValue(Canvas.LeftProperty, 0.0);
+			_root = new Grid();
 			_polygon = new Polygon();
-			_root.Children.Add(_polygon);
 			MyTextBlock = new TextBlock();
 			MyTextBox = new TextBox();
-			MainCanvas.Children.Add(_root);
+		}
+
+		public override void SetFramework() {
+			_root.Children.Clear();
+			_root.Children.Add(_polygon);
+			if(!MainCanvas.Children.Contains(_root)) {
+				MainCanvas.Children.Add(_root);
+			}
 			ShowTextBlock();
 			UpdateStyle();
 			UpdateText();
 			DrawPolygon(PointCount);
 		}
 
+		public override void SetProperty(IProperty property) {
+			this.property = (Property)property;
+		}
+
 		public void DrawPolygon(int pointCount) {
-			Debug.WriteLine("Start");
+			//Debug.WriteLine("Start");
 			Point[] points = new Point[pointCount + 1];
 			double anglePerGon = Math.PI * 2 / pointCount;
 			double radiusX = _root.Width / 2;
@@ -194,7 +188,13 @@ namespace MindMap.Entities.Elements {
 			StackPanel panel = new();
 			panel.Children.Add(PropertiesPanel.SectionTitle($"{ID}"));
 			panel.Children.Add(PropertiesPanel.SliderInput("Polygon Points", PointCount, 3, 20,
-				value => PointCount = (int)value
+				value => PointCount = (int)value,
+				value => {
+					//Debug.WriteLine($"previous value: {value}");
+					parent.editHistory.SubmitByElementPropertyChanged(this, 
+						property with { pointCount = (int)value }
+					);
+				}
 			, 1, 0));
 			return panel;
 		}

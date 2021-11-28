@@ -40,6 +40,7 @@ namespace MindMap.Entities.Elements {
 		private Property property = new();
 		public override IProperty Properties => property;
 		public override FrameworkElement Target => _root;
+		public override Vector2 DefaultSize => new(200, 200);
 
 		public TextBox MyTextBox { get; set; }
 		public TextBlock MyTextBlock { get; set; }
@@ -166,39 +167,33 @@ namespace MindMap.Entities.Elements {
 			property.fontColor = Colors.Black;
 			property.cornerRadius = new CornerRadius(0);
 
-			_root = new Border() {
-				Width = 250,
-				Height = 250,
-			};
-			_root.SetValue(Canvas.TopProperty, 0.0);
-			_root.SetValue(Canvas.LeftProperty, 0.0);
+			_root = new Border();
 			_container = new Grid();
-			_root.Child = _container;
 			MyTextBox = new TextBox();
 			MyTextBlock = new TextBlock();
-			ShowTextBlock();
-			MainCanvas.Children.Add(_root);
-			UpdateStyle();
-			UpdateText();
 		}
 
 		public MyRectangle(MindMapPage parent, string id, string propertiesJson) : base(parent) {
 			ID = id;
 			property = (Property)property.Translate(propertiesJson);
-			_root = new Border() {
-				Width = 250,
-				Height = 250,
-			};
-			_root.SetValue(Canvas.TopProperty, 0.0);
-			_root.SetValue(Canvas.LeftProperty, 0.0);
+			_root = new Border();
 			_container = new Grid();
-			_root.Child = _container;
 			MyTextBox = new TextBox();
 			MyTextBlock = new TextBlock();
+		}
+
+		public override void SetFramework() {
+			_root.Child = _container;
+			if(!MainCanvas.Children.Contains(_root)) {
+				MainCanvas.Children.Add(_root);
+			}
 			ShowTextBlock();
-			MainCanvas.Children.Add(_root);
 			UpdateStyle();
 			UpdateText();
+		}
+
+		public override void SetProperty(IProperty property) {
+			this.property = (Property)property;
 		}
 
 		protected override void UpdateStyle() {

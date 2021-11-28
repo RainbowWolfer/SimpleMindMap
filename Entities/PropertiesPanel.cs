@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -43,7 +44,7 @@ namespace MindMap.Entities {
 		//	return new StackPanel();
 		//}
 
-		public static StackPanel SliderInput(string title, double initValue, double min, double max, Action<double> OnValueChanged, double gap = 0, int displayPresision = 2) {
+		public static StackPanel SliderInput(string title, double initValue, double min, double max, Action<double> OnValueChanged, Action<double>? AfterValueSubmit = null, double gap = 0, int displayPresision = 2) {
 			StackPanel panel = CreateBase(title);
 			Slider slider = new() {
 				Minimum = min,
@@ -56,9 +57,16 @@ namespace MindMap.Entities {
 			};
 			slider.ValueChanged += (s, e) => {
 				OnValueChanged.Invoke(slider.Value);
-				ToolTipService.SetToolTip(slider, string.Format("{0:0.00}", slider.Value));
+				ToolTipService.SetToolTip(slider, $"{slider.Value:0.00}");
 			};
-			ToolTipService.SetToolTip(slider, string.Format("{0:0.00}", slider.Value));
+			double tmp_value = slider.Value;
+			slider.PreviewMouseDown += (s, e) => {
+				tmp_value = slider.Value;
+			};
+			slider.PreviewMouseUp += (s, e) => {//works even mouse off the element
+				AfterValueSubmit?.Invoke(tmp_value);
+			};
+			ToolTipService.SetToolTip(slider, $"{slider.Value:0.00}");
 			panel.Children.Add(slider);
 			return panel;
 		}

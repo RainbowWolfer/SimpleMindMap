@@ -59,13 +59,19 @@ namespace MindMap {
 		}
 
 		private void SaveMenuItem_Click(object sender, RoutedEventArgs e) {
-			if(_mindMapPage != null) {
-				_mindMapPage.Save();
-			}
+			_mindMapPage?.Save();
 		}
 
 		private void OpenFileMenuItem_Click(object sender, RoutedEventArgs e) {
 			OpenFile();
+		}
+
+		private void RedoMenuItem_Click(object sender, RoutedEventArgs e) {
+			_mindMapPage?.Redo();
+		}
+
+		private void UndoMenuItem_Click(object sender, RoutedEventArgs e) {
+			_mindMapPage?.Undo();
 		}
 	}
 }

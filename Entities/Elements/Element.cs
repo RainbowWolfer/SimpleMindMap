@@ -49,6 +49,10 @@ namespace MindMap.Entities.Elements {
 			Canvas.SetTop(Target, position.Y);
 		}
 
+		public virtual Vector2 DefaultSize => new(150, 150);
+
+		public abstract void SetProperty(IProperty property);
+
 		public void CreateConnectionsFrame() {
 			connectionsFrame = new ConnectionsFrame(this.parent, this);
 		}
@@ -97,10 +101,11 @@ namespace MindMap.Entities.Elements {
 						value => text.FontFamily = value
 					, FontsList.AvailableFonts),
 					PropertiesPanel.ComboSelector("Font Weight", text.FontWeight,
-						value => text.FontWeight=value
+						value => text.FontWeight = value
 					, FontsList.AllFontWeights),
 					PropertiesPanel.SliderInput("Font Size", text.FontSize, 5, 42,
-						value => text.FontSize = value
+						value => text.FontSize = value,
+						value => { }
 					, 1, 0),
 					PropertiesPanel.ColorInput("Font Color", text.FontColor,
 						color => text.FontColor = color
@@ -109,7 +114,14 @@ namespace MindMap.Entities.Elements {
 			}
 			return panels;
 		}
+
+		//public void SubmitPropertyChangedEditHistory(){//must be before changes
+		//	parent.editHistory.SubmitByElementPropertyChanged(this);
+		//}
+
 		public abstract Panel CreateElementProperties();
+
+		public abstract void SetFramework();
 
 		protected abstract void UpdateStyle();
 
@@ -119,10 +131,13 @@ namespace MindMap.Entities.Elements {
 		public abstract void RightClick();
 		public abstract void Deselect();
 
-		public virtual void Delete() {
+		public virtual void Delete(bool submitEditHistory = true) {
 			parent.RemoveElement(this);
 			connectionsFrame?.ClearConnections();
 			parent.UpdateCount();
+			if(submitEditHistory) {
+				parent.editHistory.SubmitByElementDeleted(this);
+			}
 		}
 	}
 }

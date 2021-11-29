@@ -71,11 +71,16 @@ namespace MindMap.Entities {
 				fc.Target.SetSize(fc.Size);
 			}
 			previous.RemoveAt(previous.Count - 1);
+			future.Insert(0, last);
 			Debug.WriteLine($"After {previous.Count}");
 		}
 
 		public void Redo() {
-
+			if(future.Count < 1) {
+				return;
+			}
+			//??????????/
+			//think about the property which redo needs !
 		}
 
 		private interface IChange {

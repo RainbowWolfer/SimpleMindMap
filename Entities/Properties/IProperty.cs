@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace MindMap.Entities.Properties {
-	public interface IProperty {
+	public interface IProperty: ICloneable {
 		public IProperty Translate(string json);
 	}
 }

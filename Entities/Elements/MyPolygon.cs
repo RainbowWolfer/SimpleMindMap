@@ -30,6 +30,11 @@ namespace MindMap.Entities.Elements {
 			public double fontSize;
 			public Color fontColor;
 			public int pointCount;
+
+			public object Clone() {
+				throw new NotImplementedException();
+			}
+
 			public IProperty Translate(string json) {
 				return JsonConvert.DeserializeObject<Property>(json);
 			}
@@ -105,6 +110,7 @@ namespace MindMap.Entities.Elements {
 			}
 		}
 
+		public Shape MyShape => throw new NotImplementedException();
 
 		private readonly Grid _root;
 		private readonly Polygon _polygon;
@@ -274,6 +280,10 @@ namespace MindMap.Entities.Elements {
 
 		public void Update() {
 			DrawPolygon(PointCount);
+		}
+
+		public void SubmitTextChange() {
+			throw new NotImplementedException();
 		}
 	}
 }

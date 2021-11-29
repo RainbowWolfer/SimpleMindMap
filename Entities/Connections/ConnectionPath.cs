@@ -24,6 +24,11 @@ namespace MindMap.Entities.Connections {
 		private struct Property: IProperty {
 			public double strokeThickess;
 			public Color strokeColor;
+
+			public object Clone() {
+				throw new NotImplementedException();
+			}
+
 			public IProperty Translate(string json) {
 				return JsonConvert.DeserializeObject<Property>(json);
 			}

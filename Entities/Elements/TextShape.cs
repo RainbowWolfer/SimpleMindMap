@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
 
@@ -15,59 +16,69 @@ namespace MindMap.Entities.Elements {
 	public abstract class TextShape: Element, ITextGrid, IBorderBasedStyle {
 		public TextBox MyTextBox { get; set; } = new();
 		public TextBlock MyTextBlock { get; set; } = new();
-		public abstract Shape MyShape { get; }
 
 		public string Text {
 			get => BaseProperties.text;
 			set {
+				if(BaseProperties.text != value) {
+					parent.editHistory.SubmitByElementPropertyChanged(this, (IProperty)BaseProperties.Clone());
+				}
 				BaseProperties.text = value;
+				UpdateStyle();
 			}
 		}
 		public FontFamily FontFamily {
 			get => BaseProperties.fontFamily;
 			set {
 				BaseProperties.fontFamily = value;
+				UpdateStyle();
 			}
 		}
 		public FontWeight FontWeight {
 			get => BaseProperties.fontWeight;
 			set {
 				BaseProperties.fontWeight = value;
+				UpdateStyle();
 			}
 		}
 		public double FontSize {
 			get => BaseProperties.fontSize;
 			set {
 				BaseProperties.fontSize = value;
+				UpdateStyle();
 			}
 		}
 		public Color FontColor {
 			get => BaseProperties.fontColor;
 			set {
 				BaseProperties.fontColor = value;
+				UpdateStyle();
 			}
 		}
 		public Brush Background {
 			get => BaseProperties.background;
 			set {
 				BaseProperties.background = value;
+				UpdateStyle();
 			}
 		}
 		public Brush BorderColor {
 			get => BaseProperties.borderColor;
 			set {
 				BaseProperties.borderColor = value;
+				UpdateStyle();
 			}
 		}
 		public Thickness BorderThickness {
 			get => BaseProperties.borderThickness;
 			set {
 				BaseProperties.borderThickness = value;
+				UpdateStyle();
 			}
 		}
 
-		private readonly Grid _root = new();
-		public override FrameworkElement Target => _root;
+		protected readonly Grid root = new();
+		public override FrameworkElement Target => root;
 
 		protected abstract class BaseProperty: IProperty {
 			public string text = "(Hello World)";
@@ -77,25 +88,31 @@ namespace MindMap.Entities.Elements {
 			public Color fontColor = Colors.Black;
 			public Brush background = Brushes.Gray;
 			public Brush borderColor = Brushes.Aquamarine;
-			public Thickness borderThickness = new(10);
+			public Thickness borderThickness = new(2);
 			public abstract IProperty Translate(string json);
+			public abstract object Clone();
 		}
 
 		protected abstract BaseProperty BaseProperties { get; }
 		public override IProperty Properties => BaseProperties;
 
 		public TextShape(MindMapPage parent) : base(parent) {
-
+			MyTextBox.KeyDown += (s, e) => {
+				if(e.Key == Key.Escape) {
+					Deselect();
+				}
+			};
 		}
 
 		public abstract override Panel CreateElementProperties();
 
 		public override void Deselect() {
-
+			ShowTextBlock();
+			SubmitTextChange();
 		}
 
 		public override void DoubleClick() {
-
+			ShowTextBox();
 		}
 
 		public override void LeftClick() {
@@ -107,19 +124,33 @@ namespace MindMap.Entities.Elements {
 		}
 
 		public override void RightClick() {
-
+			root.ContextMenu.IsOpen = true;
 		}
 
 		public override void SetFramework() {
+			root.Children.Clear();
+			if(!MainCanvas.Children.Contains(root)) {
+				MainCanvas.Children.Add(root);
+			}
+			root.Children.Add(MyTextBlock);
+			root.Children.Add(MyTextBox);
+			ShowTextBlock();
+			UpdateStyle();
+		}
 
+		public void SubmitTextChange() {
+			Text = MyTextBox.Text;
+			MyTextBlock.Text = Text;
 		}
 
 		public void ShowTextBlock() {
-
+			MyTextBlock.Visibility = Visibility.Visible;
+			MyTextBox.Visibility = Visibility.Collapsed;
 		}
 
 		public void ShowTextBox() {
-
+			MyTextBlock.Visibility = Visibility.Collapsed;
+			MyTextBox.Visibility = Visibility.Visible;
 		}
 
 		protected override void UpdateStyle() {
@@ -146,8 +177,6 @@ namespace MindMap.Entities.Elements {
 			MyTextBox.HorizontalAlignment = HorizontalAlignment.Stretch;
 			MyTextBox.AcceptsReturn = true;
 			MyTextBox.AcceptsTab = true;
-
-			//MyShape.
 		}
 	}
 }

@@ -267,13 +267,15 @@ namespace MindMap.Entities.Frames {
 					}
 				};
 				parent.MainCanvas.MouseUp += (s, e) => {
+					if(_drag) {
+						Vector2 endSize = new(target.Width, target.Height);
+						Vector2 endPos = new(Canvas.GetLeft(target), Canvas.GetTop(target));
+						if(endSize != startSize || endPos != startPos) {
+							parent.editHistory.SubmitByElementFrameworkChanged(element, startSize, startPos);
+						}
+					}
 					_drag = false;
 					Mouse.Capture(null);
-					Vector2 endSize = new(target.Width, target.Height);
-					Vector2 endPos = new(Canvas.GetLeft(target), Canvas.GetTop(target));
-					if(endSize != startSize || endPos != startPos) {
-						parent.editHistory.SubmitByElementFrameworkChanged(element, startSize, startPos);
-					}
 				};
 			}
 

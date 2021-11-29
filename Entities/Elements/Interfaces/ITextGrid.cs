@@ -18,7 +18,7 @@ namespace MindMap.Entities.Elements.Interfaces {
 		public double FontSize { get; set; }
 		public Color FontColor { get; set; }
 
-		//public void UpdateText();
+		public void SubmitTextChange();
 		public void ShowTextBox();
 		public void ShowTextBlock();
 	}

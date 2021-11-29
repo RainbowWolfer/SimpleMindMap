@@ -29,6 +29,11 @@ namespace MindMap.Entities.Elements {
 			public Brush borderColor;
 			public Thickness borderThickness;
 			public Color fontColor;
+
+			public object Clone() {
+				throw new NotImplementedException();
+			}
+
 			public IProperty Translate(string json) {
 				return JsonConvert.DeserializeObject<Property>(json);
 			}
@@ -147,6 +152,8 @@ namespace MindMap.Entities.Elements {
 			}
 		}
 
+		public Shape MyShape => throw new NotImplementedException();
+
 		public MyEllipse(MindMapPage parent) : base(parent) {
 			ID = AssignID("Ellipes");
 			property.text = "(Hello World)";
@@ -240,6 +247,10 @@ namespace MindMap.Entities.Elements {
 
 		public override Panel CreateElementProperties() {
 			return PropertiesPanel.SectionTitle($"{ID}");
+		}
+
+		public void SubmitTextChange() {
+			throw new NotImplementedException();
 		}
 	}
 }

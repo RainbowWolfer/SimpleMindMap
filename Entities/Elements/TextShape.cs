@@ -9,36 +9,86 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using System.Windows.Shapes;
 
 namespace MindMap.Entities.Elements {
 	public abstract class TextShape: Element, ITextGrid, IBorderBasedStyle {
-		public TextBox MyTextBox { get; set; }
-		public TextBlock MyTextBlock { get; set; }
-		public string Text { get; set; }
-		public FontFamily FontFamily { get; set; }
-		public FontWeight FontWeight { get; set; }
-		public double FontSize { get; set; }
-		public Color FontColor { get; set; }
-		public Brush Background { get; set; }
-		public Brush BorderColor { get; set; }
-		public Thickness BorderThickness { get; set; }
+		public TextBox MyTextBox { get; set; } = new();
+		public TextBlock MyTextBlock { get; set; } = new();
+		public abstract Shape MyShape { get; }
 
+		public string Text {
+			get => BaseProperties.text;
+			set {
+				BaseProperties.text = value;
+			}
+		}
+		public FontFamily FontFamily {
+			get => BaseProperties.fontFamily;
+			set {
+				BaseProperties.fontFamily = value;
+			}
+		}
+		public FontWeight FontWeight {
+			get => BaseProperties.fontWeight;
+			set {
+				BaseProperties.fontWeight = value;
+			}
+		}
+		public double FontSize {
+			get => BaseProperties.fontSize;
+			set {
+				BaseProperties.fontSize = value;
+			}
+		}
+		public Color FontColor {
+			get => BaseProperties.fontColor;
+			set {
+				BaseProperties.fontColor = value;
+			}
+		}
+		public Brush Background {
+			get => BaseProperties.background;
+			set {
+				BaseProperties.background = value;
+			}
+		}
+		public Brush BorderColor {
+			get => BaseProperties.borderColor;
+			set {
+				BaseProperties.borderColor = value;
+			}
+		}
+		public Thickness BorderThickness {
+			get => BaseProperties.borderThickness;
+			set {
+				BaseProperties.borderThickness = value;
+			}
+		}
+
+		private readonly Grid _root = new();
 		public override FrameworkElement Target => _root;
 
-		private readonly Grid _root;
-
 		protected abstract class BaseProperty: IProperty {
+			public string text = "(Hello World)";
+			public FontFamily fontFamily = new("Microsoft YaHei UI");
+			public FontWeight fontWeight = FontWeights.Normal;
+			public double fontSize = 14;
+			public Color fontColor = Colors.Black;
+			public Brush background = Brushes.Gray;
+			public Brush borderColor = Brushes.Aquamarine;
+			public Thickness borderThickness = new(10);
 			public abstract IProperty Translate(string json);
-
 		}
+
+		protected abstract BaseProperty BaseProperties { get; }
+		public override IProperty Properties => BaseProperties;
 
 		public TextShape(MindMapPage parent) : base(parent) {
-			_root = new Grid();
+
 		}
 
-		public override Panel CreateElementProperties() {
-			return new StackPanel();
-		}
+		public abstract override Panel CreateElementProperties();
 
 		public override void Deselect() {
 
@@ -64,10 +114,6 @@ namespace MindMap.Entities.Elements {
 
 		}
 
-		public override void SetProperty(IProperty property) {
-
-		}
-
 		public void ShowTextBlock() {
 
 		}
@@ -76,12 +122,32 @@ namespace MindMap.Entities.Elements {
 
 		}
 
-		public void UpdateText() {
-
-		}
-
 		protected override void UpdateStyle() {
+			MyTextBlock.Text = Text;
+			MyTextBlock.Foreground = new SolidColorBrush(FontColor);
+			MyTextBlock.FontFamily = FontFamily;
+			MyTextBlock.FontWeight = FontWeight;
+			MyTextBlock.FontSize = FontSize;
+			MyTextBlock.Padding = new Thickness(10);
+			MyTextBlock.TextWrapping = TextWrapping.Wrap;
+			MyTextBlock.TextAlignment = TextAlignment.Center;
+			MyTextBlock.VerticalAlignment = VerticalAlignment.Center;
+			MyTextBlock.HorizontalAlignment = HorizontalAlignment.Center;
 
+			MyTextBox.Text = Text;
+			MyTextBox.Foreground = new SolidColorBrush(FontColor);
+			MyTextBox.FontFamily = FontFamily;
+			MyTextBox.FontWeight = FontWeight;
+			MyTextBox.FontSize = FontSize;
+			MyTextBox.Padding = new Thickness(10);
+			MyTextBox.TextWrapping = TextWrapping.Wrap;
+			MyTextBox.TextAlignment = TextAlignment.Center;
+			MyTextBox.VerticalAlignment = VerticalAlignment.Stretch;
+			MyTextBox.HorizontalAlignment = HorizontalAlignment.Stretch;
+			MyTextBox.AcceptsReturn = true;
+			MyTextBox.AcceptsTab = true;
+
+			//MyShape.
 		}
 	}
 }

@@ -55,7 +55,8 @@ namespace MindMap.Entities {
 				TickFrequency = gap,
 				IsSnapToTickEnabled = gap != 0,
 			};
-			slider.ValueChanged += (s, e) => {
+			slider.PreviewKeyDown += (s, e) => e.Handled = true;
+			slider.ValueChanged += (s, e) => {//Record Drag Start Value
 				OnValueChanged.Invoke(slider.Value);
 				ToolTipService.SetToolTip(slider, $"{slider.Value:0.00}");
 			};
@@ -76,9 +77,17 @@ namespace MindMap.Entities {
 			ColorPicker picker = new() {
 				SelectedColor = initColor,
 			};
+			bool changing = false;
 			picker.SelectedColorChanged += (s, e) => {
 				if(e.NewValue != null) {
+					changing = true;
 					OnColorChanged.Invoke(e.NewValue.Value);
+				}
+			};
+			picker.PreviewMouseUp += (s, e) => {
+				if(changing) {
+					Debug.WriteLine(picker.SelectedColor);
+					changing = false;
 				}
 			};
 			panel.Children.Add(picker);

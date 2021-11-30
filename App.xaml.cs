@@ -23,12 +23,10 @@ namespace MindMap {
 			Debug.WriteLine("The assembly qualified name of MyClass is " + typeInfo.AssemblyQualifiedName);
 
 			SubTest v1 = new("1", "1", "1");
-			string json = JsonConvert.SerializeObject(v1);
-			Test? v2 = JsonConvert.DeserializeObject<SubTest>(json);
-			var v3 = (SubTest)v2;
-			Debug.WriteLine(v2);
-			Debug.WriteLine(v3);
-			Debug.WriteLine("end");
+			SubTest v2 = (SubTest)v1.Clone();
+			//v2.name = "2";
+			//Debug.WriteLine($"Start {v1.}");
+
 		}
 	}
 

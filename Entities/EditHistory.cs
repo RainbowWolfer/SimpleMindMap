@@ -47,9 +47,7 @@ namespace MindMap.Entities {
 		}
 
 		public void Undo() {
-			Debug.WriteLine($"Before {previous.Count}");
 			if(previous.Count < 1) {
-				Debug.WriteLine("NOMORE");
 				return;
 			}
 			IChange last = previous[^1];
@@ -65,22 +63,42 @@ namespace MindMap.Entities {
 						throw new Exception($"{cod.Type} not found");
 				}
 			} else if(last is ElementPropertyChange pc) {
-				pc.Target.SetProperty(pc.Property);
+				IProperty TargetProperty = pc.Property;
+				pc.Property = (IProperty)pc.Target.Properties.Clone();
+				pc.Target.SetProperty(TargetProperty);
 			} else if(last is ElementFrameworkChange fc) {
 				fc.Target.SetPosition(fc.Position);
 				fc.Target.SetSize(fc.Size);
 			}
 			previous.RemoveAt(previous.Count - 1);
 			future.Insert(0, last);
-			Debug.WriteLine($"After {previous.Count}");
 		}
 
 		public void Redo() {
 			if(future.Count < 1) {
 				return;
 			}
-			//??????????/
-			//think about the property which redo needs !
+			IChange first = future[0];
+			if(first is ElementCreatedOrDeleted cod) {
+				switch(cod.Type) {
+					case CreateOrDelete.Create:
+						//go create
+						_parent.AddElementFromHistory(cod.Target);
+						break;
+					case CreateOrDelete.Delete:
+						cod.Target.Delete();
+						//go delete
+						break;
+					default:
+						throw new Exception($"{cod.Type} not found");
+				}
+			} else if(first is ElementPropertyChange pc) {
+				IProperty TargetProperty = pc.Property;
+				pc.Property = (IProperty)pc.Target.Properties.Clone();
+				pc.Target.SetProperty(TargetProperty);
+			}
+			future.RemoveAt(0);
+			previous.Add(first);
 		}
 
 		private interface IChange {
@@ -108,7 +126,7 @@ namespace MindMap.Entities {
 
 		private class ElementPropertyChange: IChange {
 			public Element Target { get; protected set; }
-			public IProperty Property { get; private set; }
+			public IProperty Property { get; set; }
 
 			public ElementPropertyChange(Element target, IProperty property) {
 				Target = target;

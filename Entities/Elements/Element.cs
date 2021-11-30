@@ -90,7 +90,10 @@ namespace MindMap.Entities.Elements {
 						color => border.BorderColor = new SolidColorBrush(color)
 					),
 					PropertiesPanel.SliderInput("Border Thickness", border.BorderThickness.Left, 0, 5,
-						value => border.BorderThickness = new Thickness(value)
+						value => border.BorderThickness = new Thickness(value),
+						value => {
+
+						}
 					),
 				});
 			}
@@ -105,7 +108,9 @@ namespace MindMap.Entities.Elements {
 					, FontsList.AllFontWeights),
 					PropertiesPanel.SliderInput("Font Size", text.FontSize, 5, 42,
 						value => text.FontSize = value,
-						value => { }
+						valueBefore => {
+							Debug.WriteLine(valueBefore);
+						}
 					, 1, 0),
 					PropertiesPanel.ColorInput("Font Color", text.FontColor,
 						color => text.FontColor = color
@@ -115,9 +120,9 @@ namespace MindMap.Entities.Elements {
 			return panels;
 		}
 
-		//public void SubmitPropertyChangedEditHistory(){//must be before changes
-		//	parent.editHistory.SubmitByElementPropertyChanged(this);
-		//}
+		public void SubmitPropertyChangedEditHistory(IProperty property) {
+			parent.editHistory.SubmitByElementPropertyChanged(this, (IProperty)property.Clone());
+		}
 
 		public abstract Panel CreateElementProperties();
 

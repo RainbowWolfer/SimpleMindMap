@@ -21,7 +21,7 @@ namespace MindMap.Entities.Elements {
 			get => BaseProperties.text;
 			set {
 				if(BaseProperties.text != value) {
-					parent.editHistory.SubmitByElementPropertyChanged(this, (IProperty)BaseProperties.Clone());
+					SubmitPropertyChangedEditHistory(BaseProperties);
 				}
 				BaseProperties.text = value;
 				UpdateStyle();
@@ -30,6 +30,9 @@ namespace MindMap.Entities.Elements {
 		public FontFamily FontFamily {
 			get => BaseProperties.fontFamily;
 			set {
+				if(BaseProperties.fontFamily != value) {
+					SubmitPropertyChangedEditHistory(BaseProperties);
+				}
 				BaseProperties.fontFamily = value;
 				UpdateStyle();
 			}
@@ -37,6 +40,9 @@ namespace MindMap.Entities.Elements {
 		public FontWeight FontWeight {
 			get => BaseProperties.fontWeight;
 			set {
+				if(BaseProperties.fontWeight != value) {
+					SubmitPropertyChangedEditHistory(BaseProperties);
+				}
 				BaseProperties.fontWeight = value;
 				UpdateStyle();
 			}
@@ -44,6 +50,9 @@ namespace MindMap.Entities.Elements {
 		public double FontSize {
 			get => BaseProperties.fontSize;
 			set {
+				if(BaseProperties.fontSize != value) {
+					SubmitPropertyChangedEditHistory(BaseProperties);
+				}
 				BaseProperties.fontSize = value;
 				UpdateStyle();
 			}
@@ -51,6 +60,9 @@ namespace MindMap.Entities.Elements {
 		public Color FontColor {
 			get => BaseProperties.fontColor;
 			set {
+				if(BaseProperties.fontColor != value) {
+					SubmitPropertyChangedEditHistory(BaseProperties);
+				}
 				BaseProperties.fontColor = value;
 				UpdateStyle();
 			}
@@ -58,6 +70,9 @@ namespace MindMap.Entities.Elements {
 		public Brush Background {
 			get => BaseProperties.background;
 			set {
+				if(BaseProperties.background != value) {
+					SubmitPropertyChangedEditHistory(BaseProperties);
+				}
 				BaseProperties.background = value;
 				UpdateStyle();
 			}
@@ -65,6 +80,9 @@ namespace MindMap.Entities.Elements {
 		public Brush BorderColor {
 			get => BaseProperties.borderColor;
 			set {
+				if(BaseProperties.borderColor != value) {
+					SubmitPropertyChangedEditHistory(BaseProperties);
+				}
 				BaseProperties.borderColor = value;
 				UpdateStyle();
 			}
@@ -72,6 +90,9 @@ namespace MindMap.Entities.Elements {
 		public Thickness BorderThickness {
 			get => BaseProperties.borderThickness;
 			set {
+				if(BaseProperties.borderThickness != value) {
+					SubmitPropertyChangedEditHistory(BaseProperties);
+				}
 				BaseProperties.borderThickness = value;
 				UpdateStyle();
 			}

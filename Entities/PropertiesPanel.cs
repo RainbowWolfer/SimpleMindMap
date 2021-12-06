@@ -60,23 +60,24 @@ namespace MindMap.Entities {
 				OnValueChanged.Invoke(slider.Value);
 				ToolTipService.SetToolTip(slider, $"{slider.Value:0.00}");
 			};
-			double tmp_value = slider.Value;
+			double valueBefore = slider.Value;
 			slider.PreviewMouseDown += (s, e) => {
-				tmp_value = slider.Value;
+				valueBefore = slider.Value;
 			};
 			slider.PreviewMouseUp += (s, e) => {//works even mouse off the element
-				AfterValueSubmit?.Invoke(tmp_value);
+				AfterValueSubmit?.Invoke(valueBefore);
 			};
 			ToolTipService.SetToolTip(slider, $"{slider.Value:0.00}");
 			panel.Children.Add(slider);
 			return panel;
 		}
 
-		public static StackPanel ColorInput(string title, Color initColor, Action<Color> OnColorChanged) {
+		public static StackPanel ColorInput(string title, Color initColor, Action<Color> OnColorChanged, Action<Color>? AfterValueSubumit = null) {
 			StackPanel panel = CreateBase(title);
 			ColorPicker picker = new() {
 				SelectedColor = initColor,
 			};
+			Color valueBefore = (Color)picker.SelectedColor;
 			bool changing = false;
 			picker.SelectedColorChanged += (s, e) => {
 				if(e.NewValue != null) {
@@ -84,17 +85,28 @@ namespace MindMap.Entities {
 					OnColorChanged.Invoke(e.NewValue.Value);
 				}
 			};
+			picker.PreviewMouseDown += (s, e) => {
+				valueBefore = (Color)picker.SelectedColor;
+			};
 			picker.PreviewMouseUp += (s, e) => {
 				if(changing) {
 					Debug.WriteLine(picker.SelectedColor);
+					AfterValueSubumit?.Invoke(valueBefore);
+					changing = false;
+				}
+			};
+			picker.LostFocus += (s, e) => {
+				if(changing) {
+					Debug.WriteLine(picker.SelectedColor);
+					AfterValueSubumit?.Invoke(valueBefore);
 					changing = false;
 				}
 			};
 			panel.Children.Add(picker);
 			return panel;
 		}
-		public static StackPanel ColorInput(string title, Brush initBrush, Action<Color> OnColorChanged) {
-			return ColorInput(title, initBrush is SolidColorBrush solid ? solid.Color : Colors.White, OnColorChanged);
+		public static StackPanel ColorInput(string title, Brush initBrush, Action<Color> OnColorChanged, Action<Color>? AfterValueSubumit = null) {
+			return ColorInput(title, initBrush is SolidColorBrush solid ? solid.Color : Colors.White, OnColorChanged, AfterValueSubumit);
 		}
 
 		public static StackPanel FontSelector(string title, FontFamily initFont, Action<FontFamily> OnFontChanged, params string[] availableFonts) {

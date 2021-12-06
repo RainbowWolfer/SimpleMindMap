@@ -195,10 +195,10 @@ namespace MindMap.Entities.Elements {
 			panel.Children.Add(PropertiesPanel.SectionTitle($"{ID}"));
 			panel.Children.Add(PropertiesPanel.SliderInput("Polygon Points", PointCount, 3, 20,
 				value => PointCount = (int)value,
-				value => {
+				valueBefore => {
 					//Debug.WriteLine($"previous value: {value}");
 					parent.editHistory.SubmitByElementPropertyChanged(this, 
-						property with { pointCount = (int)value }
+						property with { pointCount = (int)valueBefore }
 					);
 				}
 			, 1, 0));

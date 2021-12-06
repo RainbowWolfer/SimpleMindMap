@@ -15,12 +15,20 @@
 			<Setter Property="Margin" Value="10,2,10,2"/>
 			<Setter Property="Height" Value="25"/>
 		</Style>
+		<Style x:Key="RightTabs" TargetType="TabItem">
+			<Setter Property="LayoutTransform">
+				<Setter.Value>
+					<RotateTransform Angle="90"/>
+				</Setter.Value>
+			</Setter>
+		</Style>
 	</Page.Resources>
 	<Grid>
 		<Grid.ColumnDefinitions>
 			<ColumnDefinition Width="170"/>
 			<ColumnDefinition Width="auto"/>
 			<ColumnDefinition Width="*"/>
+			<ColumnDefinition Width="auto"/>
 		</Grid.ColumnDefinitions>
 		<Grid.RowDefinitions>
 			<RowDefinition Height="*"/>
@@ -93,7 +101,21 @@
 				</Canvas>
 			</Grid>
 		</Border>
-		<Grid Grid.Row="1" Grid.ColumnSpan="3" Height="20" Background="White">
+		<Grid Grid.Column="3">
+			<TabControl TabStripPlacement="Left">
+				<TabItem Header="History" Style="{StaticResource RightTabs}">
+					<Grid>
+
+					</Grid>
+				</TabItem>
+				<TabItem Header="WHATDOWEDO" Style="{StaticResource RightTabs}">
+					<Grid>
+
+					</Grid>
+				</TabItem>
+			</TabControl>
+		</Grid>
+		<Grid Grid.Row="1" Grid.ColumnSpan="4" Height="20" Background="White">
 			<!--
 				Save Progress
 				Load Progress

@@ -80,18 +80,31 @@ namespace MindMap.Entities.Elements {
 			panels.Add(CreateElementProperties());
 
 			if(this is IBorderBasedStyle border) {
-				//grid.FontFamily = null;
 				panels.AddRange(new Panel[] {
 					PropertiesPanel.SectionTitle("Border"),
 					PropertiesPanel.ColorInput("Background Color", border.Background,
-						color => border.Background = new SolidColorBrush(color)
+						color => {
+							//previewing = true;
+							border.Background = new SolidColorBrush(color); 
+						},
+						valueBefore => {
+							//previewing = false;
+							var scb = (SolidColorBrush)border.Background;
+							if(scb.Color != valueBefore) {
+								var p =Properties.Clone();
+								SubmitPropertyChangedEditHistory(Properties);
+							}
+						}
 					),
 					PropertiesPanel.ColorInput("Border Color", border.BorderColor,
-						color => border.BorderColor = new SolidColorBrush(color)
+						color => border.BorderColor = new SolidColorBrush(color),
+						valueBefore => {
+
+						}
 					),
 					PropertiesPanel.SliderInput("Border Thickness", border.BorderThickness.Left, 0, 5,
 						value => border.BorderThickness = new Thickness(value),
-						value => {
+						valueBefore => {
 
 						}
 					),

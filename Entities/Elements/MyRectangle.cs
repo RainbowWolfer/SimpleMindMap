@@ -28,9 +28,9 @@ namespace MindMap.Entities.Elements {
 		public CornerRadius CornerRadius {
 			get => property.cornerRadius;
 			set {
-				if(property.cornerRadius != value) {
-					SubmitPropertyChangedEditHistory(BaseProperties);
-				}
+				//if(property.cornerRadius != value) {
+				//	SubmitPropertyChangedEditHistory(BaseProperties);
+				//}
 				property.cornerRadius = value;
 				UpdateStyle();
 			}
@@ -63,9 +63,16 @@ namespace MindMap.Entities.Elements {
 			panel.Children.Add(PropertiesPanel.SectionTitle(ID));
 			panel.Children.Add(PropertiesPanel.SliderInput("Cornder Radius", CornerRadius.TopLeft, 0, 100,
 				value => CornerRadius = new CornerRadius(value),
-				value => {
-					if(CornerRadius.TopLeft != value) {
-						SubmitPropertyChangedEditHistory(property);
+				valueBefore => {
+					if(CornerRadius.TopLeft != valueBefore) {
+						//not the case. dont do this.
+						//think of the iproperty in Element.cs
+						//use the property(get;set;)
+						//call submit before applying new value
+						//could use some check-up value
+						Property p = (Property)property.Clone();
+						p.cornerRadius = new CornerRadius(valueBefore);
+						SubmitPropertyChangedEditHistory(p);
 					}
 				}
 			));

@@ -85,7 +85,7 @@ namespace MindMap.Entities.Elements {
 					PropertiesPanel.ColorInput("Background Color", border.Background,
 						color => {
 							//previewing = true;
-							border.Background = new SolidColorBrush(color); 
+							border.Background = new SolidColorBrush(color);
 						},
 						valueBefore => {
 							//previewing = false;
@@ -103,10 +103,7 @@ namespace MindMap.Entities.Elements {
 						}
 					),
 					PropertiesPanel.SliderInput("Border Thickness", border.BorderThickness.Left, 0, 5,
-						value => border.BorderThickness = new Thickness(value),
-						valueBefore => {
-
-						}
+						value => border.BorderThickness = new Thickness(value.NewValue)
 					),
 				});
 			}
@@ -120,11 +117,12 @@ namespace MindMap.Entities.Elements {
 						value => text.FontWeight = value
 					, FontsList.AllFontWeights),
 					PropertiesPanel.SliderInput("Font Size", text.FontSize, 5, 42,
-						value => text.FontSize = value,
-						valueBefore => {
-							Debug.WriteLine(valueBefore);
-						}
-					, 1, 0),
+						args => {
+							IProperty oldProperty = IProperty.MakeClone(Properties);
+							text.FontSize = args.NewValue;
+							IProperty newProperty = IProperty.MakeClone(Properties);
+							parent.editHistory.SubmitByElementPropertyDelayedChanged(this, oldProperty, newProperty);
+						}, 1, 0),
 					PropertiesPanel.ColorInput("Font Color", text.FontColor,
 						color => text.FontColor = color
 					),
@@ -134,7 +132,7 @@ namespace MindMap.Entities.Elements {
 		}
 
 		public void SubmitPropertyChangedEditHistory(IProperty property) {
-			parent.editHistory.SubmitByElementPropertyChanged(this, (IProperty)property.Clone());
+			//parent.editHistory.SubmitByElementPropertyChanged(this, (IProperty)property.Clone());
 		}
 
 		public abstract Panel CreateElementProperties();

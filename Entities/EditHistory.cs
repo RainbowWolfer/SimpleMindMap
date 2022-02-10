@@ -8,11 +8,13 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 
 namespace MindMap.Entities {
 	public class EditHistory {
+		public event Action? OnHistoryChanged;
 		private readonly List<IChange> previous = new();
 		private readonly List<IChange> future = new();
 
@@ -24,26 +26,55 @@ namespace MindMap.Entities {
 		public void SubmitByElementCreated(Element target) {
 			previous.Add(new ElementCreatedOrDeleted(CreateOrDelete.Create, target));
 			future.Clear();
+			OnHistoryChanged?.Invoke();
 		}
 		public void SubmitByElementDeleted(Element target) {
 			previous.Add(new ElementCreatedOrDeleted(CreateOrDelete.Delete, target));
 			future.Clear();
+			OnHistoryChanged?.Invoke();
 		}
-		public void SubmitByElementPropertyChanged(Element target, IProperty property) {
-			previous.Add(new ElementPropertyChange(target, property));
+		public void SubmitByElementPropertyChanged(Element target, IProperty oldProperty, IProperty newProperty) {
+			IProperty.MakeClone(ref oldProperty);
+			IProperty.MakeClone(ref newProperty);
+			previous.Add(new ElementPropertyChange(target, oldProperty, newProperty));
+			OnHistoryChanged?.Invoke();
+		}
+		public async void SubmitByElementPropertyDelayedChanged(Element target, IProperty oldProperty, IProperty newProperty) {
+			const int DELAY = 1000;
+			IProperty.MakeClone(ref oldProperty);
+			IProperty.MakeClone(ref newProperty);
+			if(previous.LastOrDefault() is ElementPropertyDelayedChange delayedChange && !delayedChange.IsSealed) {
+				delayedChange.NewProperty = newProperty;
+				if(delayedChange.Cts != null) {
+					delayedChange.Cts.Cancel();
+					delayedChange.Cts.Dispose();
+				}
+				delayedChange.Cts = new CancellationTokenSource();
+				try {
+					await Task.Delay(DELAY, delayedChange.Cts.Token);
+					delayedChange.IsSealed = true;
+				} catch(TaskCanceledException) { }
+			} else {
+				previous.Add(new ElementPropertyDelayedChange(target, oldProperty, newProperty));
+			}
+			OnHistoryChanged?.Invoke();
 		}
 		public void SubmitByElementFrameworkChanged(Element target, Vector2 size, Vector2 position) {
 			previous.Add(new ElementFrameworkChange(target, size, position));
+			OnHistoryChanged?.Invoke();
 		}
 
 		public void SumbitByConnectionCreated(ConnectionPath path) {
 			//previous.Add(new ConnectionCreateOrDelete(CreateOrDelete.Create, path));
+			OnHistoryChanged?.Invoke();
 		}
 		public void SumbitByConnectionDeleted(ConnectionPath path) {
 			//previous.Add(new ConnectionCreateOrDelete(CreateOrDelete.Delete, path));
+			OnHistoryChanged?.Invoke();
 		}
 		public void SubmitByConnectionChange() {
 
+			OnHistoryChanged?.Invoke();
 		}
 
 		public void Undo() {
@@ -63,9 +94,7 @@ namespace MindMap.Entities {
 						throw new Exception($"{cod.Type} not found");
 				}
 			} else if(last is ElementPropertyChange pc) {
-				IProperty TargetProperty = pc.Property;
-				pc.Property = (IProperty)pc.Target.Properties.Clone();
-				pc.Target.SetProperty(TargetProperty);
+				pc.Target.SetProperty(pc.OldProperty);
 			} else if(last is ElementFrameworkChange fc) {
 				fc.Target.SetPosition(fc.Position);
 				fc.Target.SetSize(fc.Size);
@@ -93,9 +122,7 @@ namespace MindMap.Entities {
 						throw new Exception($"{cod.Type} not found");
 				}
 			} else if(first is ElementPropertyChange pc) {
-				IProperty TargetProperty = pc.Property;
-				pc.Property = (IProperty)pc.Target.Properties.Clone();
-				pc.Target.SetProperty(TargetProperty);
+				pc.Target.SetProperty(pc.OldProperty);
 			}
 			future.RemoveAt(0);
 			previous.Add(first);
@@ -126,11 +153,26 @@ namespace MindMap.Entities {
 
 		private class ElementPropertyChange: IChange {
 			public Element Target { get; protected set; }
-			public IProperty Property { get; set; }
+			public IProperty OldProperty { get; set; }
+			public IProperty NewProperty { get; set; }
 
-			public ElementPropertyChange(Element target, IProperty property) {
+			public ElementPropertyChange(Element target, IProperty oldProperty, IProperty newProperty) {
 				Target = target;
-				Property = property;
+				OldProperty = oldProperty;
+				NewProperty = newProperty;
+			}
+		}
+
+		private class ElementPropertyDelayedChange: ElementPropertyChange {//later
+			public CancellationTokenSource? Cts { get; set; }
+			public bool IsSealed { get; set; } = false;
+
+			public ElementPropertyDelayedChange(Element target, IProperty oldProperty, IProperty newProperty) : base(target, oldProperty, newProperty) {
+
+			}
+
+			public void ContinuesSubmit(IProperty newProperty) {
+
 			}
 		}
 

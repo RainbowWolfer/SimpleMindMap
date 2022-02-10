@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MindMap.Pages;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -31,20 +32,22 @@ namespace MindMap.Entities {
 			return panel;
 		}
 
-		public static StackPanel TextInput(string title, Action<string> OnTextChanged) {
-			StackPanel panel = CreateBase(title);
-			TextBox box = new();
-			box.TextChanged += (s, e) => OnTextChanged?.Invoke(box.Text);
-			panel.Children.Add(box);
-			return panel;
-		}
+		//public static StackPanel TextInput(string title, Action<string> OnTextChanged) {
+		//	StackPanel panel = CreateBase(title);
+		//	TextBox box = new();
+		//	box.TextChanged += (s, e) => {
+		//		OnTextChanged?.Invoke(box.Text);
+		//	};
+		//	panel.Children.Add(box);
+		//	return panel;
+		//}
 
 		//public static StackPanel DropdownMenu(string title, Action OnSelectionChanged, params string[] colors) {
 
 		//	return new StackPanel();
 		//}
 
-		public static StackPanel SliderInput(string title, double initValue, double min, double max, Action<double> OnValueChanged, Action<double>? AfterValueSubmit = null, double gap = 0, int displayPresision = 2) {
+		public static StackPanel SliderInput(string title, double initValue, double min, double max, Action<ValueChangedArgs<double>> OnValueChanged, double gap = 0, int displayPresision = 2) {
 			StackPanel panel = CreateBase(title);
 			Slider slider = new() {
 				Minimum = min,
@@ -55,17 +58,9 @@ namespace MindMap.Entities {
 				TickFrequency = gap,
 				IsSnapToTickEnabled = gap != 0,
 			};
-			slider.PreviewKeyDown += (s, e) => e.Handled = true;
-			slider.ValueChanged += (s, e) => {//Record Drag Start Value
-				OnValueChanged.Invoke(slider.Value);
+			slider.ValueChanged += (s, e) => {
+				OnValueChanged.Invoke(new ValueChangedArgs<double>(e.OldValue, e.NewValue));
 				ToolTipService.SetToolTip(slider, $"{slider.Value:0.00}");
-			};
-			double valueBefore = slider.Value;
-			slider.PreviewMouseDown += (s, e) => {
-				valueBefore = slider.Value;
-			};
-			slider.PreviewMouseUp += (s, e) => {//works even mouse off the element
-				AfterValueSubmit?.Invoke(valueBefore);
 			};
 			ToolTipService.SetToolTip(slider, $"{slider.Value:0.00}");
 			panel.Children.Add(slider);
@@ -147,6 +142,18 @@ namespace MindMap.Entities {
 		public static StackPanel DuoNumberInput(string title) {
 			StackPanel panel = CreateBase(title);
 			return panel;
+		}
+	}
+
+	public class ValueChangedArgs<T> {
+		public T? OldValue { get; set; }
+		public T? NewValue { get; set; }
+		public ValueChangedArgs(T? oldValue, T? newValue) {
+			OldValue = oldValue;
+			NewValue = newValue;
+		}
+		public override string ToString() {
+			return $"({typeof(T)}) {OldValue} -> {NewValue}";
 		}
 	}
 }

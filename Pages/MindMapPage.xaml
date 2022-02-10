@@ -84,7 +84,7 @@
 				</TabItem>
 			</TabControl>
 		</Grid>
-		<Rectangle Grid.Column="1" Width="2" Fill="Gray"/>
+		<Rectangle Grid.Column="1" Width="1" Fill="Gray"/>
 		<Border Grid.Column="2" ClipToBounds="True">
 			<Grid>
 				<!--Only for detecting contacting canvas through mouse-->
@@ -101,16 +101,26 @@
 				</Canvas>
 			</Grid>
 		</Border>
+		<Rectangle Grid.Column="2" Width="1" Fill="Gray" HorizontalAlignment="Right"/>
 		<Grid Grid.Column="3">
 			<TabControl TabStripPlacement="Left">
 				<TabItem Header="History" Style="{StaticResource RightTabs}">
-					<Grid>
-
+					<Grid Width="200">
+						<!--<ListView>
+							<ListBox.ItemContainerStyle>
+								<Style TargetType="ListBoxItem">
+									<Setter Property="IsEnabled" Value="False" />
+								</Style>
+							</ListBox.ItemContainerStyle>
+							<TextBlock Text="Hello World 1"/>
+							<TextBlock Text="Hello World 1"/>
+							<TextBlock Text="Hello World 1"/>
+						</ListView>-->
 					</Grid>
 				</TabItem>
 				<TabItem Header="WHATDOWEDO" Style="{StaticResource RightTabs}">
 					<Grid>
-
+						<TextBlock Text="Hello World 2"/>
 					</Grid>
 				</TabItem>
 			</TabControl>

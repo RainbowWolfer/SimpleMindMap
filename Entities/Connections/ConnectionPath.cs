@@ -197,8 +197,7 @@ namespace MindMap.Entities.Connections {
 			StackPanel panel = new();
 			panel.Children.Add(PropertiesPanel.SectionTitle("Connection Path"));
 			panel.Children.Add(PropertiesPanel.SliderInput("Strock Thickness", StrokeThickess, 1, 8,
-				value => StrokeThickess = value,
-				value => { }
+				value => StrokeThickess = value.NewValue
 			, 0.1, 1));
 			panel.Children.Add(PropertiesPanel.ColorInput("Strock Color", StrokeColor,
 				value => StrokeColor = value

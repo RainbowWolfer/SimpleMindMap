@@ -62,19 +62,7 @@ namespace MindMap.Entities.Elements {
 			StackPanel panel = new();
 			panel.Children.Add(PropertiesPanel.SectionTitle(ID));
 			panel.Children.Add(PropertiesPanel.SliderInput("Cornder Radius", CornerRadius.TopLeft, 0, 100,
-				value => CornerRadius = new CornerRadius(value),
-				valueBefore => {
-					if(CornerRadius.TopLeft != valueBefore) {
-						//not the case. dont do this.
-						//think of the iproperty in Element.cs
-						//use the property(get;set;)
-						//call submit before applying new value
-						//could use some check-up value
-						Property p = (Property)property.Clone();
-						p.cornerRadius = new CornerRadius(valueBefore);
-						SubmitPropertyChangedEditHistory(p);
-					}
-				}
+				value => CornerRadius = new CornerRadius(value.NewValue)
 			));
 			return panel;
 		}

@@ -57,9 +57,9 @@ namespace MindMap.Entities.Elements {
 		public FontFamily FontFamily {
 			get => property.fontFamily;
 			set {
-				parent.editHistory.SubmitByElementPropertyChanged(this,
-					property with { fontFamily = value }
-				);
+				//parent.editHistory.SubmitByElementPropertyChanged(this,
+				//	property with { fontFamily = value }
+				//);
 				property.fontFamily = value;
 				UpdateStyle();
 			}

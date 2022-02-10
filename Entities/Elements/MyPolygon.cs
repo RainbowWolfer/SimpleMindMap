@@ -194,13 +194,7 @@ namespace MindMap.Entities.Elements {
 			StackPanel panel = new();
 			panel.Children.Add(PropertiesPanel.SectionTitle($"{ID}"));
 			panel.Children.Add(PropertiesPanel.SliderInput("Polygon Points", PointCount, 3, 20,
-				value => PointCount = (int)value,
-				valueBefore => {
-					//Debug.WriteLine($"previous value: {value}");
-					parent.editHistory.SubmitByElementPropertyChanged(this, 
-						property with { pointCount = (int)valueBefore }
-					);
-				}
+				value => PointCount = (int)value.NewValue
 			, 1, 0));
 			return panel;
 		}

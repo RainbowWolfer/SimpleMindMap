@@ -271,7 +271,7 @@ namespace MindMap.Entities.Frames {
 						Vector2 endSize = new(target.Width, target.Height);
 						Vector2 endPos = new(Canvas.GetLeft(target), Canvas.GetTop(target));
 						if(endSize != startSize || endPos != startPos) {
-							parent.editHistory.SubmitByElementFrameworkChanged(element, startSize, startPos);
+							parent.editHistory.SubmitByElementFrameworkChanged(element, startSize, startPos, endSize, endPos);
 						}
 					}
 					_drag = false;

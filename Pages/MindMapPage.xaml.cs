@@ -29,6 +29,7 @@ namespace MindMap.Pages {
 		private string _path = "";
 		private string fileName = "(Not Saved)";
 		private bool elementsChanged = false;
+
 		public string FileName {
 			get => fileName;
 			set {
@@ -36,10 +37,14 @@ namespace MindMap.Pages {
 				FileNameText.Text = FileName + (ElementsChanged ? "*" : "");
 			}
 		}
+
 		public MindMapPage() {
 			InitializeComponent();
 			connectionsManager = new ConnectionsManager(this);
 			editHistory = new EditHistory(this);
+			editHistory.OnHistoryChanged += EditHistory_OnHistoryChanged;
+			editHistory.OnUndo += EditHistory_OnUndo;
+			editHistory.OnRedo += EditHistory_OnRedo;
 
 			MainCanvas.MouseMove += MainCanvas_MouseMove;
 			MainCanvas.MouseUp += MainCanvas_MouseUp;
@@ -62,6 +67,71 @@ namespace MindMap.Pages {
 				() => Save(),
 				() => { },
 			true, Key.LeftCtrl, Key.S);
+			MainWindow.Instance?.KeyManager.Register(
+				() => Undo(),
+				() => { },
+			false, Key.LeftCtrl, Key.Z);
+			MainWindow.Instance?.KeyManager.Register(
+				() => Redo(),
+				() => { },
+			false, Key.LeftCtrl, Key.Y);
+		}
+
+		private void EditHistory_OnUndo(EditHistory.IChange obj) {
+			UpdateHistoryListView();
+		}
+
+		private void EditHistory_OnRedo(EditHistory.IChange obj) {
+			UpdateHistoryListView();
+		}
+
+		private void EditHistory_OnHistoryChanged(List<EditHistory.IChange> history) {
+			UpdateHistoryListView(history);
+		}
+
+		private void UpdateHistoryListView(List<EditHistory.IChange>? history = null) {
+			EditHistoryListView.Items.Clear();
+			foreach(var item in history ?? editHistory.GetHistory()) {
+				Grid grid = new() {
+					Tag = item,
+				};
+				grid.ColumnDefinitions.Add(new ColumnDefinition() {
+					Width = new GridLength(1, GridUnitType.Auto),
+				});
+				grid.ColumnDefinitions.Add(new ColumnDefinition() {
+					Width = new GridLength(1, GridUnitType.Star),
+				});
+				grid.Children.Add(item.Icon.Generate());
+				TextBlock text = new() {
+					Text = item.ToString(),
+					Margin = new Thickness(10, 0, 0, 0),
+					TextWrapping = TextWrapping.Wrap,
+					HorizontalAlignment = HorizontalAlignment.Stretch,
+					Width = 230,
+				};
+				Grid.SetColumn(text, 1);
+				grid.Children.Add(text);
+				ToolTipService.SetToolTip(grid, item.Date);
+				EditHistoryListView.Items.Add(grid);
+			}
+		}
+
+		private void EditHistoryListView_SelectionChanged(object sender, SelectionChangedEventArgs e) {
+			if(e.AddedItems != null && e.AddedItems.Count > 0 && e.AddedItems[0] is Grid grid && grid.Tag is EditHistory.IChange change) {
+				UpdateEditHistoryDetail(change.GetDetail());
+			} else {
+				UpdateEditHistoryDetail(null);
+			}
+		}
+
+		private void UpdateEditHistoryDetail(string? content) {
+			if(string.IsNullOrWhiteSpace(content)) {
+				DetailText.Visibility = Visibility.Collapsed;
+				DetailText.Text = "";
+			} else {
+				DetailText.Visibility = Visibility.Visible;
+				DetailText.Text = content;
+			}
 		}
 
 		//private Task? OprationHintTextTask = null;
@@ -161,7 +231,7 @@ namespace MindMap.Pages {
 
 		public void UpdatePreviewLine(ConnectionControl from, Vector2 to) {
 			if(previewLine == null) {
-				previewLine = new ConnectionPath(MainCanvas, from, to);
+				previewLine = new ConnectionPath(this, MainCanvas, from, to);
 			}
 			previewLine.Update(to);
 		}
@@ -420,9 +490,18 @@ namespace MindMap.Pages {
 			UpdateBackgroundDot();
 		}
 
+		private void TabItem_PreviewMouseDoubleClick(object sender, MouseButtonEventArgs e) {
+			if(RightTabControl.Width > 100) {
+				RightTabControl.Width = 20;
+			} else {
+				RightTabControl.Width = 280;
+			}
+			RightTabControl.UpdateLayout();
+			UpdateBackgroundDot();
+		}
+
 		private enum MouseType {
 			Left, Middle, Right
 		}
-
 	}
 }

@@ -67,44 +67,30 @@ namespace MindMap.Entities {
 			return panel;
 		}
 
-		public static StackPanel ColorInput(string title, Color initColor, Action<Color> OnColorChanged, Action<Color>? AfterValueSubumit = null) {
+		public static StackPanel ColorInput(string title, Color initColor, Action<ValueChangedArgs<Color>> OnColorChanged) {
 			StackPanel panel = CreateBase(title);
 			ColorPicker picker = new() {
 				SelectedColor = initColor,
 			};
-			Color valueBefore = (Color)picker.SelectedColor;
-			bool changing = false;
 			picker.SelectedColorChanged += (s, e) => {
+				Color oldColor = default;
+				if(e.OldValue != null) {
+					oldColor = e.OldValue.Value;
+				}
+				Color newColor = default;
 				if(e.NewValue != null) {
-					changing = true;
-					OnColorChanged.Invoke(e.NewValue.Value);
+					newColor = e.NewValue.Value;
 				}
-			};
-			picker.PreviewMouseDown += (s, e) => {
-				valueBefore = (Color)picker.SelectedColor;
-			};
-			picker.PreviewMouseUp += (s, e) => {
-				if(changing) {
-					Debug.WriteLine(picker.SelectedColor);
-					AfterValueSubumit?.Invoke(valueBefore);
-					changing = false;
-				}
-			};
-			picker.LostFocus += (s, e) => {
-				if(changing) {
-					Debug.WriteLine(picker.SelectedColor);
-					AfterValueSubumit?.Invoke(valueBefore);
-					changing = false;
-				}
+				OnColorChanged.Invoke(new ValueChangedArgs<Color>(oldColor, newColor));
 			};
 			panel.Children.Add(picker);
 			return panel;
 		}
-		public static StackPanel ColorInput(string title, Brush initBrush, Action<Color> OnColorChanged, Action<Color>? AfterValueSubumit = null) {
-			return ColorInput(title, initBrush is SolidColorBrush solid ? solid.Color : Colors.White, OnColorChanged, AfterValueSubumit);
+		public static StackPanel ColorInput(string title, Brush initBrush, Action<ValueChangedArgs<Color>> OnColorChanged) {
+			return ColorInput(title, initBrush is SolidColorBrush solid ? solid.Color : Colors.White, OnColorChanged);
 		}
 
-		public static StackPanel FontSelector(string title, FontFamily initFont, Action<FontFamily> OnFontChanged, params string[] availableFonts) {
+		public static StackPanel FontSelector(string title, FontFamily initFont, Action<ValueChangedArgs<FontFamily>> OnFontChanged, params string[] availableFonts) {
 			StackPanel panel = CreateBase(title);
 			ComboBox comboBox = new() {
 				SelectedIndex = availableFonts.ToList().IndexOf(initFont.Source),
@@ -115,14 +101,18 @@ namespace MindMap.Entities {
 			}
 			comboBox.SelectionChanged += (s, e) => {
 				if(e.AddedItems != null && e.AddedItems.Count > 0 && e.AddedItems[0] is ComboBoxItem item) {
-					OnFontChanged.Invoke(new FontFamily(item.Content as string));
+					FontFamily? old = null;
+					if(e.RemovedItems.Count > 0 && e.RemovedItems[0] is ComboBoxItem remove) {
+						old = new FontFamily(remove.Content as string);
+					}
+					OnFontChanged.Invoke(new ValueChangedArgs<FontFamily>(old, new FontFamily(item.Content as string)));
 				}
 			};
 			panel.Children.Add(comboBox);
 			return panel;
 		}
 
-		public static StackPanel ComboSelector<T>(string title, T initData, Action<T> OnValueChanged, params T[] selections) {
+		public static StackPanel ComboSelector<T>(string title, T initData, Action<ValueChangedArgs<T>> OnValueChanged, params T[] selections) {
 			StackPanel panel = CreateBase(title);
 			ComboBox comboBox = new() {
 				SelectedIndex = selections.ToList().IndexOf(initData),
@@ -132,7 +122,11 @@ namespace MindMap.Entities {
 			}
 			comboBox.SelectionChanged += (s, e) => {
 				if(e.AddedItems != null && e.AddedItems.Count > 0 && e.AddedItems[0] is ComboBoxItem item) {
-					OnValueChanged.Invoke((T)item.Content);
+					T? old = default;
+					if(e.RemovedItems != null && e.RemovedItems.Count > 0 && e.RemovedItems[0] is ComboBoxItem remove) {
+						old = (T?)remove.Content;
+					}
+					OnValueChanged.Invoke(new ValueChangedArgs<T>(old, (T?)item.Content));
 				}
 			};
 			panel.Children.Add(comboBox);

@@ -25,8 +25,8 @@ namespace MindMap.Entities.Connections {
 		}
 
 		public bool CheckDuplicate(ConnectionControl from, ConnectionControl to) {
-			return Connections.Any(c => 
-				(c.From == from && c.To == to) || 
+			return Connections.Any(c =>
+				(c.From == from && c.To == to) ||
 				(c.From == to && c.To == from)
 			);
 		}
@@ -36,8 +36,8 @@ namespace MindMap.Entities.Connections {
 				return;
 			}
 			Connections.Add(new Connection(string.IsNullOrEmpty(propertyJson) ?
-				new ConnectionPath(_mainCanvas, _parent.connectionsManager, from, to) :
-				new ConnectionPath(_mainCanvas, _parent.connectionsManager, from, to, propertyJson)
+				new ConnectionPath(_parent, _mainCanvas, _parent.connectionsManager, from, to) :
+				new ConnectionPath(_parent, _mainCanvas, _parent.connectionsManager, from, to, propertyJson)
 			, from, to));
 			_parent.UpdateCount();
 		}

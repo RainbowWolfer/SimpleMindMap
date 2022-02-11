@@ -15,7 +15,7 @@ using Newtonsoft.Json;
 using MindMap.Entities.Properties;
 
 namespace MindMap.Entities.Elements {
-	public abstract class Element {
+	public abstract class Element: IPropertiesContainer {
 		public abstract long TypeID { get; }
 		public const long ID_Rectangle = 1;
 		public const long ID_Ellipse = 2;
@@ -37,6 +37,8 @@ namespace MindMap.Entities.Elements {
 
 		protected string AssignID(Type type) => $"{type.Name} ({parent.elements.Count + 1})";
 		protected string AssignID(string type) => $"{type.Trim()} ({parent.elements.Count + 1})";
+
+		public string GetID() => ID;
 
 		public Vector2 GetSize() => new(Target.Width, Target.Height);
 		public void SetSize(Vector2 size) {
@@ -83,24 +85,18 @@ namespace MindMap.Entities.Elements {
 				panels.AddRange(new Panel[] {
 					PropertiesPanel.SectionTitle("Border"),
 					PropertiesPanel.ColorInput("Background Color", border.Background,
-						color => {
-							//previewing = true;
-							border.Background = new SolidColorBrush(color);
-						},
-						valueBefore => {
-							//previewing = false;
-							var scb = (SolidColorBrush)border.Background;
-							if(scb.Color != valueBefore) {
-								var p =Properties.Clone();
-								SubmitPropertyChangedEditHistory(Properties);
-							}
-						}
+						args => IPropertiesContainer.PropertyChangedHandler(this, () => {
+							border.Background = new SolidColorBrush(args.NewValue);
+						}, (oldP, newP) => {
+							parent.editHistory.SubmitByElementPropertyDelayedChanged(this, oldP, newP, "Background Color");
+						})
 					),
 					PropertiesPanel.ColorInput("Border Color", border.BorderColor,
-						color => border.BorderColor = new SolidColorBrush(color),
-						valueBefore => {
-
-						}
+						args => IPropertiesContainer.PropertyChangedHandler(this, () => {
+							border.BorderColor = new SolidColorBrush(args.NewValue);
+						}, (oldP, newP) => {
+							parent.editHistory.SubmitByElementPropertyDelayedChanged(this, oldP, newP, "Border Color");
+						})
 					),
 					PropertiesPanel.SliderInput("Border Thickness", border.BorderThickness.Left, 0, 5,
 						value => border.BorderThickness = new Thickness(value.NewValue)
@@ -111,25 +107,40 @@ namespace MindMap.Entities.Elements {
 				panels.AddRange(new Panel[] {
 					PropertiesPanel.SectionTitle("Text"),
 					PropertiesPanel.FontSelector("Font Family", text.FontFamily,
-						value => text.FontFamily = value
-					, FontsList.AvailableFonts),
+						args => IPropertiesContainer.PropertyChangedHandler(this, () => {
+							if(args.NewValue == null){
+								return;
+							}
+							text.FontFamily = args.NewValue;
+						}, (oldP, newP) => {
+							parent.editHistory.SubmitByElementPropertyChanged(this, oldP, newP, "Font Family");
+						}), FontsList.AvailableFonts),
 					PropertiesPanel.ComboSelector("Font Weight", text.FontWeight,
-						value => text.FontWeight = value
+						value => IPropertiesContainer.PropertyChangedHandler(this, ()=>{
+							text.FontWeight = value.NewValue;
+						}, (oldP, newP) => {
+							parent.editHistory.SubmitByElementPropertyChanged(this, oldP, newP, "Font Weight");
+						})
 					, FontsList.AllFontWeights),
 					PropertiesPanel.SliderInput("Font Size", text.FontSize, 5, 42,
-						args => {
-							IProperty oldProperty = IProperty.MakeClone(Properties);
+						args => IPropertiesContainer.PropertyChangedHandler(this, () => {
 							text.FontSize = args.NewValue;
-							IProperty newProperty = IProperty.MakeClone(Properties);
-							parent.editHistory.SubmitByElementPropertyDelayedChanged(this, oldProperty, newProperty);
-						}, 1, 0),
+						}, (oldP, newP) => {
+							parent.editHistory.SubmitByElementPropertyDelayedChanged(this, oldP, newP, "Font Size");
+						}), 1, 0),
 					PropertiesPanel.ColorInput("Font Color", text.FontColor,
-						color => text.FontColor = color
+						args => IPropertiesContainer.PropertyChangedHandler(this, () => {
+							text.FontColor = args.NewValue;
+						}, (oldP, newP) => {
+							parent.editHistory.SubmitByElementPropertyDelayedChanged(this, oldP, newP, "Font Color");
+						})
 					),
 				});
 			}
 			return panels;
 		}
+
+
 
 		public void SubmitPropertyChangedEditHistory(IProperty property) {
 			//parent.editHistory.SubmitByElementPropertyChanged(this, (IProperty)property.Clone());

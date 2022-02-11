@@ -102,20 +102,25 @@
 			</Grid>
 		</Border>
 		<Rectangle Grid.Column="2" Width="1" Fill="Gray" HorizontalAlignment="Right"/>
+
 		<Grid Grid.Column="3">
-			<TabControl TabStripPlacement="Left">
-				<TabItem Header="History" Style="{StaticResource RightTabs}">
-					<Grid Width="200">
-						<!--<ListView>
+			<TabControl x:Name="RightTabControl" TabStripPlacement="Left" Width="280">
+				<TabItem Header="History" Style="{StaticResource RightTabs}" PreviewMouseDoubleClick="TabItem_PreviewMouseDoubleClick">
+					<Grid>
+						<Grid.RowDefinitions>
+							<RowDefinition Height="*"/>
+							<RowDefinition Height="auto"/>
+						</Grid.RowDefinitions>
+						<ListView x:Name="EditHistoryListView" SelectionChanged="EditHistoryListView_SelectionChanged">
 							<ListBox.ItemContainerStyle>
 								<Style TargetType="ListBoxItem">
-									<Setter Property="IsEnabled" Value="False" />
+									<Setter Property="IsManipulationEnabled" Value="False"/>
 								</Style>
 							</ListBox.ItemContainerStyle>
-							<TextBlock Text="Hello World 1"/>
-							<TextBlock Text="Hello World 1"/>
-							<TextBlock Text="Hello World 1"/>
-						</ListView>-->
+						</ListView>
+						<StackPanel Grid.Row="1">
+							<TextBlock x:Name="DetailText" Text="" Visibility="Collapsed"/>
+						</StackPanel>
 					</Grid>
 				</TabItem>
 				<TabItem Header="WHATDOWEDO" Style="{StaticResource RightTabs}">

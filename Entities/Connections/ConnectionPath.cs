@@ -1,6 +1,7 @@
 ﻿using MindMap.Entities.Elements;
 using MindMap.Entities.Frames;
 using MindMap.Entities.Properties;
+using MindMap.Pages;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -15,18 +16,18 @@ using System.Windows.Media;
 using System.Windows.Shapes;
 
 namespace MindMap.Entities.Connections {
-	public class ConnectionPath {
+	public class ConnectionPath: IPropertiesContainer {
 		public readonly ConnectionControl from;
 		public ConnectionControl? to;
 		private readonly Canvas _mainCanvas;
 		private readonly ConnectionsManager? _connectionsManager;
-
+		private readonly MindMapPage _parent;
 		private struct Property: IProperty {
 			public double strokeThickess;
 			public Color strokeColor;
 
 			public object Clone() {
-				throw new NotImplementedException();
+				return MemberwiseClone();
 			}
 
 			public IProperty Translate(string json) {
@@ -66,8 +67,9 @@ namespace MindMap.Entities.Connections {
 		}
 
 		public bool IsPreview { get; private set; }
-		public ConnectionPath(Canvas mainCanvas, ConnectionsManager connectionsManager, ConnectionControl from, ConnectionControl to) {
+		public ConnectionPath(MindMapPage parent, Canvas mainCanvas, ConnectionsManager connectionsManager, ConnectionControl from, ConnectionControl to) {
 			this.IsPreview = false;
+			this._parent = parent;
 			this._mainCanvas = mainCanvas;
 			this._connectionsManager = connectionsManager;
 			this.from = from;
@@ -76,8 +78,9 @@ namespace MindMap.Entities.Connections {
 			Initialize();
 		}
 
-		public ConnectionPath(Canvas mainCanvas, ConnectionControl from, Vector2 to) {
+		public ConnectionPath(MindMapPage parent, Canvas mainCanvas, ConnectionControl from, Vector2 to) {
 			this.IsPreview = true;
+			this._parent = parent;
 			this._mainCanvas = mainCanvas;
 			this.from = from;
 			this.to = null;
@@ -85,8 +88,9 @@ namespace MindMap.Entities.Connections {
 			Initialize();
 		}
 
-		public ConnectionPath(Canvas mainCanvas, ConnectionsManager connectionsManager, ConnectionControl from, ConnectionControl to, string propertiesJson) {
+		public ConnectionPath(MindMapPage parent, Canvas mainCanvas, ConnectionsManager connectionsManager, ConnectionControl from, ConnectionControl to, string propertiesJson) {
 			this.IsPreview = false;
+			this._parent = parent;
 			this._mainCanvas = mainCanvas;
 			this._connectionsManager = connectionsManager;
 			this.from = from;
@@ -149,6 +153,15 @@ namespace MindMap.Entities.Connections {
 			}
 		}
 
+		public void SetProperty(IProperty property) {
+			this.property = (Property)property;
+			UpdateStyle();
+		}
+
+		public string GetID() {
+			return $"Connection({from.Parent_ID}-{to?.Parent_ID ?? "None"})";
+		}
+
 		public void ClearFromCanvas() {
 			if(_mainCanvas.Children.Contains(Path)) {
 				_mainCanvas.Children.Remove(Path);
@@ -200,7 +213,11 @@ namespace MindMap.Entities.Connections {
 				value => StrokeThickess = value.NewValue
 			, 0.1, 1));
 			panel.Children.Add(PropertiesPanel.ColorInput("Strock Color", StrokeColor,
-				value => StrokeColor = value
+				args => IPropertiesContainer.PropertyChangedHandler(this, () => {
+					StrokeColor = args.NewValue;
+				}, (oldP, newP) => {
+					_parent.editHistory.SubmitByElementPropertyDelayedChanged(this, oldP, newP, "Strock Color");
+				})
 			));
 			return panel;
 		}
@@ -248,7 +265,6 @@ namespace MindMap.Entities.Connections {
 				$"{from.X + (to.X - from.X) * 0.5},{to.Y} " +
 				$"{to.X},{to.Y}");
 		}
-
 
 	}
 }

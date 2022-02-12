@@ -9,6 +9,7 @@ namespace MindMap.Entities.Properties {
 		IProperty Properties { get; }
 		void SetProperty(IProperty property);
 		string GetID();
+
 		public static void PropertyChangedHandler(IPropertiesContainer target, Action assign, Action<IProperty, IProperty> submit) {
 			IProperty oldProperty = IProperty.MakeClone(target.Properties);
 			assign.Invoke();

@@ -148,6 +148,8 @@ namespace MindMap.Entities.Elements {
 		public void ShowTextBox() {
 			MyTextBlock.Visibility = Visibility.Collapsed;
 			MyTextBox.Visibility = Visibility.Visible;
+			MyTextBox.Focus();
+			MyTextBox.SelectionStart = MyTextBox.Text.Length;
 		}
 
 		protected override void UpdateStyle() {

@@ -28,9 +28,6 @@ namespace MindMap.Entities.Elements {
 		public CornerRadius CornerRadius {
 			get => property.cornerRadius;
 			set {
-				//if(property.cornerRadius != value) {
-				//	SubmitPropertyChangedEditHistory(BaseProperties);
-				//}
 				property.cornerRadius = value;
 				UpdateStyle();
 			}
@@ -62,7 +59,11 @@ namespace MindMap.Entities.Elements {
 			StackPanel panel = new();
 			panel.Children.Add(PropertiesPanel.SectionTitle(ID));
 			panel.Children.Add(PropertiesPanel.SliderInput("Cornder Radius", CornerRadius.TopLeft, 0, 100,
-				value => CornerRadius = new CornerRadius(value.NewValue)
+				args => IPropertiesContainer.PropertyChangedHandler(this, () => {
+					CornerRadius = new CornerRadius(args.NewValue);
+				}, (oldP, newP) => {
+					parent.editHistory.SubmitByElementPropertyDelayedChanged(this, oldP, newP, "Cornder Radius");
+				})
 			));
 			return panel;
 		}

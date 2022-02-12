@@ -91,6 +91,12 @@ namespace MindMap.Entities {
 			OnHistoryChanged?.Invoke(GetHistory());
 		}
 
+		public void SubmitByElementPositionChanged(Element target, Vector2 fromPosition, Vector2 toPosition) {
+			InstantSealLastDelayedChange();
+			previous.Add(new ElementPosotionChange(target, fromPosition, toPosition));
+			OnHistoryChanged?.Invoke(GetHistory());
+		}
+
 		public void SumbitByConnectionCreated(ConnectionPath path) {
 			InstantSealLastDelayedChange();
 			//previous.Add(new ConnectionCreateOrDelete(CreateOrDelete.Create, path));
@@ -107,10 +113,15 @@ namespace MindMap.Entities {
 			OnHistoryChanged?.Invoke(GetHistory());
 		}
 
+		public void InstantSealLastDelayedChange() {
+			InstantSealLastDelayedChange(null);
+		}
+
 		private void InstantSealLastDelayedChange(PropertyDelayedChange? change = null) {
-			if(previous.LastOrDefault() is PropertyDelayedChange last && !last.IsSealed) {
+			if(change == null && previous.LastOrDefault() is PropertyDelayedChange last && !last.IsSealed) {
 				change = last;
-			} else {
+			}
+			if(change == null) {
 				return;
 			}
 			change.InstanceCancel = true;
@@ -142,6 +153,10 @@ namespace MindMap.Entities {
 				fc.Target.SetSize(fc.FromSize);
 				fc.Target.UpdateConnectionsFrame();
 				ResizeFrame.Current?.UpdateResizeFrame();
+			} else if(last is ElementPosotionChange posc) {
+				posc.Target.SetPosition(posc.FromPosition);
+				posc.Target.UpdateConnectionsFrame();
+				ResizeFrame.Current?.UpdateResizeFrame();
 			}
 			previous.RemoveAt(previous.Count - 1);
 			future.Insert(0, last);
@@ -172,6 +187,10 @@ namespace MindMap.Entities {
 				fc.Target.SetPosition(fc.ToPosition);
 				fc.Target.SetSize(fc.ToSize);
 				fc.Target.UpdateConnectionsFrame();
+				ResizeFrame.Current?.UpdateResizeFrame();
+			} else if(first is ElementPosotionChange posc) {
+				posc.Target.SetPosition(posc.ToPosition);
+				posc.Target.UpdateConnectionsFrame();
 				ResizeFrame.Current?.UpdateResizeFrame();
 			}
 			future.RemoveAt(0);
@@ -258,6 +277,29 @@ namespace MindMap.Entities {
 
 		}
 
+		public class ElementPosotionChange: IChange {
+			public DateTime Date { get; set; }
+			public IconElement Icon => new FontIcon("\uE11B");
+			public Element Target { get; protected set; }
+			public Vector2 FromPosition { get; private set; }
+			public Vector2 ToPosition { get; private set; }
+
+			public ElementPosotionChange(Element target, Vector2 fromPosition, Vector2 toPosition) {
+				Target = target;
+				FromPosition = fromPosition;
+				ToPosition = toPosition;
+				Date = DateTime.Now;
+			}
+
+			public override string ToString() {
+				return $"{Target.ID} - Position Changed";
+			}
+
+			public string GetDetail() {
+				return "";
+			}
+		}
+
 		public class ElementFrameworkChange: IChange {
 			public DateTime Date { get; set; }
 			public IconElement Icon => new FontIcon("\uE11B");
@@ -279,6 +321,7 @@ namespace MindMap.Entities {
 			public override string ToString() {
 				return $"{Target.ID} - Frame Changed";
 			}
+
 			public string GetDetail() {
 				return "";
 			}

@@ -419,39 +419,45 @@ namespace MindMap.Pages {
 		private int clickCount = 0;
 		private int lastClickTimeStamp;
 		private void MainCanvas_MouseUp(object sender, MouseButtonEventArgs e) {
-			if(current != null && startPos == e.GetPosition(MainCanvas) && !hasMoved) {
+			if(current != null) {
 				Element? element = elements.ContainsKey(current) ? elements[current] : null;
 				if(element == null) {
 					throw new Exception("it should not be null. check elements assignments");
 				}
-				switch(mouseType) {
-					case MouseType.Left:
-						ResizeFrame.Create(this, current, element);
-						element.SetConnectionsFrameVisible(false);
-						Debug.WriteLine("left mouse");
-						clickCount = previous == current && e.Timestamp - lastClickTimeStamp <= 500 ? clickCount + 1 : 0;
-						lastClickTimeStamp = e.Timestamp;
-						Debug.WriteLine(clickCount);
-						if(clickCount == 1) {
-							Debug.WriteLine("This is double click");
-							element.DoubleClick();
-						} else {
-							element.LeftClick();//care
-							ShowElementProperties(element);
-						}
-						break;
-					case MouseType.Middle:
-						Debug.WriteLine("middle mouse");
-						element.MiddleClick();
-						break;
-					case MouseType.Right:
-						Debug.WriteLine("flyout menu");
-						element.RightClick();
-						break;
-					default:
-						throw new Exception($"Mouse Type Error {mouseType}");
+				Vector2 toPositon = e.GetPosition(MainCanvas) - new Vector2(Canvas.GetLeft(element.Target), Canvas.GetTop(element.Target));
+				if(startPos != toPositon && hasMoved) {
+					Debug.WriteLine($"{startPos.ToString(2)} - {toPositon.ToString(2)}");
+					//editHistory.SubmitByElementPositionChanged(element, startPos, toPositon);
+				} else {
+					switch(mouseType) {
+						case MouseType.Left:
+							ResizeFrame.Create(this, current, element);
+							element.SetConnectionsFrameVisible(false);
+							Debug.WriteLine("left mouse");
+							clickCount = previous == current && e.Timestamp - lastClickTimeStamp <= 500 ? clickCount + 1 : 0;
+							lastClickTimeStamp = e.Timestamp;
+							Debug.WriteLine(clickCount);
+							if(clickCount == 1) {
+								Debug.WriteLine("This is double click");
+								element.DoubleClick();
+							} else {
+								element.LeftClick();//care
+								ShowElementProperties(element);
+							}
+							break;
+						case MouseType.Middle:
+							Debug.WriteLine("middle mouse");
+							element.MiddleClick();
+							break;
+						case MouseType.Right:
+							Debug.WriteLine("flyout menu");
+							element.RightClick();
+							break;
+						default:
+							throw new Exception($"Mouse Type Error {mouseType}");
+					}
+					previous = current;
 				}
-				previous = current;
 			}
 			current = null;
 			Mouse.Capture(null);
@@ -490,6 +496,7 @@ namespace MindMap.Pages {
 			UpdateBackgroundDot();
 		}
 
+		//not working as intended
 		private void TabItem_PreviewMouseDoubleClick(object sender, MouseButtonEventArgs e) {
 			if(RightTabControl.Width > 100) {
 				RightTabControl.Width = 20;

@@ -217,7 +217,9 @@ namespace MindMap.Entities.Connections {
 					StrokeColor = args.NewValue;
 				}, (oldP, newP) => {
 					_parent.editHistory.SubmitByElementPropertyDelayedChanged(this, oldP, newP, "Strock Color");
-				})
+				}), ()=>{
+					_parent.editHistory.InstantSealLastDelayedChange();
+				}
 			));
 			return panel;
 		}

@@ -72,8 +72,8 @@ namespace MindMap.Entities {
 
 		public string ToString(int lengthAfterDot) {//"bug": does not work with negative number
 			return $"Vector2: (" +
-			$"{X.ToString()[..(X.ToString().LastIndexOf('.') + lengthAfterDot)]}," +
-			$"{Y.ToString()[..(Y.ToString().LastIndexOf('.') + lengthAfterDot)]})";
+			$"{Math.Round(X, lengthAfterDot)}," +
+			$"{Math.Round(Y, lengthAfterDot)})";
 		}
 
 		public override string ToString() {

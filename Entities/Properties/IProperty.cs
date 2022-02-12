@@ -16,6 +16,7 @@ namespace MindMap.Entities.Properties {
 		public static void MakeClone(ref IProperty property) {
 			property = (IProperty)property.Clone();
 		}
+
 		public static IProperty MakeClone(IProperty property) {
 			return (IProperty)property.Clone();
 		}

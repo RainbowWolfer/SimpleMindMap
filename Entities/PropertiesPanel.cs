@@ -67,11 +67,12 @@ namespace MindMap.Entities {
 			return panel;
 		}
 
-		public static StackPanel ColorInput(string title, Color initColor, Action<ValueChangedArgs<Color>> OnColorChanged) {
+		public static StackPanel ColorInput(string title, Color initColor, Action<ValueChangedArgs<Color>> onColorChanged, Action? onLostFocus = null) {
 			StackPanel panel = CreateBase(title);
 			ColorPicker picker = new() {
 				SelectedColor = initColor,
 			};
+			bool changed = false;
 			picker.SelectedColorChanged += (s, e) => {
 				Color oldColor = default;
 				if(e.OldValue != null) {
@@ -81,7 +82,14 @@ namespace MindMap.Entities {
 				if(e.NewValue != null) {
 					newColor = e.NewValue.Value;
 				}
-				OnColorChanged.Invoke(new ValueChangedArgs<Color>(oldColor, newColor));
+				changed = true;
+				onColorChanged.Invoke(new ValueChangedArgs<Color>(oldColor, newColor));
+			};
+			//it is meant to instant seal delayed change after lost focus
+			picker.LostFocus += (s, e) => {
+				if(changed) {
+					onLostFocus?.Invoke();//seems not working
+				}
 			};
 			panel.Children.Add(picker);
 			return panel;

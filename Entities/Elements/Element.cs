@@ -99,7 +99,11 @@ namespace MindMap.Entities.Elements {
 						})
 					),
 					PropertiesPanel.SliderInput("Border Thickness", border.BorderThickness.Left, 0, 5,
-						value => border.BorderThickness = new Thickness(value.NewValue)
+						args => IPropertiesContainer.PropertyChangedHandler(this, () => {
+							border.BorderThickness = new Thickness(args.NewValue);
+						}, (oldP, newP) => {
+							parent.editHistory.SubmitByElementPropertyDelayedChanged(this, oldP, newP, "Border Thickness");
+						})
 					),
 				});
 			}
@@ -133,7 +137,9 @@ namespace MindMap.Entities.Elements {
 							text.FontColor = args.NewValue;
 						}, (oldP, newP) => {
 							parent.editHistory.SubmitByElementPropertyDelayedChanged(this, oldP, newP, "Font Color");
-						})
+						}), ()=>{
+							parent.editHistory.InstantSealLastDelayedChange();
+						}
 					),
 				});
 			}

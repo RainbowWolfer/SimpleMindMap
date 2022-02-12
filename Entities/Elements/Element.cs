@@ -14,6 +14,11 @@ using System.Windows.Shapes;
 using Newtonsoft.Json;
 using MindMap.Entities.Properties;
 
+/**
+ * Everytime created a element, calculate the related connecton paths and store these in according element.
+ * when deleled, store related paths into history
+ * when redo, use these stored paths and reinitialized these.
+ */
 namespace MindMap.Entities.Elements {
 	public abstract class Element: IPropertiesContainer {
 		public abstract long TypeID { get; }
@@ -33,6 +38,13 @@ namespace MindMap.Entities.Elements {
 
 		public Element(MindMapPage parent) {
 			this.parent = parent;
+			Debug();
+		}
+		private async void Debug() {
+			while(true) {
+				//ToolTipService.SetToolTip(Target, $"{connectionsFrame?.AllDots.Where(a=>a.)}");
+				await Task.Delay(100);
+			}
 		}
 
 		protected string AssignID(Type type) => $"{type.Name} ({parent.elements.Count + 1})";

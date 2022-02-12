@@ -109,6 +109,9 @@ namespace MindMap.Entities.Frames {
 			}
 		}
 
+		public override string ToString() {
+			return $"Connection Frame: {_target.ID}";
+		}
 	}
 
 	/// <summary>
@@ -199,6 +202,10 @@ namespace MindMap.Entities.Frames {
 			_drag = true;
 			_parent.ClearResizePanel();
 			_otherDots = _parent.GetAllConnectionDots(container._target);
+		}
+
+		public override string ToString() {
+			return $"Dot: {Parent_ID}";
 		}
 	}
 }

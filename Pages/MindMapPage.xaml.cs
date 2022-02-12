@@ -184,7 +184,7 @@ namespace MindMap.Pages {
 				if(from == null || to == null || fromDot == null || toDot == null) {
 					continue;
 				}
-				connectionsManager.Add(fromDot, toDot, item.propertyJson);
+				connectionsManager.Add(fromDot, toDot, true, item.propertyJson);
 				await Task.Delay(1);
 			}
 			LoadingPanel.Visibility = Visibility.Collapsed;

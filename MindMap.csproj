@@ -5,15 +5,25 @@
     <TargetFramework>net6.0-windows</TargetFramework>
     <Nullable>enable</Nullable>
     <UseWPF>true</UseWPF>
+    <RunAnalyzersDuringBuild>True</RunAnalyzersDuringBuild>
+    <RunAnalyzersDuringLiveAnalysis>False</RunAnalyzersDuringLiveAnalysis>
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Icons\Connection_Add.png" />
     <None Remove="Icons\Connection_Add.psd" />
+    <None Remove="Icons\Connection_Remove.png" />
+    <None Remove="Icons\Connection_Remove.psd" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Extended.Wpf.Toolkit" Version="4.1.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Icons\Connection_Add.png" />
+    <Resource Include="Icons\Connection_Remove.png" />
   </ItemGroup>
 
 </Project>

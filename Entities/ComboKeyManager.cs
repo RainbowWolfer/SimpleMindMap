@@ -30,6 +30,15 @@ namespace MindMap.Entities {
 				}
 			};
 
+			target.Activated += (s, e) => {
+				Debug.WriteLine("Window Activated");
+				current.Clear();
+			};
+			target.Deactivated += (s, e) => {
+				Debug.WriteLine("Window Deactivated");
+				current.Clear();
+			};
+
 			//DebugKeys();
 		}
 

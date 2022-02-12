@@ -31,23 +31,41 @@ namespace MindMap.Entities.Connections {
 			);
 		}
 
-		public void Add(ConnectionControl from, ConnectionControl to, string? propertyJson = null) {
+		public void Add(ConnectionPath path, bool submitHistory = true, string? propertyJson = null) {
+			if(path.to == null || CheckDuplicate(path.from, path.to)) {
+				return;
+			}
+			Connections.Add(new Connection(path, path.from, path.to));
+			path.Initialize(false);
+			_parent.UpdateCount();
+			if(submitHistory) {
+				_parent.editHistory.SubmitByConnectionCreated(path);
+			}
+		}
+
+		public void Add(ConnectionControl from, ConnectionControl to, bool submitHistory = true, string? propertyJson = null) {
 			if(CheckDuplicate(from, to)) {
 				return;
 			}
-			Connections.Add(new Connection(string.IsNullOrEmpty(propertyJson) ?
+			var connectionPath = string.IsNullOrEmpty(propertyJson) ?
 				new ConnectionPath(_parent, _mainCanvas, _parent.connectionsManager, from, to) :
-				new ConnectionPath(_parent, _mainCanvas, _parent.connectionsManager, from, to, propertyJson)
-			, from, to));
+				new ConnectionPath(_parent, _mainCanvas, _parent.connectionsManager, from, to, propertyJson);
+			Connections.Add(new Connection(connectionPath, from, to));
 			_parent.UpdateCount();
+			if(submitHistory) {
+				_parent.editHistory.SubmitByConnectionCreated(connectionPath);
+			}
 		}
 
-		public void Remove(ConnectionPath path) {
+		public void Remove(ConnectionPath path, bool submitHistory = true) {
 			if(path.to == null) {
 				return;
 			}
 			Connection? found = Connections.Find(c => c.Path == path);
 			if(found != null) {
+				if(submitHistory) {
+					_parent.editHistory.SubmitByConnectionDeleted(found.Path);
+				}
 				found.Path.ClearBackground();
 				found.Path.ClearFromCanvas();
 				Connections.Remove(found);
@@ -74,6 +92,10 @@ namespace MindMap.Entities.Connections {
 
 		public void ShowProperties(ConnectionPath path) {
 			_parent.ShowConnectionPathProperties(path);
+		}
+
+		public void DeselectAllBackgroundPaths() {
+			Connections.ForEach(c => c.Path.Deselect());
 		}
 
 		public void DebugConnections() {

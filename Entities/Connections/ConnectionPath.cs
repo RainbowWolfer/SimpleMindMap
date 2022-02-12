@@ -38,8 +38,8 @@ namespace MindMap.Entities.Connections {
 		public IProperty Properties => property;
 
 		public Path Path { get; private set; }
+		public bool IsSelected { get; private set; }
 		private Path _backdgroundPath = new();
-		private bool _isSelected;
 
 		public Style PathStyle {
 			get {
@@ -104,7 +104,7 @@ namespace MindMap.Entities.Connections {
 		private bool isRightClick;
 		private bool isLeftClick;
 
-		private void Initialize(bool initializeProperty = true) {
+		public void Initialize(bool initializeProperty = true) {
 			_mainCanvas.Children.Add(this.Path);
 			if(!IsPreview) {
 				if(initializeProperty) {
@@ -169,7 +169,7 @@ namespace MindMap.Entities.Connections {
 		}
 
 		public void MouseEnter() {
-			if(_isSelected) {
+			if(IsSelected) {
 				return;
 			}
 			_backdgroundPath.Visibility = Visibility.Visible;
@@ -178,7 +178,7 @@ namespace MindMap.Entities.Connections {
 		}
 
 		public void MouseExit() {
-			if(_isSelected) {
+			if(IsSelected) {
 				return;
 			}
 			_backdgroundPath.Visibility = Visibility.Collapsed;
@@ -188,7 +188,7 @@ namespace MindMap.Entities.Connections {
 			if(_connectionsManager != null) {
 				_connectionsManager.CurrentSelection = this;
 			}
-			_isSelected = true;
+			IsSelected = true;
 			_backdgroundPath.Visibility = Visibility.Visible;
 			_backdgroundPath.StrokeDashArray = new DoubleCollection(new double[] { 1, 0 });
 			UpdateBackgroundStyle();
@@ -198,7 +198,7 @@ namespace MindMap.Entities.Connections {
 			if(_connectionsManager != null) {
 				_connectionsManager.CurrentSelection = null;
 			}
-			_isSelected = false;
+			IsSelected = false;
 			_backdgroundPath.Visibility = Visibility.Collapsed;
 		}
 
@@ -210,14 +210,18 @@ namespace MindMap.Entities.Connections {
 			StackPanel panel = new();
 			panel.Children.Add(PropertiesPanel.SectionTitle("Connection Path"));
 			panel.Children.Add(PropertiesPanel.SliderInput("Strock Thickness", StrokeThickess, 1, 8,
-				value => StrokeThickess = value.NewValue
+				args => IPropertiesContainer.PropertyChangedHandler(this, () => {
+					StrokeThickess = args.NewValue;
+				}, (oldP, newP) => {
+					_parent.editHistory.SubmitByElementPropertyDelayedChanged(this, oldP, newP, "Strock Thickness");
+				})
 			, 0.1, 1));
 			panel.Children.Add(PropertiesPanel.ColorInput("Strock Color", StrokeColor,
 				args => IPropertiesContainer.PropertyChangedHandler(this, () => {
 					StrokeColor = args.NewValue;
 				}, (oldP, newP) => {
 					_parent.editHistory.SubmitByElementPropertyDelayedChanged(this, oldP, newP, "Strock Color");
-				}), ()=>{
+				}), () => {
 					_parent.editHistory.InstantSealLastDelayedChange();
 				}
 			));
@@ -255,11 +259,16 @@ namespace MindMap.Entities.Connections {
 			_mainCanvas.Children.Remove(_backdgroundPath);
 		}
 
+		public override string ToString() {
+			return $"Conection: {from.Parent_ID}-{to?.Parent_ID ?? "None"}";
+		}
+
 		public static Path CreatePath(Vector2 from, Vector2 to) {
 			return new Path() {
 				Data = CreateGeometry(from, to),
 			};
 		}
+
 		public static Geometry CreateGeometry(Vector2 from, Vector2 to) {
 			return Geometry.Parse(
 				$"M {from.X},{from.Y} " +

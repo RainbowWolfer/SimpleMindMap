@@ -29,6 +29,14 @@ namespace MindMap.Entities {
 			OnHistoryChanged += list => {
 				future.Clear();
 			};
+
+			OnUndo += change => {
+				parent.connectionsManager.DeselectAllBackgroundPaths();
+			};
+
+			OnRedo += change => {
+				parent.connectionsManager.DeselectAllBackgroundPaths();
+			};
 		}
 
 		public List<IChange> GetHistory() => previous.ToArray().Reverse().ToList();
@@ -38,11 +46,13 @@ namespace MindMap.Entities {
 			previous.Add(new ElementCreatedOrDeleted(CreateOrDelete.Create, target));
 			OnHistoryChanged?.Invoke(GetHistory());
 		}
+
 		public void SubmitByElementDeleted(Element target) {
 			InstantSealLastDelayedChange();
 			previous.Add(new ElementCreatedOrDeleted(CreateOrDelete.Delete, target));
 			OnHistoryChanged?.Invoke(GetHistory());
 		}
+
 		public void SubmitByElementPropertyChanged(IPropertiesContainer target, IProperty oldProperty, IProperty newProperty, string? propertyTargetHint = null) {
 			InstantSealLastDelayedChange();
 			IProperty.MakeClone(ref oldProperty);
@@ -50,6 +60,7 @@ namespace MindMap.Entities {
 			previous.Add(new PropertyChange(target, oldProperty, newProperty, propertyTargetHint));
 			OnHistoryChanged?.Invoke(GetHistory());
 		}
+		
 		public async void SubmitByElementPropertyDelayedChanged(IPropertiesContainer target, IProperty oldProperty, IProperty newProperty, string? propertyTargetHint = null) {
 			const int DELAY = 500;
 			IProperty.MakeClone(ref oldProperty);
@@ -97,19 +108,15 @@ namespace MindMap.Entities {
 			OnHistoryChanged?.Invoke(GetHistory());
 		}
 
-		public void SumbitByConnectionCreated(ConnectionPath path) {
+		public void SubmitByConnectionCreated(ConnectionPath path) {
 			InstantSealLastDelayedChange();
-			//previous.Add(new ConnectionCreateOrDelete(CreateOrDelete.Create, path));
+			previous.Add(new ConnectionCreateOrDelete(CreateOrDelete.Create, path));
 			OnHistoryChanged?.Invoke(GetHistory());
 		}
-		public void SumbitByConnectionDeleted(ConnectionPath path) {
-			InstantSealLastDelayedChange();
-			//previous.Add(new ConnectionCreateOrDelete(CreateOrDelete.Delete, path));
-			OnHistoryChanged?.Invoke(GetHistory());
-		}
-		public void SubmitByConnectionChange() {
-			InstantSealLastDelayedChange();
 
+		public void SubmitByConnectionDeleted(ConnectionPath path) {
+			InstantSealLastDelayedChange();
+			previous.Add(new ConnectionCreateOrDelete(CreateOrDelete.Delete, path));
 			OnHistoryChanged?.Invoke(GetHistory());
 		}
 
@@ -157,6 +164,17 @@ namespace MindMap.Entities {
 				posc.Target.SetPosition(posc.FromPosition);
 				posc.Target.UpdateConnectionsFrame();
 				ResizeFrame.Current?.UpdateResizeFrame();
+			} else if(last is ConnectionCreateOrDelete ccd) {
+				switch(ccd.Type) {
+					case CreateOrDelete.Create:
+						_parent.connectionsManager.Remove(ccd.Path, false);
+						break;
+					case CreateOrDelete.Delete:
+						_parent.connectionsManager.Add(ccd.Path, false);
+						break;
+					default:
+						throw new Exception($"{ccd.Type} not found");
+				}
 			}
 			previous.RemoveAt(previous.Count - 1);
 			future.Insert(0, last);
@@ -192,6 +210,17 @@ namespace MindMap.Entities {
 				posc.Target.SetPosition(posc.ToPosition);
 				posc.Target.UpdateConnectionsFrame();
 				ResizeFrame.Current?.UpdateResizeFrame();
+			} else if(first is ConnectionCreateOrDelete ccd) {
+				switch(ccd.Type) {
+					case CreateOrDelete.Create:
+						_parent.connectionsManager.Add(ccd.Path, false);
+						break;
+					case CreateOrDelete.Delete:
+						_parent.connectionsManager.Remove(ccd.Path, false);
+						break;
+					default:
+						throw new Exception($"{ccd.Type} not found");
+				}
 			}
 			future.RemoveAt(0);
 			previous.Add(first);
@@ -206,14 +235,28 @@ namespace MindMap.Entities {
 
 		public class ConnectionCreateOrDelete: IChange {
 			public DateTime Date { get; set; }
-			public IconElement Icon => CreateOrDeleteType switch {
-				CreateOrDelete.Create => new ImageIcon("/Icons/Connection_Add.png"),
-				CreateOrDelete.Delete => new ImageIcon("/Icons/Connection_Add.png"),
+			public IconElement Icon => Type switch {
+				CreateOrDelete.Create => new ImageIcon("pack://application:,,,/Icons/Connection_Add.png"),
+				CreateOrDelete.Delete => new ImageIcon("pack://application:,,,/Icons/Connection_Remove.png"),
 				_ => new FontIcon("\uE11B"),
 			};
 
-			public CreateOrDelete CreateOrDeleteType { get; protected set; }
+			public CreateOrDelete Type { get; protected set; }
 			public ConnectionPath Path { get; protected set; }
+
+			public ConnectionCreateOrDelete(CreateOrDelete createOrDeleteType, ConnectionPath path) {
+				Type = createOrDeleteType;
+				Path = path;
+				Date = DateTime.Now;
+			}
+
+			public override string ToString() {
+				return Type switch {
+					CreateOrDelete.Create => $"Created Connection {Path.from.Parent_ID}-{Path.to?.Parent_ID ?? "None"}",
+					CreateOrDelete.Delete => $"Deleted Connection {Path.from.Parent_ID}-{Path.to?.Parent_ID ?? "None"}",
+					_ => throw new Exception($"({Type}) Type not found"),
+				};
+			}
 
 			public string GetDetail() {
 				return "";

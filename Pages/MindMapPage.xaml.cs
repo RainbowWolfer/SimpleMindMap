@@ -311,11 +311,11 @@ namespace MindMap.Pages {
 		}
 
 		public void AddElementFromHistory(Element target) {
-			AddToElementsDictionary(target,
-				target.GetPosition(),
-				target.GetSize(),
-				target.Properties,
-				false
+			AddToElementsDictionary(value: target,
+				position: target.GetPosition(),
+				size: target.GetSize(),
+				property: target.Properties,
+				submitEditHistory: false
 			);
 		}
 
@@ -369,6 +369,7 @@ namespace MindMap.Pages {
 			}
 			startPos = e.GetPosition(MainCanvas);
 			offset = startPos - new Vector2(Canvas.GetLeft(target), Canvas.GetTop(target));
+			elementStartPos = new Vector2(Canvas.GetLeft(target), Canvas.GetTop(target));
 			Mouse.Capture(sender as UIElement);
 			hasMoved = false;
 			if(e.MouseDevice.LeftButton == MouseButtonState.Pressed) {
@@ -395,6 +396,7 @@ namespace MindMap.Pages {
 
 		private Vector2 offset;
 		private Vector2 startPos;//check for click
+		private Vector2 elementStartPos;
 		private FrameworkElement? current;
 		private bool hasMoved;
 		private MouseType mouseType;
@@ -424,10 +426,9 @@ namespace MindMap.Pages {
 				if(element == null) {
 					throw new Exception("it should not be null. check elements assignments");
 				}
-				Vector2 toPositon = e.GetPosition(MainCanvas) - new Vector2(Canvas.GetLeft(element.Target), Canvas.GetTop(element.Target));
-				if(startPos != toPositon && hasMoved) {
-					Debug.WriteLine($"{startPos.ToString(2)} - {toPositon.ToString(2)}");
-					//editHistory.SubmitByElementPositionChanged(element, startPos, toPositon);
+				if(startPos != e.GetPosition(MainCanvas) && hasMoved) {
+					//Debug.WriteLine($"{elementStartPos.ToString(2)} - {element.GetPosition().ToString(2)}");
+					editHistory.SubmitByElementPositionChanged(element, elementStartPos, element.GetPosition());
 				} else {
 					switch(mouseType) {
 						case MouseType.Left:

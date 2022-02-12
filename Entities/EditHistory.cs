@@ -175,7 +175,7 @@ namespace MindMap.Entities {
 						_parent.AddElementFromHistory(cod.Target);
 						break;
 					case CreateOrDelete.Delete:
-						cod.Target.Delete();
+						cod.Target.Delete(false);
 						//go delete
 						break;
 					default:

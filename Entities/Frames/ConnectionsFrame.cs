@@ -118,7 +118,8 @@ namespace MindMap.Entities.Frames {
 	/// This represents dot around the element
 	/// </summary>
 	public class ConnectionControl {
-		public string Parent_ID => container._target.ID;
+		public Element Parent => container._target;
+		public string Parent_ID => Parent.ID;
 		public string ID { get; private set; }
 		public readonly Ellipse target;
 		public readonly ConnectionsFrame container;

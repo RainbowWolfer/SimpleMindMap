@@ -98,6 +98,19 @@ namespace MindMap.Entities.Connections {
 			Connections.ForEach(c => c.Path.Deselect());
 		}
 
+		public List<ConnectionPath> CalculateRelatedConnections(ConnectionsFrame frame) {
+			List<ConnectionPath> result = new();
+			foreach(Connection connection in Connections) {
+				if(connection.Path.to == null) {
+					continue;
+				}
+				if(frame.AllDots.Contains(connection.Path.from) || frame.AllDots.Contains(connection.Path.to)) {
+					result.Add(connection.Path);
+				}
+			}
+			return result;
+		}
+
 		public void DebugConnections() {
 			Debug.WriteLine("START");
 			foreach(Connection c in Connections) {

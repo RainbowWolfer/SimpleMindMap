@@ -47,9 +47,9 @@ namespace MindMap.Entities {
 			OnHistoryChanged?.Invoke(GetHistory());
 		}
 
-		public void SubmitByElementDeleted(Element target) {
+		public void SubmitByElementDeleted(Element target, List<ConnectionPath>? relatedConnections = null) {
 			InstantSealLastDelayedChange();
-			previous.Add(new ElementCreatedOrDeleted(CreateOrDelete.Delete, target));
+			previous.Add(new ElementCreatedOrDeleted(CreateOrDelete.Delete, target, relatedConnections ?? new List<ConnectionPath>()));
 			OnHistoryChanged?.Invoke(GetHistory());
 		}
 
@@ -60,7 +60,7 @@ namespace MindMap.Entities {
 			previous.Add(new PropertyChange(target, oldProperty, newProperty, propertyTargetHint));
 			OnHistoryChanged?.Invoke(GetHistory());
 		}
-		
+
 		public async void SubmitByElementPropertyDelayedChanged(IPropertiesContainer target, IProperty oldProperty, IProperty newProperty, string? propertyTargetHint = null) {
 			const int DELAY = 500;
 			IProperty.MakeClone(ref oldProperty);
@@ -149,6 +149,7 @@ namespace MindMap.Entities {
 						break;
 					case CreateOrDelete.Delete:
 						_parent.AddElementFromHistory(cod.Target);
+						Debug.WriteLine(cod.RelatedConnections.Count);
 						break;
 					default:
 						throw new Exception($"{cod.Type} not found");
@@ -191,6 +192,7 @@ namespace MindMap.Entities {
 					case CreateOrDelete.Create:
 						//go create
 						_parent.AddElementFromHistory(cod.Target);
+						Debug.WriteLine(cod.RelatedConnections.Count);
 						break;
 					case CreateOrDelete.Delete:
 						cod.Target.Delete(false);
@@ -268,11 +270,15 @@ namespace MindMap.Entities {
 			public IconElement Icon => new FontIcon("\uE11B");
 			public CreateOrDelete Type { get; protected set; }
 			public Element Target { get; protected set; }
-			public ElementCreatedOrDeleted(CreateOrDelete type, Element target) {
+			public List<ConnectionPath> RelatedConnections { get; protected set; }
+
+			public ElementCreatedOrDeleted(CreateOrDelete type, Element target, List<ConnectionPath>? relatedConnections = null) {
 				Type = type;
 				Target = target;
 				Date = DateTime.Now;
+				RelatedConnections = relatedConnections ?? new();
 			}
+
 			public override string ToString() {
 				return Type switch {
 					CreateOrDelete.Create => $"Created {Target.ID}",
@@ -280,6 +286,7 @@ namespace MindMap.Entities {
 					_ => throw new Exception($"({Type}) Type not found"),
 				};
 			}
+
 			public string GetDetail() {
 				return "";
 			}

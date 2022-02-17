@@ -13,6 +13,7 @@ using System.Windows.Media;
 using System.Windows.Shapes;
 using Newtonsoft.Json;
 using MindMap.Entities.Properties;
+using MindMap.Entities.Connections;
 
 /**
  * Everytime created a element, calculate the related connecton paths and store these in according element.
@@ -42,7 +43,7 @@ namespace MindMap.Entities.Elements {
 		}
 		private async void Debug() {
 			while(true) {
-				//ToolTipService.SetToolTip(Target, $"{connectionsFrame?.AllDots.Where(a=>a.)}");
+				ToolTipService.SetToolTip(Target, $"");
 				await Task.Delay(100);
 			}
 		}
@@ -69,6 +70,13 @@ namespace MindMap.Entities.Elements {
 
 		public void CreateConnectionsFrame() {
 			connectionsFrame = new ConnectionsFrame(this.parent, this);
+		}
+
+		public List<ConnectionPath> GetRelatedPaths() {
+			if(connectionsFrame == null) {
+				return new();
+			}
+			return parent.connectionsManager.CalculateRelatedConnections(connectionsFrame);
 		}
 
 		public ConnectionControl? GetConnectionControlByID(string id) {
@@ -177,11 +185,12 @@ namespace MindMap.Entities.Elements {
 		public abstract void Deselect();
 
 		public virtual void Delete(bool submitEditHistory = true) {
+			var related = GetRelatedPaths();
 			parent.RemoveElement(this);
 			connectionsFrame?.ClearConnections();
 			parent.UpdateCount();
 			if(submitEditHistory) {
-				parent.editHistory.SubmitByElementDeleted(this);
+				parent.editHistory.SubmitByElementDeleted(this, related);
 			}
 		}
 	}

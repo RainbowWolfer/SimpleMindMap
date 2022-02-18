@@ -16,9 +16,8 @@ using System.Windows.Shapes;
 namespace MindMap.Entities.Elements {
 	public class MyPolygon: Element, ITextGrid, IBorderBasedStyle, IUpdate {
 		public override long TypeID => ID_Polygon;
-
 		public override string ID { get; protected set; }
-
+		public override string Name { get; set; }
 		public override FrameworkElement Target => _root;
 		private struct Property: IProperty {
 			public Brush background;

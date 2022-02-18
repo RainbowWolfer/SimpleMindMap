@@ -12,6 +12,8 @@ using System.Windows.Shapes;
 
 namespace MindMap.Entities.Elements {
 	public class MyRectangle: TextShape {
+		public override string ID { get; protected set; }
+		public override string Name { get; set; }
 		private class Property: BaseProperty {
 			public CornerRadius cornerRadius = new(0);
 
@@ -35,14 +37,12 @@ namespace MindMap.Entities.Elements {
 
 		public override long TypeID => ID_Rectangle;
 
-		public override string ID { get; protected set; }
-
 		protected override BaseProperty BaseProperties => property;
 
 		private readonly Border _rect = new();
 
 		public MyRectangle(MindMapPage parent) : base(parent) {
-			ID = AssignID("Rectangle");
+			ID = AssignID(GetType());
 		}
 
 		public MyRectangle(MindMapPage parent, string id, string propertiesJson) : base(parent) {

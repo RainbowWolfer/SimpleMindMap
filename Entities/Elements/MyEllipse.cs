@@ -16,6 +16,7 @@ using System.Windows.Shapes;
 namespace MindMap.Entities.Elements {
 	public class MyEllipse: Element, ITextGrid, IBorderBasedStyle {
 		public override string ID { get; protected set; }
+		public override string Name { get; set; }
 		public override long TypeID => ID_Ellipse;
 		private readonly Grid _root;
 		private readonly Ellipse _ellipse;

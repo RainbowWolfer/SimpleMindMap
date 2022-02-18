@@ -17,11 +17,15 @@ using System.Windows.Shapes;
 
 namespace MindMap.Entities.Connections {
 	public class ConnectionPath: IPropertiesContainer {
+		public string ID { get; protected set; }
+		public string Name { get; set; }
+
 		public readonly ConnectionControl from;
 		public ConnectionControl? to;
 		private readonly Canvas _mainCanvas;
 		private readonly ConnectionsManager? _connectionsManager;
 		private readonly MindMapPage _parent;
+
 		private struct Property: IProperty {
 			public double strokeThickess;
 			public Color strokeColor;
@@ -75,7 +79,9 @@ namespace MindMap.Entities.Connections {
 			this.from = from;
 			this.to = to;
 			this.Path = CreatePath(from.GetPosition(), to.GetPosition());
-			Initialize();
+			this.ID = AssignID();
+			this.Name = AssignDefaultName();
+			this.Initialize();
 		}
 
 		public ConnectionPath(MindMapPage parent, Canvas mainCanvas, ConnectionControl from, Vector2 to) {
@@ -85,7 +91,9 @@ namespace MindMap.Entities.Connections {
 			this.from = from;
 			this.to = null;
 			this.Path = CreatePath(from.GetPosition(), to);
-			Initialize();
+			this.ID = AssignID();
+			this.Name = AssignDefaultName();
+			this.Initialize();
 		}
 
 		public ConnectionPath(MindMapPage parent, Canvas mainCanvas, ConnectionsManager connectionsManager, ConnectionControl from, ConnectionControl to, string propertiesJson) {
@@ -97,8 +105,22 @@ namespace MindMap.Entities.Connections {
 			this.to = to;
 			this.Path = CreatePath(from.GetPosition(), to.GetPosition());
 			property = (Property)property.Translate(propertiesJson);
-			Initialize(false);
+			this.ID = AssignID();
+			this.Name = AssignDefaultName();
+			this.Initialize(false);
 		}
+
+		private string AssignID() {
+			long ticks = DateTime.Now.Ticks;
+			long random = new Random().Next(1000, 9999);
+			return $"Connection_({ticks}_{random}_{random})";
+		}
+
+		private string AssignDefaultName() {
+			return $"Connection ({from.Parent_ID} - {to?.Parent_ID ?? "None"})";
+		}
+
+		public string GetID() => ID;
 
 		private Vector2 lastMousePosition;
 		private bool isRightClick;
@@ -156,10 +178,6 @@ namespace MindMap.Entities.Connections {
 		public void SetProperty(IProperty property) {
 			this.property = (Property)property;
 			UpdateStyle();
-		}
-
-		public string GetID() {
-			return $"Connection({from.Parent_ID}-{to?.Parent_ID ?? "None"})";
 		}
 
 		public void ClearFromCanvas() {

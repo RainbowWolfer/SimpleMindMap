@@ -150,6 +150,9 @@ namespace MindMap.Entities {
 					case CreateOrDelete.Delete:
 						_parent.AddElementFromHistory(cod.Target);
 						Debug.WriteLine(cod.RelatedConnections.Count);
+						foreach(ConnectionPath item in cod.RelatedConnections) {
+							_parent.connectionsManager.Add(item, false);
+						}
 						break;
 					default:
 						throw new Exception($"{cod.Type} not found");
@@ -193,6 +196,9 @@ namespace MindMap.Entities {
 						//go create
 						_parent.AddElementFromHistory(cod.Target);
 						Debug.WriteLine(cod.RelatedConnections.Count);
+						foreach(ConnectionPath item in cod.RelatedConnections) {
+							_parent.connectionsManager.Add(item, false);
+						}
 						break;
 					case CreateOrDelete.Delete:
 						cod.Target.Delete(false);
@@ -244,11 +250,11 @@ namespace MindMap.Entities {
 			};
 
 			public CreateOrDelete Type { get; protected set; }
-			public ConnectionPath Path { get; protected set; }
+			public string ID { get; protected set; }
 
-			public ConnectionCreateOrDelete(CreateOrDelete createOrDeleteType, ConnectionPath path) {
+			public ConnectionCreateOrDelete(CreateOrDelete createOrDeleteType, string id) {
 				Type = createOrDeleteType;
-				Path = path;
+				ID = id;
 				Date = DateTime.Now;
 			}
 

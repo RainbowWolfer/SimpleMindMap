@@ -27,7 +27,8 @@ namespace MindMap.Entities.Elements {
 		public const long ID_Ellipse = 2;
 		public const long ID_Polygon = 3;
 
-		public abstract string ID { get; protected set; }
+		public abstract string ID { get; protected set; }//for only identification purpose
+		public abstract string Name { get; set; }//only for display purpose and can be modified by user
 
 		protected MindMapPage parent;
 
@@ -41,6 +42,7 @@ namespace MindMap.Entities.Elements {
 			this.parent = parent;
 			Debug();
 		}
+
 		private async void Debug() {
 			while(true) {
 				ToolTipService.SetToolTip(Target, $"");
@@ -48,8 +50,12 @@ namespace MindMap.Entities.Elements {
 			}
 		}
 
-		protected string AssignID(Type type) => $"{type.Name} ({parent.elements.Count + 1})";
-		protected string AssignID(string type) => $"{type.Trim()} ({parent.elements.Count + 1})";
+		protected string AssignID(Type type) => AssignID(type.Name);
+		protected string AssignID(string type) {
+			long ticks = DateTime.Now.Ticks;
+			long random = new Random().Next(1000, 9999);
+			return $"{type.Trim()}_({ticks})_{random}";
+		}
 
 		public string GetID() => ID;
 

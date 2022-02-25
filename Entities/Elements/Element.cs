@@ -14,6 +14,8 @@ using System.Windows.Shapes;
 using Newtonsoft.Json;
 using MindMap.Entities.Properties;
 using MindMap.Entities.Connections;
+using MindMap.Entities.Identifications;
+using MindMap.Entities.Services;
 
 /**
  * Everytime created a element, calculate the related connecton paths and store these in according element.
@@ -21,25 +23,27 @@ using MindMap.Entities.Connections;
  * when redo, use these stored paths and reinitialized these.
  */
 namespace MindMap.Entities.Elements {
-	public abstract class Element: IPropertiesContainer {
+	public abstract class Element: IPropertiesContainer, IIdentityContainer {
 		public abstract long TypeID { get; }
 		public const long ID_Rectangle = 1;
 		public const long ID_Ellipse = 2;
 		public const long ID_Polygon = 3;
 
-		public abstract string ID { get; protected set; }//for only identification purpose
-		public abstract string Name { get; set; }//only for display purpose and can be modified by user
+		public abstract string ElementTypeName { get; }
+
+		public Identity Identity { get; set; }
 
 		protected MindMapPage parent;
 
-		protected ConnectionsFrame? connectionsFrame;
+		public ConnectionsFrame? ConnectionsFrame { get; protected set; }
 		protected Canvas MainCanvas => parent.MainCanvas;
 
 		public abstract FrameworkElement Target { get; }
 		public abstract IProperty Properties { get; }
 
-		public Element(MindMapPage parent) {
+		public Element(MindMapPage parent, Identity? identity = null) {
 			this.parent = parent;
+			Identity = identity ?? new Identity(IntializeID(GetType()), InitializeDefaultName());
 			Debug();
 		}
 
@@ -50,14 +54,12 @@ namespace MindMap.Entities.Elements {
 			}
 		}
 
-		protected string AssignID(Type type) => AssignID(type.Name);
-		protected string AssignID(string type) {
-			long ticks = DateTime.Now.Ticks;
-			long random = new Random().Next(1000, 9999);
-			return $"{type.Trim()}_({ticks})_{random}";
-		}
+		private string IntializeID(Type type) => $"{type.Name}_({Methods.GetTick()})";
+		private string InitializeDefaultName() => $"{ElementTypeName} ({parent.elements.Count + 1})";
 
-		public string GetID() => ID;
+		//protected string AssignID(string type) => $"{type.Trim()}_({Methods.GetTick()})";
+
+		public Identity GetIdentity() => Identity;
 
 		public Vector2 GetSize() => new(Target.Width, Target.Height);
 		public void SetSize(Vector2 size) {
@@ -73,29 +75,30 @@ namespace MindMap.Entities.Elements {
 		public virtual Vector2 DefaultSize => new(150, 150);
 
 		public abstract void SetProperty(IProperty property);
+		public abstract void SetProperty(string propertyJson);
 
-		public void CreateConnectionsFrame() {
-			connectionsFrame = new ConnectionsFrame(this.parent, this);
+		public void CreateConnectionsFrame(Dictionary<Direction, int>? initialControls = null) {
+			ConnectionsFrame = new ConnectionsFrame(this.parent, this, initialControls);
 		}
 
 		public List<ConnectionPath> GetRelatedPaths() {
-			if(connectionsFrame == null) {
+			if(ConnectionsFrame == null) {
 				return new();
 			}
-			return parent.connectionsManager.CalculateRelatedConnections(connectionsFrame);
+			return parent.connectionsManager.CalculateRelatedConnections(ConnectionsFrame);
 		}
 
 		public ConnectionControl? GetConnectionControlByID(string id) {
-			return connectionsFrame?.GetControlByID(id);
+			return ConnectionsFrame?.GetControlByID(id);
 		}
 
 		public void UpdateConnectionsFrame() {//also includes connected dots
-			connectionsFrame?.UpdateConnections();
+			ConnectionsFrame?.UpdateConnections();
 		}
 
-		public void SetConnectionsFrameVisible(bool visible) => connectionsFrame?.SetVisible(visible);
+		public void SetConnectionsFrameVisible(bool visible) => ConnectionsFrame?.SetVisible(visible);
 
-		public List<ConnectionControl> GetAllConnectionDots() => connectionsFrame == null ? new List<ConnectionControl>() : connectionsFrame.AllDots;
+		public List<ConnectionControl> GetAllConnectionDots() => ConnectionsFrame == null ? new List<ConnectionControl>() : ConnectionsFrame.AllDots;
 
 		//public abstract FrameworkElement CreateFramework();
 
@@ -191,13 +194,7 @@ namespace MindMap.Entities.Elements {
 		public abstract void Deselect();
 
 		public virtual void Delete(bool submitEditHistory = true) {
-			var related = GetRelatedPaths();
-			parent.RemoveElement(this);
-			connectionsFrame?.ClearConnections();
-			parent.UpdateCount();
-			if(submitEditHistory) {
-				parent.editHistory.SubmitByElementDeleted(this, related);
-			}
+			parent.RemoveElement(this, submitEditHistory);
 		}
 	}
 }

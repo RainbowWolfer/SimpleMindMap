@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MindMap.Entities.Identifications;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,7 +9,7 @@ namespace MindMap.Entities.Properties {
 	public interface IPropertiesContainer {
 		IProperty Properties { get; }
 		void SetProperty(IProperty property);
-		string GetID();
+		Identity GetIdentity();
 
 		public static void PropertyChangedHandler(IPropertiesContainer target, Action assign, Action<IProperty, IProperty> submit) {
 			IProperty oldProperty = IProperty.MakeClone(target.Properties);

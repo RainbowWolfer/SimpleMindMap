@@ -1,6 +1,8 @@
 ﻿using MindMap.Entities.Elements;
 using MindMap.Entities.Frames;
+using MindMap.Entities.Identifications;
 using MindMap.Entities.Properties;
+using MindMap.Entities.Services;
 using MindMap.Pages;
 using Newtonsoft.Json;
 using System;
@@ -16,15 +18,15 @@ using System.Windows.Media;
 using System.Windows.Shapes;
 
 namespace MindMap.Entities.Connections {
-	public class ConnectionPath: IPropertiesContainer {
-		public string ID { get; protected set; }
-		public string Name { get; set; }
+	public class ConnectionPath: IPropertiesContainer, IIdentityContainer {
+		public Identity Identity { get; set; }
 
 		public readonly ConnectionControl from;
 		public ConnectionControl? to;
-		private readonly Canvas _mainCanvas;
 		private readonly ConnectionsManager? _connectionsManager;
 		private readonly MindMapPage _parent;
+
+		public Canvas MainCanvas => _parent.MainCanvas;
 
 		private struct Property: IProperty {
 			public double strokeThickess;
@@ -71,63 +73,54 @@ namespace MindMap.Entities.Connections {
 		}
 
 		public bool IsPreview { get; private set; }
-		public ConnectionPath(MindMapPage parent, Canvas mainCanvas, ConnectionsManager connectionsManager, ConnectionControl from, ConnectionControl to) {
+
+		public ConnectionPath(MindMapPage parent, ConnectionsManager connectionsManager, ConnectionControl from, ConnectionControl to) {
 			this.IsPreview = false;
 			this._parent = parent;
-			this._mainCanvas = mainCanvas;
 			this._connectionsManager = connectionsManager;
 			this.from = from;
 			this.to = to;
 			this.Path = CreatePath(from.GetPosition(), to.GetPosition());
-			this.ID = AssignID();
-			this.Name = AssignDefaultName();
+			this.Identity = new Identity(InitializeID(), InitializeDefaultName());
 			this.Initialize();
 		}
 
-		public ConnectionPath(MindMapPage parent, Canvas mainCanvas, ConnectionControl from, Vector2 to) {
+		public ConnectionPath(MindMapPage parent, ConnectionControl from, Vector2 to) {
 			this.IsPreview = true;
 			this._parent = parent;
-			this._mainCanvas = mainCanvas;
 			this.from = from;
 			this.to = null;
 			this.Path = CreatePath(from.GetPosition(), to);
-			this.ID = AssignID();
-			this.Name = AssignDefaultName();
+			this.Identity = new Identity(InitializeID(), InitializeDefaultName());
 			this.Initialize();
 		}
 
-		public ConnectionPath(MindMapPage parent, Canvas mainCanvas, ConnectionsManager connectionsManager, ConnectionControl from, ConnectionControl to, string propertiesJson) {
-			this.IsPreview = false;
-			this._parent = parent;
-			this._mainCanvas = mainCanvas;
-			this._connectionsManager = connectionsManager;
-			this.from = from;
-			this.to = to;
-			this.Path = CreatePath(from.GetPosition(), to.GetPosition());
-			property = (Property)property.Translate(propertiesJson);
-			this.ID = AssignID();
-			this.Name = AssignDefaultName();
-			this.Initialize(false);
-		}
+		//public ConnectionPath(MindMapPage parent, ConnectionsManager connectionsManager, ConnectionControl from, ConnectionControl to, string propertiesJson) {
+		//	this.IsPreview = false;
+		//	this._parent = parent;
+		//	this._connectionsManager = connectionsManager;
+		//	this.from = from;
+		//	this.to = to;
+		//	this.Path = CreatePath(from.GetPosition(), to.GetPosition());
+		//	this.property = (Property)property.Translate(propertiesJson);
+		//	this.Identity = new Identity(InitializeID(), InitializeDefaultName());
+		//	this.Initialize(false);
+		//}
 
-		private string AssignID() {
-			long ticks = DateTime.Now.Ticks;
-			long random = new Random().Next(1000, 9999);
-			return $"Connection_({ticks}_{random}_{random})";
-		}
+		private string InitializeID() => $"Connection_({Methods.GetTick()})";
 
-		private string AssignDefaultName() {
+		private string InitializeDefaultName() {
 			return $"Connection ({from.Parent_ID} - {to?.Parent_ID ?? "None"})";
 		}
 
-		public string GetID() => ID;
+		public Identity GetIdentity() => Identity;
 
 		private Vector2 lastMousePosition;
 		private bool isRightClick;
 		private bool isLeftClick;
 
 		public void Initialize(bool initializeProperty = true) {
-			_mainCanvas.Children.Add(this.Path);
+			MainCanvas.Children.Add(this.Path);
 			if(!IsPreview) {
 				if(initializeProperty) {
 					property.strokeThickess = 3;
@@ -137,24 +130,24 @@ namespace MindMap.Entities.Connections {
 					Data = Path.Data,
 					Visibility = Visibility.Collapsed,
 				};
-				_mainCanvas.Children.Insert(_mainCanvas.Children.IndexOf(Path), _backdgroundPath);
-				FlyoutMenu.CreateBase(this.Path, (s, e) => _connectionsManager?.Remove(this));
+				MainCanvas.Children.Insert(MainCanvas.Children.IndexOf(Path), _backdgroundPath);
+				FlyoutMenu.CreateBase(this.Path, (s, e) => _connectionsManager?.RemoveConnetion(this));
 				Path.MouseDown += (s, e) => {
 					if(e.MouseDevice.RightButton == MouseButtonState.Pressed) {
 						isRightClick = true;
-						lastMousePosition = e.GetPosition(_mainCanvas);
+						lastMousePosition = e.GetPosition(MainCanvas);
 					} else {
 						isRightClick = false;
 					}
 					if(e.MouseDevice.LeftButton == MouseButtonState.Pressed) {
 						isLeftClick = true;
-						lastMousePosition = e.GetPosition(_mainCanvas);
+						lastMousePosition = e.GetPosition(MainCanvas);
 					} else {
 						isLeftClick = false;
 					}
 				};
 				Path.MouseUp += (s, e) => {
-					if(e.GetPosition(_mainCanvas) == lastMousePosition) {
+					if(e.GetPosition(MainCanvas) == lastMousePosition) {
 						if(isRightClick) {
 							Path.ContextMenu.IsOpen = true;
 						}
@@ -180,9 +173,14 @@ namespace MindMap.Entities.Connections {
 			UpdateStyle();
 		}
 
+		public void SetProperty(string propertyJson) {
+			this.property = (Property)property.Translate(propertyJson);
+			UpdateStyle();
+		}
+
 		public void ClearFromCanvas() {
-			if(_mainCanvas.Children.Contains(Path)) {
-				_mainCanvas.Children.Remove(Path);
+			if(MainCanvas.Children.Contains(Path)) {
+				MainCanvas.Children.Remove(Path);
 			}
 		}
 
@@ -271,10 +269,10 @@ namespace MindMap.Entities.Connections {
 		}
 
 		public void ClearBackground() {
-			if(!_mainCanvas.Children.Contains(_backdgroundPath)) {
+			if(!MainCanvas.Children.Contains(_backdgroundPath)) {
 				return;
 			}
-			_mainCanvas.Children.Remove(_backdgroundPath);
+			MainCanvas.Children.Remove(_backdgroundPath);
 		}
 
 		public override string ToString() {

@@ -2,8 +2,11 @@
 using MindMap.Entities.Elements;
 using MindMap.Entities.Frames;
 using MindMap.Entities.Icons;
+using MindMap.Entities.Identifications;
+using MindMap.Entities.Locals;
 using MindMap.Entities.Properties;
 using MindMap.Pages;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -16,18 +19,21 @@ using System.Windows.Controls;
 
 namespace MindMap.Entities {
 	public class EditHistory {
-		public event Action<List<IChange>>? OnHistoryChanged;
-		public event Action<IChange>? OnUndo;
-		public event Action<IChange>? OnRedo;
+		public event Action<List<Change>>? OnHistoryChanged;
+		public event Action<Change>? OnUndo;
+		public event Action<Change>? OnRedo;
 
-		private readonly List<IChange> previous = new();
-		private readonly List<IChange> future = new();
+		private readonly List<Change> previous = new();
+		private readonly List<Change> future = new();
 
 		private readonly MindMapPage _parent;
 		public EditHistory(MindMapPage parent) {
 			_parent = parent;
 			OnHistoryChanged += list => {
 				future.Clear();
+				string content = JsonConvert.SerializeObject(list);
+				//Debug.WriteLine(content);
+				Local.SaveTmpFile("tmp.json", content);
 			};
 
 			OnUndo += change => {
@@ -39,17 +45,30 @@ namespace MindMap.Entities {
 			};
 		}
 
-		public List<IChange> GetHistory() => previous.ToArray().Reverse().ToList();
+		public List<Change> GetHistory() => previous.ToArray().Reverse().ToList();
 
 		public void SubmitByElementCreated(Element target) {
 			InstantSealLastDelayedChange();
-			previous.Add(new ElementCreatedOrDeleted(CreateOrDelete.Create, target));
+			previous.Add(new ElementCreatedOrDeleted(
+				CreateOrDelete.Create,
+				target.Identity,
+				target.Properties,
+				target.GetPosition(),
+				target.GetSize()
+			));
 			OnHistoryChanged?.Invoke(GetHistory());
 		}
 
 		public void SubmitByElementDeleted(Element target, List<ConnectionPath>? relatedConnections = null) {
 			InstantSealLastDelayedChange();
-			previous.Add(new ElementCreatedOrDeleted(CreateOrDelete.Delete, target, relatedConnections ?? new List<ConnectionPath>()));
+			previous.Add(new ElementCreatedOrDeleted(
+				CreateOrDelete.Delete,
+				target.Identity,
+				target.Properties,
+				target.GetPosition(),
+				target.GetSize(),
+				relatedConnections?.Select(c => c.Identity).ToList() ?? new List<Identity>()
+			));
 			OnHistoryChanged?.Invoke(GetHistory());
 		}
 
@@ -57,7 +76,7 @@ namespace MindMap.Entities {
 			InstantSealLastDelayedChange();
 			IProperty.MakeClone(ref oldProperty);
 			IProperty.MakeClone(ref newProperty);
-			previous.Add(new PropertyChange(target, oldProperty, newProperty, propertyTargetHint));
+			previous.Add(new PropertyChange(target.GetIdentity(), oldProperty, newProperty, propertyTargetHint));
 			OnHistoryChanged?.Invoke(GetHistory());
 		}
 
@@ -68,14 +87,14 @@ namespace MindMap.Entities {
 
 			PropertyDelayedChange? change = null;
 			if(previous.LastOrDefault() is PropertyDelayedChange last && !last.IsSealed) {
-				if(target == last.Target) {
+				if(target == last.Identity) {
 					change = last;
 				} else {
 					InstantSealLastDelayedChange(last);
 				}
 			}
 			if(change == null) {
-				change = new PropertyDelayedChange(target, oldProperty, newProperty, propertyTargetHint);
+				change = new PropertyDelayedChange(target.GetIdentity(), oldProperty, newProperty, propertyTargetHint);
 				previous.Add(change);
 			}
 
@@ -98,25 +117,47 @@ namespace MindMap.Entities {
 		}
 		public void SubmitByElementFrameworkChanged(Element target, Vector2 fromSize, Vector2 fromPosition, Vector2 toSize, Vector2 toPosition) {
 			InstantSealLastDelayedChange();
-			previous.Add(new ElementFrameworkChange(target, fromSize, fromPosition, toSize, toPosition));
-			OnHistoryChanged?.Invoke(GetHistory());
-		}
-
-		public void SubmitByElementPositionChanged(Element target, Vector2 fromPosition, Vector2 toPosition) {
-			InstantSealLastDelayedChange();
-			previous.Add(new ElementPosotionChange(target, fromPosition, toPosition));
+			previous.Add(new ElementFrameworkChange(
+				target.Identity,
+				fromSize,
+				fromPosition,
+				toSize,
+				toPosition
+			));
 			OnHistoryChanged?.Invoke(GetHistory());
 		}
 
 		public void SubmitByConnectionCreated(ConnectionPath path) {
+			if(path.to == null) {
+				return;
+			}
 			InstantSealLastDelayedChange();
-			previous.Add(new ConnectionCreateOrDelete(CreateOrDelete.Create, path));
+			previous.Add(new ConnectionCreateOrDelete(
+				CreateOrDelete.Create,
+				path.Identity,
+				path.from.Parent.Identity,
+				path.from.Identity,
+				path.to.Parent.Identity,
+				path.to.Identity,
+				path.Properties
+			));
 			OnHistoryChanged?.Invoke(GetHistory());
 		}
 
 		public void SubmitByConnectionDeleted(ConnectionPath path) {
+			if(path.to == null) {
+				return;
+			}
 			InstantSealLastDelayedChange();
-			previous.Add(new ConnectionCreateOrDelete(CreateOrDelete.Delete, path));
+			previous.Add(new ConnectionCreateOrDelete(
+				CreateOrDelete.Delete,
+				path.Identity,
+				path.from.Parent.Identity,
+				path.from.Identity,
+				path.to.Parent.Identity,
+				path.to.Identity,
+				path.Properties
+			));
 			OnHistoryChanged?.Invoke(GetHistory());
 		}
 
@@ -141,40 +182,40 @@ namespace MindMap.Entities {
 			if(previous.Count < 1) {
 				return;
 			}
-			IChange last = previous[^1];
+			Change last = previous[^1];
 			if(last is ElementCreatedOrDeleted cod) {
 				switch(cod.Type) {
 					case CreateOrDelete.Create:
-						cod.Target.Delete(false);
+						_parent.RemoveElement(cod.Identity, false);
 						break;
 					case CreateOrDelete.Delete:
-						_parent.AddElementFromHistory(cod.Target);
-						Debug.WriteLine(cod.RelatedConnections.Count);
-						foreach(ConnectionPath item in cod.RelatedConnections) {
-							_parent.connectionsManager.Add(item, false);
-						}
+						Element created = _parent.AddElement(cod.TypeID, cod.Identity, cod.Position, cod.Size, false);
+						created.SetProperty(cod.Property);
+						//Debug.WriteLine(cod.RelatedConnections.Count);
+						//foreach(ConnectionPath item in cod.RelatedConnections) {
+						//	_parent.connectionsManager.Add(item, false);
+						//}
 						break;
 					default:
 						throw new Exception($"{cod.Type} not found");
 				}
 			} else if(last is PropertyChange pc) {
-				pc.Target.SetProperty(pc.OldProperty);
+				_parent.FindElementByIdentity(pc.Identity)?.SetProperty(pc.OldProperty);
 			} else if(last is ElementFrameworkChange fc) {
-				fc.Target.SetPosition(fc.FromPosition);
-				fc.Target.SetSize(fc.FromSize);
-				fc.Target.UpdateConnectionsFrame();
-				ResizeFrame.Current?.UpdateResizeFrame();
-			} else if(last is ElementPosotionChange posc) {
-				posc.Target.SetPosition(posc.FromPosition);
-				posc.Target.UpdateConnectionsFrame();
-				ResizeFrame.Current?.UpdateResizeFrame();
+				Element? element = _parent.FindElementByIdentity(fc.Identity);
+				if(element != null) {
+					element.SetPosition(fc.FromPosition);
+					element.SetSize(fc.FromSize);
+					element.UpdateConnectionsFrame();
+					ResizeFrame.Current?.UpdateResizeFrame();
+				}
 			} else if(last is ConnectionCreateOrDelete ccd) {
 				switch(ccd.Type) {
 					case CreateOrDelete.Create:
-						_parent.connectionsManager.Remove(ccd.Path, false);
+						//_parent.connectionsManager.Remove(ccd.Path, false);
 						break;
 					case CreateOrDelete.Delete:
-						_parent.connectionsManager.Add(ccd.Path, false);
+						//_parent.connectionsManager.Add(ccd.Path, false);
 						break;
 					default:
 						throw new Exception($"{ccd.Type} not found");
@@ -189,42 +230,42 @@ namespace MindMap.Entities {
 			if(future.Count < 1) {
 				return;
 			}
-			IChange first = future[0];
+			Change first = future[0];
 			if(first is ElementCreatedOrDeleted cod) {
 				switch(cod.Type) {
 					case CreateOrDelete.Create:
 						//go create
-						_parent.AddElementFromHistory(cod.Target);
-						Debug.WriteLine(cod.RelatedConnections.Count);
-						foreach(ConnectionPath item in cod.RelatedConnections) {
-							_parent.connectionsManager.Add(item, false);
-						}
+						Element created = _parent.AddElement(cod.TypeID, cod.Identity, cod.Position, cod.Size, false);
+						created.SetProperty(cod.Property);
+						//Debug.WriteLine(cod.RelatedConnections.Count);
+						//foreach(ConnectionPath item in cod.RelatedConnections) {
+						//	_parent.connectionsManager.Add(item, false);
+						//}
 						break;
 					case CreateOrDelete.Delete:
-						cod.Target.Delete(false);
+						_parent.RemoveElement(cod.Identity, false);
 						//go delete
 						break;
 					default:
 						throw new Exception($"{cod.Type} not found");
 				}
 			} else if(first is PropertyChange pc) {
-				pc.Target.SetProperty(pc.NewProperty);
+				_parent.FindElementByIdentity(pc.Identity)?.SetProperty(pc.OldProperty);
 			} else if(first is ElementFrameworkChange fc) {
-				fc.Target.SetPosition(fc.ToPosition);
-				fc.Target.SetSize(fc.ToSize);
-				fc.Target.UpdateConnectionsFrame();
-				ResizeFrame.Current?.UpdateResizeFrame();
-			} else if(first is ElementPosotionChange posc) {
-				posc.Target.SetPosition(posc.ToPosition);
-				posc.Target.UpdateConnectionsFrame();
-				ResizeFrame.Current?.UpdateResizeFrame();
+				Element? element = _parent.FindElementByIdentity(fc.Identity);
+				if(element != null) {
+					element.SetPosition(fc.FromPosition);
+					element.SetSize(fc.FromSize);
+					element.UpdateConnectionsFrame();
+					ResizeFrame.Current?.UpdateResizeFrame();
+				}
 			} else if(first is ConnectionCreateOrDelete ccd) {
 				switch(ccd.Type) {
 					case CreateOrDelete.Create:
-						_parent.connectionsManager.Add(ccd.Path, false);
+						//_parent.connectionsManager.Add(ccd.Path, false);
 						break;
 					case CreateOrDelete.Delete:
-						_parent.connectionsManager.Remove(ccd.Path, false);
+						//_parent.connectionsManager.Remove(ccd.Path, false);
 						break;
 					default:
 						throw new Exception($"{ccd.Type} not found");
@@ -235,79 +276,103 @@ namespace MindMap.Entities {
 			OnRedo?.Invoke(first);
 		}
 
-		public interface IChange {
-			IconElement Icon { get; }
-			DateTime Date { get; set; }
-			string GetDetail();
+		public abstract class Change {
+			public abstract Identity Identity { get; protected set; }
+			public abstract IconElement Icon { get; }
+			public abstract DateTime Date { get; protected set; }
+			public abstract string GetDetail();
 		}
 
-		public class ConnectionCreateOrDelete: IChange {
-			public DateTime Date { get; set; }
-			public IconElement Icon => Type switch {
+		public class ConnectionCreateOrDelete: Change {
+			public override DateTime Date { get; protected set; }
+			public override IconElement Icon => Type switch {
 				CreateOrDelete.Create => new ImageIcon("pack://application:,,,/Icons/Connection_Add.png"),
 				CreateOrDelete.Delete => new ImageIcon("pack://application:,,,/Icons/Connection_Remove.png"),
 				_ => new FontIcon("\uE11B"),
 			};
+			public override Identity Identity { get; protected set; }
 
 			public CreateOrDelete Type { get; protected set; }
-			public string ID { get; protected set; }
 
-			public ConnectionCreateOrDelete(CreateOrDelete createOrDeleteType, string id) {
+			public Identity FromElement { get; protected set; }
+			public Identity FromDot { get; protected set; }
+			public Identity ToElement { get; protected set; }
+			public Identity ToDot { get; protected set; }
+
+			public IProperty Property { get; protected set; }
+
+			public ConnectionCreateOrDelete(CreateOrDelete createOrDeleteType, Identity target, Identity fromElement, Identity fromDot, Identity toElement, Identity toDot, IProperty property) {
 				Type = createOrDeleteType;
-				ID = id;
+				Identity = target;
+				FromElement = fromElement;
+				FromDot = fromDot;
+				ToElement = toElement;
+				ToDot = toDot;
+				Property = property;
 				Date = DateTime.Now;
 			}
 
 			public override string ToString() {
 				return Type switch {
-					CreateOrDelete.Create => $"Created Connection {Path.from.Parent_ID}-{Path.to?.Parent_ID ?? "None"}",
-					CreateOrDelete.Delete => $"Deleted Connection {Path.from.Parent_ID}-{Path.to?.Parent_ID ?? "None"}",
+					CreateOrDelete.Create => $"Created Connection {Identity.Name}",
+					CreateOrDelete.Delete => $"Deleted Connection {Identity.Name}",
 					_ => throw new Exception($"({Type}) Type not found"),
 				};
 			}
 
-			public string GetDetail() {
+			public override string GetDetail() {
 				return "";
 			}
 		}
 
-		public class ElementCreatedOrDeleted: IChange {
-			public DateTime Date { get; set; }
-			public IconElement Icon => new FontIcon("\uE11B");
+		public class ElementCreatedOrDeleted: Change {
+			public override DateTime Date { get; protected set; }
+			public override IconElement Icon => new FontIcon("\uE11B");
+			public override Identity Identity { get; protected set; }
+
 			public CreateOrDelete Type { get; protected set; }
-			public Element Target { get; protected set; }
-			public List<ConnectionPath> RelatedConnections { get; protected set; }
 
-			public ElementCreatedOrDeleted(CreateOrDelete type, Element target, List<ConnectionPath>? relatedConnections = null) {
+			public long TypeID { get; protected set; }
+			public IProperty Property { get; protected set; }
+			public Vector2 Position { get; protected set; }
+			public Vector2 Size { get; protected set; }
+			public Dictionary<Direction, int> ConnetionControls { get; protected set; }
+			public List<Identity> RelatedConnections { get; protected set; }
+
+			public ElementCreatedOrDeleted(CreateOrDelete type, Identity target, IProperty property, Vector2 position, Vector2 size, List<Identity>? relatedConnections = null) {
 				Type = type;
-				Target = target;
-				Date = DateTime.Now;
+				Identity = target;
+				Property = property;
+				Position = position;
+				Size = size;
 				RelatedConnections = relatedConnections ?? new();
+				Date = DateTime.Now;
 			}
 
 			public override string ToString() {
 				return Type switch {
-					CreateOrDelete.Create => $"Created {Target.ID}",
-					CreateOrDelete.Delete => $"Deleted {Target.ID}",
+					CreateOrDelete.Create => $"Created {Identity.ID}",
+					CreateOrDelete.Delete => $"Deleted {Identity.ID}",
 					_ => throw new Exception($"({Type}) Type not found"),
 				};
 			}
 
-			public string GetDetail() {
+			public override string GetDetail() {
 				return "";
 			}
 		}
 
-		public class PropertyChange: IChange {
-			public DateTime Date { get; set; }
-			public IconElement Icon => new FontIcon("\uE11B");
-			public IPropertiesContainer Target { get; protected set; }
+		public class PropertyChange: Change {
+			public override DateTime Date { get; protected set; }
+			public override IconElement Icon => new FontIcon("\uE11B");
+			public override Identity Identity { get; protected set; }
+
 			public IProperty OldProperty { get; set; }
 			public IProperty NewProperty { get; set; }
 			public string? PropertyTargetHint { get; protected set; }
 
-			public PropertyChange(IPropertiesContainer target, IProperty oldProperty, IProperty newProperty, string? propertyTargetHint) {
-				Target = target;
+			public PropertyChange(Identity target, IProperty oldProperty, IProperty newProperty, string? propertyTargetHint) {
+				Identity = target;
 				OldProperty = oldProperty;
 				NewProperty = newProperty;
 				PropertyTargetHint = propertyTargetHint;
@@ -315,10 +380,10 @@ namespace MindMap.Entities {
 			}
 
 			public override string ToString() {
-				return $"{Target.GetID()} - {PropertyTargetHint ?? "Properties"} - Changed";
+				return $"{Identity.Name} - {PropertyTargetHint ?? "Properties"} - Changed";
 			}
 
-			public string GetDetail() {
+			public override string GetDetail() {
 				return "";
 			}
 		}
@@ -328,45 +393,47 @@ namespace MindMap.Entities {
 			public bool IsSealed { get; set; } = false;
 			public bool InstanceCancel { get; set; } = false;
 
-			public PropertyDelayedChange(IPropertiesContainer target, IProperty oldProperty, IProperty newProperty, string? propertyTargetHint) : base(target, oldProperty, newProperty, propertyTargetHint) { }
+			public PropertyDelayedChange(Identity target, IProperty oldProperty, IProperty newProperty, string? propertyTargetHint) : base(target, oldProperty, newProperty, propertyTargetHint) { }
 
 
 		}
 
-		public class ElementPosotionChange: IChange {
-			public DateTime Date { get; set; }
-			public IconElement Icon => new FontIcon("\uE11B");
-			public Element Target { get; protected set; }
-			public Vector2 FromPosition { get; private set; }
-			public Vector2 ToPosition { get; private set; }
+		//public class ElementPosotionChange: Change {
+		//	public override DateTime Date { get; protected set; }
+		//	public override IconElement Icon => new FontIcon("\uE11B");
+		//	public override Identity Identity { get; protected set; }
 
-			public ElementPosotionChange(Element target, Vector2 fromPosition, Vector2 toPosition) {
-				Target = target;
-				FromPosition = fromPosition;
-				ToPosition = toPosition;
-				Date = DateTime.Now;
-			}
+		//	public Vector2 FromPosition { get; private set; }
+		//	public Vector2 ToPosition { get; private set; }
 
-			public override string ToString() {
-				return $"{Target.ID} - Position Changed";
-			}
+		//	public ElementPosotionChange(Identity target, Vector2 fromPosition, Vector2 toPosition) {
+		//		Identity = target;
+		//		FromPosition = fromPosition;
+		//		ToPosition = toPosition;
+		//		Date = DateTime.Now;
+		//	}
 
-			public string GetDetail() {
-				return "";
-			}
-		}
+		//	public override string ToString() {
+		//		return $"{Identity.ID} - Position Changed";
+		//	}
 
-		public class ElementFrameworkChange: IChange {
-			public DateTime Date { get; set; }
-			public IconElement Icon => new FontIcon("\uE11B");
-			public Element Target { get; protected set; }
+		//	public override string GetDetail() {
+		//		return "";
+		//	}
+		//}
+
+		public class ElementFrameworkChange: Change {
+			public override DateTime Date { get; protected set; }
+			public override IconElement Icon => new FontIcon("\uE11B");
+			public override Identity Identity { get; protected set; }
+
 			public Vector2 FromSize { get; private set; }
 			public Vector2 FromPosition { get; private set; }
 			public Vector2 ToSize { get; private set; }
 			public Vector2 ToPosition { get; private set; }
 
-			public ElementFrameworkChange(Element target, Vector2 fromSize, Vector2 fromPosition, Vector2 toSize, Vector2 toPosition) {
-				Target = target;
+			public ElementFrameworkChange(Identity target, Vector2 fromSize, Vector2 fromPosition, Vector2 toSize, Vector2 toPosition) {
+				Identity = target;
 				FromPosition = fromPosition;
 				FromSize = fromSize;
 				ToSize = toSize;
@@ -375,10 +442,10 @@ namespace MindMap.Entities {
 			}
 
 			public override string ToString() {
-				return $"{Target.ID} - Frame Changed";
+				return $"{Identity.ID} - Frame Changed";
 			}
 
-			public string GetDetail() {
+			public override string GetDetail() {
 				return "";
 			}
 		}

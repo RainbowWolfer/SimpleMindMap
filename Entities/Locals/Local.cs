@@ -1,6 +1,8 @@
 ﻿using Microsoft.Win32;
 using MindMap.Entities.Connections;
 using MindMap.Entities.Elements;
+using MindMap.Entities.Frames;
+using MindMap.Entities.Identifications;
 using MindMap.Entities.Properties;
 using Newtonsoft.Json;
 using System;
@@ -19,8 +21,9 @@ using Xceed.Wpf.Toolkit;
 namespace MindMap.Entities.Locals {
 	public static class Local {
 		public const string FILTER = "MindMap file (*.mp) | *.mp";
-		static Local() {
 
+		public static async void SaveTmpFile(string fileName, string content) {
+			await File.WriteAllTextAsync($"F:\\Documents\\MindMap\\{fileName}", content);
 		}
 
 		public static async Task<string> Save(List<Element> elements, ConnectionsManager connectionsManager, string filePath = "") {
@@ -84,62 +87,71 @@ namespace MindMap.Entities.Locals {
 			}
 		}
 
-		public class LocalInfo {
-			public MapInfo? MapInfo { get; private set; }
-			public FileInfo FileInfo { get; private set; }
+	}
 
-			public LocalInfo(MapInfo? info, string filename, string path, DateTime date) {
-				MapInfo = info;
-				FileInfo = new FileInfo(filename, path, date);
-			}
+	public class LocalInfo {
+		public MapInfo? MapInfo { get; private set; }
+		public FileInfo FileInfo { get; private set; }
+
+		public LocalInfo(MapInfo? info, string filename, string path, DateTime date) {
+			MapInfo = info;
+			FileInfo = new FileInfo(filename, path, date);
+		}
+	}
+
+	public class MapInfo {
+		public readonly ElementInfo[] elements;
+		public readonly ConnectionInfo[] connections;
+		//history info
+
+		public MapInfo(ElementInfo[] elements, ConnectionInfo[] connections) {
+			this.elements = elements;
+			this.connections = connections;
+		}
+	}
+
+	public class ConnectionInfo {
+		public readonly Identity from_element;
+		public readonly Identity from_dot;
+		public readonly Identity to_element;
+		public readonly Identity to_dot;
+		public readonly string propertyJson;
+
+		[JsonConstructor]
+		public ConnectionInfo(Identity from_element, Identity from_dot, Identity to_element, Identity to_dot, string propertyJson) {
+			this.from_element = from_element;
+			this.from_dot = from_dot;
+			this.to_element = to_element;
+			this.to_dot = to_dot;
+			this.propertyJson = propertyJson;
+		}
+	}
+
+	public class ElementInfo {
+		public readonly long type_id;
+		public readonly Identity identity;
+		public readonly string propertyJson;
+		public readonly Vector2 position;
+		public readonly Vector2 size;
+		public readonly Dictionary<Direction, int> connectionControls;
+
+		[JsonConstructor]
+		public ElementInfo(long type_id, Identity identity, string propertyJson, Vector2 position, Vector2 size, Dictionary<Direction, int> connectionControls) {
+			this.type_id = type_id;
+			this.identity = identity;
+			this.propertyJson = propertyJson;
+			this.position = position;
+			this.size = size;
+			this.connectionControls = connectionControls;
 		}
 
-		public class MapInfo {
-			public readonly ElementInfo[] elements;
-			public readonly ConnectionInfo[] connections;
-			public MapInfo(ElementInfo[] elements, ConnectionInfo[] connections) {
-				this.elements = elements;
-				this.connections = connections;
-			}
-		}
-
-		public class ConnectionInfo {
-			public readonly string from_parent_id;
-			public readonly string from_dot_id;
-			public readonly string to_parent_id;
-			public readonly string to_dot_id;
-			public readonly string propertyJson;
-			[JsonConstructor]
-			public ConnectionInfo(string from_parent_id, string from_dot_id, string to_parent_id, string to_dot_id, string propertyJson) {
-				this.from_parent_id = from_parent_id;
-				this.from_dot_id = from_dot_id;
-				this.to_parent_id = to_parent_id;
-				this.to_dot_id = to_dot_id;
-				this.propertyJson = propertyJson;
-			}
-		}
-
-		public class ElementInfo {
-			public readonly long type_id;
-			public readonly string element_id;
-			public readonly string propertyJson;
-			public readonly Vector2 position;
-			public readonly Vector2 size;
-			[JsonConstructor]
-			public ElementInfo(long type_id, string element_id, string propertyJson, Vector2 position, Vector2 size) {
-				this.type_id = type_id;
-				this.element_id = element_id;
-				this.propertyJson = propertyJson;
-				this.position = position;
-				this.size = size;
-			}
-			public ElementInfo(Element e) {
-				this.type_id = e.TypeID;
-				this.element_id = e.ID;
-				this.position = e.GetPosition();
-				this.size = e.GetSize();
-				this.propertyJson = JsonConvert.SerializeObject(e.Properties);
-			}
+		public ElementInfo(Element element) {
+			this.type_id = element.TypeID;
+			this.identity = element.Identity;
+			this.position = element.GetPosition();
+			this.size = element.GetSize();
+			this.propertyJson = JsonConvert.SerializeObject(element.Properties);
+			this.connectionControls = element.ConnectionsFrame?.GetControlsInfo() ?? new();
 		}
 	}
 }

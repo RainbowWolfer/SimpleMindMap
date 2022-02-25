@@ -14,6 +14,7 @@ using MindMap.Attributes;
 using System.Windows.Controls;
 using System.Reflection;
 using Newtonsoft.Json;
+using MindMap.Entities.Identifications;
 
 namespace MindMap {
 	public partial class App: Application {
@@ -26,7 +27,9 @@ namespace MindMap {
 			SubTest v2 = (SubTest)v1.Clone();
 			//v2.name = "2";
 			//Debug.WriteLine($"Start {v1.}");
-
+			Identity a = new Identity("1", "123");
+			Identity b = new Identity("2", "123");
+			Debug.WriteLine(a == b);
 		}
 	}
 

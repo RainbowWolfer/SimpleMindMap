@@ -1,4 +1,5 @@
 ﻿using MindMap.Entities.Elements.Interfaces;
+using MindMap.Entities.Identifications;
 using MindMap.Entities.Properties;
 using MindMap.Pages;
 using Newtonsoft.Json;
@@ -15,8 +16,7 @@ using System.Windows.Shapes;
 
 namespace MindMap.Entities.Elements {
 	public class MyEllipse: Element, ITextGrid, IBorderBasedStyle {
-		public override string ID { get; protected set; }
-		public override string Name { get; set; }
+		public override string ElementTypeName => "Ellipse";
 		public override long TypeID => ID_Ellipse;
 		private readonly Grid _root;
 		private readonly Ellipse _ellipse;
@@ -155,8 +155,8 @@ namespace MindMap.Entities.Elements {
 
 		public Shape MyShape => throw new NotImplementedException();
 
-		public MyEllipse(MindMapPage parent) : base(parent) {
-			ID = AssignID("Ellipes");
+
+		public MyEllipse(MindMapPage parent, Identity? identity = null) : base(parent, identity) {
 			property.text = "(Hello World)";
 			property.background = Brushes.Gray;
 			property.borderColor = Brushes.SkyBlue;
@@ -171,8 +171,7 @@ namespace MindMap.Entities.Elements {
 			MyTextBlock = new TextBlock();
 			MyTextBox = new TextBox();
 		}
-		public MyEllipse(MindMapPage parent, string id, string propertiesJson) : base(parent) {
-			ID = id;
+		public MyEllipse(MindMapPage parent, Identity identity, string propertiesJson) : base(parent, identity) {
 			property = (Property)property.Translate(propertiesJson);
 			_root = new Grid();
 			_ellipse = new Ellipse();
@@ -193,6 +192,10 @@ namespace MindMap.Entities.Elements {
 
 		public override void SetProperty(IProperty property) {
 			this.property = (Property)property;
+		}
+
+		public override void SetProperty(string propertyJson) {
+			this.property = (Property)property.Translate(propertyJson);
 		}
 
 		public override void Deselect() {
@@ -247,7 +250,7 @@ namespace MindMap.Entities.Elements {
 		}
 
 		public override Panel CreateElementProperties() {
-			return PropertiesPanel.SectionTitle($"{ID}");
+			return PropertiesPanel.SectionTitle($"{Identity.Name}");
 		}
 
 		public void SubmitTextChange() {

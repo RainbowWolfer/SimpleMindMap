@@ -1,4 +1,5 @@
-﻿using MindMap.Entities.Properties;
+﻿using MindMap.Entities.Identifications;
+using MindMap.Entities.Properties;
 using MindMap.Pages;
 using Newtonsoft.Json;
 using System;
@@ -12,8 +13,8 @@ using System.Windows.Shapes;
 
 namespace MindMap.Entities.Elements {
 	public class MyRectangle: TextShape {
-		public override string ID { get; protected set; }
-		public override string Name { get; set; }
+		public override long TypeID => ID_Rectangle;
+		public override string ElementTypeName => "Rectangle";
 		private class Property: BaseProperty {
 			public CornerRadius cornerRadius = new(0);
 
@@ -35,19 +36,15 @@ namespace MindMap.Entities.Elements {
 			}
 		}
 
-		public override long TypeID => ID_Rectangle;
-
 		protected override BaseProperty BaseProperties => property;
+
 
 		private readonly Border _rect = new();
 
-		public MyRectangle(MindMapPage parent) : base(parent) {
-			ID = AssignID(GetType());
-		}
-
-		public MyRectangle(MindMapPage parent, string id, string propertiesJson) : base(parent) {
-			ID = id;
-			property = (Property)property.Translate(propertiesJson);
+		public MyRectangle(MindMapPage parent, Identity? identity = null, string? propertyJson = null) : base(parent, identity) {
+			if(!string.IsNullOrWhiteSpace(propertyJson)) {
+				SetProperty(propertyJson);
+			}
 		}
 
 		public override void SetFramework() {
@@ -57,7 +54,7 @@ namespace MindMap.Entities.Elements {
 
 		public override Panel CreateElementProperties() {
 			StackPanel panel = new();
-			panel.Children.Add(PropertiesPanel.SectionTitle(ID));
+			panel.Children.Add(PropertiesPanel.SectionTitle(Identity.Name));
 			panel.Children.Add(PropertiesPanel.SliderInput("Cornder Radius", CornerRadius.TopLeft, 0, 100,
 				args => IPropertiesContainer.PropertyChangedHandler(this, () => {
 					CornerRadius = new CornerRadius(args.NewValue);
@@ -70,6 +67,10 @@ namespace MindMap.Entities.Elements {
 
 		public override void SetProperty(IProperty property) {
 			this.property = (Property)property;
+			UpdateStyle();
+		}
+		public override void SetProperty(string propertyJson) {
+			property = (Property)property.Translate(propertyJson);
 			UpdateStyle();
 		}
 

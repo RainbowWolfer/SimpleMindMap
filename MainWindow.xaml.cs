@@ -47,7 +47,7 @@ namespace MindMap {
 		}
 
 		public async void OpenFile() {
-			Local.LocalInfo? result = await Local.Load();
+			LocalInfo? result = await Local.Load();
 			if(result != null && result.MapInfo != null) {
 				NavigateToMindMap();
 				_mindMapPage?.Load(result.MapInfo, result.FileInfo);

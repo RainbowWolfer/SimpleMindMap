@@ -1,4 +1,5 @@
 ﻿using MindMap.Entities.Elements.Interfaces;
+using MindMap.Entities.Identifications;
 using MindMap.Entities.Properties;
 using MindMap.Pages;
 using System;
@@ -93,7 +94,7 @@ namespace MindMap.Entities.Elements {
 		protected abstract BaseProperty BaseProperties { get; }
 		public override IProperty Properties => BaseProperties;
 
-		public TextShape(MindMapPage parent) : base(parent) {
+		public TextShape(MindMapPage parent, Identity? identity = null) : base(parent, identity) {
 			MyTextBox.KeyDown += (s, e) => {
 				if(e.Key == Key.Escape) {
 					Deselect();

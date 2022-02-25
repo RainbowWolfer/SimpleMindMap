@@ -3,6 +3,7 @@ using MindMap.Entities.Connections;
 using MindMap.Entities.Elements;
 using MindMap.Entities.Elements.Interfaces;
 using MindMap.Entities.Frames;
+using MindMap.Entities.Identifications;
 using MindMap.Entities.Locals;
 using MindMap.Entities.Properties;
 using System;
@@ -77,19 +78,19 @@ namespace MindMap.Pages {
 			false, Key.LeftCtrl, Key.Y);
 		}
 
-		private void EditHistory_OnUndo(EditHistory.IChange obj) {
+		private void EditHistory_OnUndo(EditHistory.Change obj) {
 			UpdateHistoryListView();
 		}
 
-		private void EditHistory_OnRedo(EditHistory.IChange obj) {
+		private void EditHistory_OnRedo(EditHistory.Change obj) {
 			UpdateHistoryListView();
 		}
 
-		private void EditHistory_OnHistoryChanged(List<EditHistory.IChange> history) {
+		private void EditHistory_OnHistoryChanged(List<EditHistory.Change> history) {
 			UpdateHistoryListView(history);
 		}
 
-		private void UpdateHistoryListView(List<EditHistory.IChange>? history = null) {
+		private void UpdateHistoryListView(List<EditHistory.Change>? history = null) {
 			EditHistoryListView.Items.Clear();
 			foreach(var item in history ?? editHistory.GetHistory()) {
 				Grid grid = new() {
@@ -117,7 +118,7 @@ namespace MindMap.Pages {
 		}
 
 		private void EditHistoryListView_SelectionChanged(object sender, SelectionChangedEventArgs e) {
-			if(e.AddedItems != null && e.AddedItems.Count > 0 && e.AddedItems[0] is Grid grid && grid.Tag is EditHistory.IChange change) {
+			if(e.AddedItems != null && e.AddedItems.Count > 0 && e.AddedItems[0] is Grid grid && grid.Tag is EditHistory.Change change) {
 				UpdateEditHistoryDetail(change.GetDetail());
 			} else {
 				UpdateEditHistoryDetail(null);
@@ -161,30 +162,27 @@ namespace MindMap.Pages {
 			SetSetOprationHintText("Saved Successfully");
 		}
 
-		public async void Load(Local.MapInfo mapInfo, FileInfo fileInfo) {
+		public async void Load(MapInfo mapInfo, FileInfo fileInfo) {
 			LoadingPanel.Visibility = Visibility.Visible;
 			FileName = fileInfo.FileName;
 			_path = fileInfo.FilePath;
 			CreatedDateText.Text = $"Created Date ({fileInfo.CreatedDate})";
 
-			foreach(Local.ElementInfo ele in mapInfo.elements) {
-				AddToElementsDictionary(ele.type_id switch {
-					Element.ID_Rectangle => new MyRectangle(this, ele.element_id, ele.propertyJson),
-					Element.ID_Ellipse => new MyEllipse(this, ele.element_id, ele.propertyJson),
-					Element.ID_Polygon => new MyPolygon(this, ele.element_id, ele.propertyJson),
-					_ => throw new Exception($"ID({ele.type_id}) Not Found"),
-				}, ele.position, ele.size);
+			foreach(ElementInfo ele in mapInfo.elements) {
+				Element element = AddElement(ele.type_id, ele.identity, ele.position, ele.size);
+				element.SetProperty(ele.propertyJson);
 				await Task.Delay(1);
 			}
-			foreach(Local.ConnectionInfo item in mapInfo.connections) {
-				Element? from = elements.Select(e => e.Value).ToList().Find(i => i.ID == item.from_parent_id);
-				ConnectionControl? fromDot = from?.GetConnectionControlByID(item.from_dot_id);
-				Element? to = elements.Select(e => e.Value).ToList().Find(i => i.ID == item.to_parent_id);
-				ConnectionControl? toDot = to?.GetConnectionControlByID(item.to_dot_id);
+			foreach(ConnectionInfo item in mapInfo.connections) {
+				Element? from = elements.Select(e => e.Value).ToList().Find(i => i.Identity == item.from_element);
+				ConnectionControl? fromDot = from?.GetConnectionControlByID(item.from_dot.ID);
+				Element? to = elements.Select(e => e.Value).ToList().Find(i => i.Identity == item.to_element);
+				ConnectionControl? toDot = to?.GetConnectionControlByID(item.to_dot.ID);
 				if(from == null || to == null || fromDot == null || toDot == null) {
 					continue;
 				}
-				connectionsManager.Add(fromDot, toDot, true, item.propertyJson);
+				ConnectionPath? connection = connectionsManager.AddConnection(fromDot, toDot, true);
+				connection?.SetProperty(item.propertyJson);
 				await Task.Delay(1);
 			}
 			LoadingPanel.Visibility = Visibility.Collapsed;
@@ -231,7 +229,7 @@ namespace MindMap.Pages {
 
 		public void UpdatePreviewLine(ConnectionControl from, Vector2 to) {
 			if(previewLine == null) {
-				previewLine = new ConnectionPath(this, MainCanvas, from, to);
+				previewLine = new ConnectionPath(this, from, to);
 			}
 			previewLine.Update(to);
 		}
@@ -310,54 +308,61 @@ namespace MindMap.Pages {
 			ElementsCountText.Text = $" : {elements.Count}";
 		}
 
-		public void AddElementFromHistory(Element target) {
-			AddToElementsDictionary(value: target,
-				position: target.GetPosition(),
-				size: target.GetSize(),
-				property: target.Properties,
-				submitEditHistory: false
-			);
+		public Element? FindElementByIdentity(Identity identity, bool matchName = false) {
+			return elements.Select(e => e.Value).ToList().Find(e => {
+				if(matchName) {
+					return e.Identity.RefEquals(identity);
+				} else {
+					return e.Identity == identity;
+				}
+			});
 		}
 
-		private void AddToElementsDictionary(Element value, Vector2 position, Vector2 size, IProperty? property = null, bool submitEditHistory = true) {
-			value.SetPosition(position);
-			value.SetSize(size == default ? value.DefaultSize : size);
-			value.SetFramework();
-			if(property != null) {
-				value.SetProperty(property);
-			}
-			value.CreateConnectionsFrame();
-			value.CreateFlyoutMenu();
-			value.Target.MouseDown += Element_MouseDown;
-			elements.Add(value.Target, value);
-			if(value is IUpdate update) {
+		public Element AddElement(long type_id, Identity? identity = null, Vector2 position = default, Vector2 size = default, Dictionary<Direction, int>? initialControls = null, bool submitEditHistory = true) {
+			Element element = type_id switch {
+				Element.ID_Rectangle => new MyRectangle(this, identity),
+				Element.ID_Ellipse => new MyEllipse(this, identity),
+				Element.ID_Polygon => new MyPolygon(this, identity),
+				_ => throw new Exception($"ID({type_id}) Not Found"),
+			};
+			element.SetPosition(position);
+			element.SetSize(size == default ? element.DefaultSize : size);
+			element.SetFramework();
+			element.CreateConnectionsFrame(initialControls);
+			element.CreateFlyoutMenu();
+			element.Target.MouseDown += Element_MouseDown;
+			elements.Add(element.Target, element);
+			if(element is IUpdate update) {
 				update.Update();
 			}
 			if(submitEditHistory) {
-				editHistory.SubmitByElementCreated(value);
+				editHistory.SubmitByElementCreated(element);
 			}
+			return element;
 		}
 
-		private void AddElement(Type type) {
-			if(type == typeof(MyRectangle)) {
-				AddToElementsDictionary(new MyRectangle(this), Vector2.Zero, default);
-			} else if(type == typeof(MyEllipse)) {
-				AddToElementsDictionary(new MyEllipse(this), Vector2.Zero, default);
-			} else if(type == typeof(MyPolygon)) {
-				AddToElementsDictionary(new MyPolygon(this), Vector2.Zero, default);
-			}
-			UpdateCount();
-		}
-
-		public void RemoveElement(Element element) {
+		public void RemoveElement(Element element, bool submitEditHistory = true) {
 			if(!elements.ContainsKey(element.Target) || !MainCanvas.Children.Contains(element.Target)) {
-				return;
+				throw new Exception($"Remove Element ({element.Identity.Name}) Failed");
 			}
+			List<ConnectionPath> related = element.GetRelatedPaths();
 			Deselect();
 			ClearResizePanel();
 			elements.Remove(element.Target);
 			MainCanvas.Children.Remove(element.Target);
+			element.ConnectionsFrame?.ClearConnections();
 			UpdateCount();
+			if(submitEditHistory) {
+				editHistory.SubmitByElementDeleted(element, related);
+			}
+		}
+
+		public void RemoveElement(Identity identity, bool submitEditHistory = true) {
+			Element? element = elements.Select(e => e.Value).ToList().Find(i => i.Identity == identity);
+			if(element == null) {
+				throw new Exception($"Cannot Find Element ({identity})");
+			}
+			RemoveElement(element, submitEditHistory);
 		}
 
 		private void Element_MouseDown(object sender, MouseButtonEventArgs e) {
@@ -383,15 +388,15 @@ namespace MindMap.Pages {
 		}
 
 		private void AddRectableButton_Click(object sender, RoutedEventArgs e) {
-			AddElement(typeof(MyRectangle));
+			AddElement(Element.ID_Rectangle);
 		}
 
 		private void AddEllipseButton_Click(object sender, RoutedEventArgs e) {
-			AddElement(typeof(MyEllipse));
+			AddElement(Element.ID_Ellipse);
 		}
 
 		private void AddPolygonButton_Click(object sender, RoutedEventArgs e) {
-			AddElement(typeof(MyPolygon));
+			AddElement(Element.ID_Polygon);
 		}
 
 		private Vector2 offset;
@@ -428,7 +433,13 @@ namespace MindMap.Pages {
 				}
 				if(startPos != e.GetPosition(MainCanvas) && hasMoved) {
 					//Debug.WriteLine($"{elementStartPos.ToString(2)} - {element.GetPosition().ToString(2)}");
-					editHistory.SubmitByElementPositionChanged(element, elementStartPos, element.GetPosition());
+					editHistory.SubmitByElementFrameworkChanged(
+						element,
+						element.GetSize(),
+						elementStartPos,
+						element.GetSize(),
+						element.GetPosition()
+					);
 				} else {
 					switch(mouseType) {
 						case MouseType.Left:

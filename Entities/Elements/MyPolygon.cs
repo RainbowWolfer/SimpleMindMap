@@ -1,4 +1,5 @@
 ﻿using MindMap.Entities.Elements.Interfaces;
+using MindMap.Entities.Identifications;
 using MindMap.Entities.Properties;
 using MindMap.Pages;
 using Newtonsoft.Json;
@@ -15,9 +16,9 @@ using System.Windows.Shapes;
 
 namespace MindMap.Entities.Elements {
 	public class MyPolygon: Element, ITextGrid, IBorderBasedStyle, IUpdate {
+		public override string ElementTypeName => "Polygon";
 		public override long TypeID => ID_Polygon;
-		public override string ID { get; protected set; }
-		public override string Name { get; set; }
+
 		public override FrameworkElement Target => _root;
 		private struct Property: IProperty {
 			public Brush background;
@@ -113,9 +114,7 @@ namespace MindMap.Entities.Elements {
 
 		private readonly Grid _root;
 		private readonly Polygon _polygon;
-		public MyPolygon(MindMapPage parent) : base(parent) {
-			ID = AssignID("Polygon");
-
+		public MyPolygon(MindMapPage parent, Identity? identity = null) : base(parent, identity) {
 			property.background = new SolidColorBrush(Colors.Gray);
 			property.borderColor = new SolidColorBrush(Colors.Azure);
 			property.borderThickness = new Thickness(2);
@@ -132,8 +131,7 @@ namespace MindMap.Entities.Elements {
 			MyTextBox = new TextBox();
 		}
 
-		public MyPolygon(MindMapPage parent, string id, string propertiesJson) : base(parent) {
-			ID = id;
+		public MyPolygon(MindMapPage parent, Identity identity, string propertiesJson) : base(parent, identity) {
 			property = (Property)property.Translate(propertiesJson);
 
 			_root = new Grid();
@@ -156,6 +154,10 @@ namespace MindMap.Entities.Elements {
 
 		public override void SetProperty(IProperty property) {
 			this.property = (Property)property;
+		}
+
+		public override void SetProperty(string propertyJson) {
+			this.property = (Property)Properties.Translate(propertyJson);
 		}
 
 		public void DrawPolygon(int pointCount) {
@@ -191,7 +193,7 @@ namespace MindMap.Entities.Elements {
 
 		public override Panel CreateElementProperties() {
 			StackPanel panel = new();
-			panel.Children.Add(PropertiesPanel.SectionTitle($"{ID}"));
+			panel.Children.Add(PropertiesPanel.SectionTitle($"{Identity.Name}"));
 			panel.Children.Add(PropertiesPanel.SliderInput("Polygon Points", PointCount, 3, 20,
 				value => PointCount = (int)value.NewValue
 			, 1, 0));

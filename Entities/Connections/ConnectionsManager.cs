@@ -1,4 +1,5 @@
 ﻿using MindMap.Entities.Frames;
+using MindMap.Entities.Identifications;
 using MindMap.Entities.Locals;
 using MindMap.Pages;
 using Newtonsoft.Json;
@@ -31,33 +32,37 @@ namespace MindMap.Entities.Connections {
 			);
 		}
 
-		public void Add(ConnectionPath path, bool submitHistory = true, string? propertyJson = null) {
-			if(path.to == null || CheckDuplicate(path.from, path.to)) {
-				return;
-			}
-			Connections.Add(new Connection(path, path.from, path.to));
-			path.Initialize(false);
-			_parent.UpdateCount();
-			if(submitHistory) {
-				_parent.editHistory.SubmitByConnectionCreated(path);
-			}
+		public ConnectionPath AddConnection(Identity identity, Identity fromElement, Identity fromDot, Identity toElement, Identity toDot, bool submitHistory = true) {
+			
+			return null;
 		}
 
-		public void Add(ConnectionControl from, ConnectionControl to, bool submitHistory = true, string? propertyJson = null) {
+		//public void AddConnection(ConnectionPath path, bool submitHistory = true, string? propertyJson = null) {
+		//	if(path.to == null || CheckDuplicate(path.from, path.to)) {
+		//		return;
+		//	}
+		//	Connections.Add(new Connection(path, path.from, path.to));
+		//	path.Initialize(false);
+		//	_parent.UpdateCount();
+		//	if(submitHistory) {
+		//		_parent.editHistory.SubmitByConnectionCreated(path);
+		//	}
+		//}
+
+		public ConnectionPath? AddConnection(ConnectionControl from, ConnectionControl to, bool submitHistory = true) {
 			if(CheckDuplicate(from, to)) {
-				return;
+				return null;
 			}
-			var connectionPath = string.IsNullOrEmpty(propertyJson) ?
-				new ConnectionPath(_parent, _mainCanvas, _parent.connectionsManager, from, to) :
-				new ConnectionPath(_parent, _mainCanvas, _parent.connectionsManager, from, to, propertyJson);
+			var connectionPath = new ConnectionPath(_parent, _parent.connectionsManager, from, to);
 			Connections.Add(new Connection(connectionPath, from, to));
 			_parent.UpdateCount();
 			if(submitHistory) {
 				_parent.editHistory.SubmitByConnectionCreated(connectionPath);
 			}
+			return connectionPath;
 		}
 
-		public void Remove(ConnectionPath path, bool submitHistory = true) {
+		public void RemoveConnetion(ConnectionPath path, bool submitHistory = true) {
 			if(path.to == null) {
 				return;
 			}
@@ -73,7 +78,7 @@ namespace MindMap.Entities.Connections {
 			_parent.UpdateCount();
 		}
 
-		public void Remove(ConnectionsFrame frame) {
+		public void RemoveFrame(ConnectionsFrame frame) {
 			List<Connection> founds = new();
 			foreach(ConnectionControl item in frame.AllDots) {
 				foreach(Connection c in Connections.Where(c => c.From == item || c.To == item)) {
@@ -114,19 +119,19 @@ namespace MindMap.Entities.Connections {
 		public void DebugConnections() {
 			Debug.WriteLine("START");
 			foreach(Connection c in Connections) {
-				Debug.WriteLine($"{c.Path} | {c.From.ID} | {c.To.ID}");
+				Debug.WriteLine($"{c.Path} | {c.From.Identity} | {c.To.Identity}");
 			}
 			Debug.WriteLine("END");
 		}
 
-		public Local.ConnectionInfo[] ConvertInfo() {
-			List<Local.ConnectionInfo> result = new();
+		public ConnectionInfo[] ConvertInfo() {
+			List<ConnectionInfo> result = new();
 			foreach(Connection item in Connections) {
-				result.Add(new Local.ConnectionInfo(
-					item.From.Parent_ID,
-					item.From.ID,
-					item.To.Parent_ID,
-					item.To.ID,
+				result.Add(new ConnectionInfo(
+					item.From.Parent.Identity,
+					item.From.Identity,
+					item.To.Parent.Identity,
+					item.To.Identity,
 					JsonConvert.SerializeObject(item.Path.Properties)
 				));
 			}
@@ -137,6 +142,7 @@ namespace MindMap.Entities.Connections {
 			public ConnectionPath Path { get; private set; }
 			public ConnectionControl From { get; private set; }
 			public ConnectionControl To { get; private set; }
+			public Identity Identity => Path.Identity;
 
 			public Connection(ConnectionPath path, ConnectionControl from, ConnectionControl to) {
 				Path = path;

@@ -78,21 +78,21 @@ namespace MindMap.Pages {
 			false, Key.LeftCtrl, Key.Y);
 		}
 
-		private void EditHistory_OnUndo(EditHistory.Change obj) {
+		private void EditHistory_OnUndo(EditHistory.IChange obj) {
 			UpdateHistoryListView();
 		}
 
-		private void EditHistory_OnRedo(EditHistory.Change obj) {
+		private void EditHistory_OnRedo(EditHistory.IChange obj) {
 			UpdateHistoryListView();
 		}
 
-		private void EditHistory_OnHistoryChanged(List<EditHistory.Change> history) {
+		private void EditHistory_OnHistoryChanged(List<EditHistory.IChange> history) {
 			UpdateHistoryListView(history);
 		}
 
-		private void UpdateHistoryListView(List<EditHistory.Change>? history = null) {
+		private void UpdateHistoryListView(List<EditHistory.IChange>? history = null) {
 			EditHistoryListView.Items.Clear();
-			foreach(var item in history ?? editHistory.GetHistory()) {
+			foreach(var item in history ?? editHistory.GetPreviousHistories()) {
 				Grid grid = new() {
 					Tag = item,
 				};
@@ -102,7 +102,7 @@ namespace MindMap.Pages {
 				grid.ColumnDefinitions.Add(new ColumnDefinition() {
 					Width = new GridLength(1, GridUnitType.Star),
 				});
-				grid.Children.Add(item.Icon.Generate());
+				grid.Children.Add(item.GetIcon().Generate());
 				TextBlock text = new() {
 					Text = item.ToString(),
 					Margin = new Thickness(10, 0, 0, 0),
@@ -118,7 +118,7 @@ namespace MindMap.Pages {
 		}
 
 		private void EditHistoryListView_SelectionChanged(object sender, SelectionChangedEventArgs e) {
-			if(e.AddedItems != null && e.AddedItems.Count > 0 && e.AddedItems[0] is Grid grid && grid.Tag is EditHistory.Change change) {
+			if(e.AddedItems != null && e.AddedItems.Count > 0 && e.AddedItems[0] is Grid grid && grid.Tag is EditHistory.IChange change) {
 				UpdateEditHistoryDetail(change.GetDetail());
 			} else {
 				UpdateEditHistoryDetail(null);
@@ -181,7 +181,7 @@ namespace MindMap.Pages {
 				if(from == null || to == null || fromDot == null || toDot == null) {
 					continue;
 				}
-				ConnectionPath? connection = connectionsManager.AddConnection(fromDot, toDot, true);
+				ConnectionPath? connection = connectionsManager.AddConnection(fromDot, toDot, item.identity, true);
 				connection?.SetProperty(item.propertyJson);
 				await Task.Delay(1);
 			}
@@ -318,7 +318,11 @@ namespace MindMap.Pages {
 			});
 		}
 
-		public Element AddElement(long type_id, Identity? identity = null, Vector2 position = default, Vector2 size = default, Dictionary<Direction, int>? initialControls = null, bool submitEditHistory = true) {
+		public ConnectionPath? FindConnectionPathByIdentity(Identity identity, bool matchName = false) {
+			return connectionsManager.FindConnectionPathByIdentity(identity, matchName);
+		}
+
+		public Element AddElement(long type_id, Identity? identity = null, Vector2 position = default, Vector2 size = default, ControlsInfo? initialControls = null, bool submitEditHistory = true) {
 			Element element = type_id switch {
 				Element.ID_Rectangle => new MyRectangle(this, identity),
 				Element.ID_Ellipse => new MyEllipse(this, identity),
@@ -346,6 +350,7 @@ namespace MindMap.Pages {
 				throw new Exception($"Remove Element ({element.Identity.Name}) Failed");
 			}
 			List<ConnectionPath> related = element.GetRelatedPaths();
+			ControlsInfo connections = element.ConnectionsFrame?.GetControlsInfo() ?? new();
 			Deselect();
 			ClearResizePanel();
 			elements.Remove(element.Target);
@@ -353,7 +358,7 @@ namespace MindMap.Pages {
 			element.ConnectionsFrame?.ClearConnections();
 			UpdateCount();
 			if(submitEditHistory) {
-				editHistory.SubmitByElementDeleted(element, related);
+				editHistory.SubmitByElementDeleted(element, related, connections);
 			}
 		}
 

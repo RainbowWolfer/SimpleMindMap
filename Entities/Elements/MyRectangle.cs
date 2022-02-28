@@ -59,7 +59,7 @@ namespace MindMap.Entities.Elements {
 				args => IPropertiesContainer.PropertyChangedHandler(this, () => {
 					CornerRadius = new CornerRadius(args.NewValue);
 				}, (oldP, newP) => {
-					parent.editHistory.SubmitByElementPropertyDelayedChanged(this, oldP, newP, "Cornder Radius");
+					parent.editHistory.SubmitByElementPropertyDelayedChanged(TargetType.Element, this, oldP, newP, "Cornder Radius");
 				})
 			));
 			return panel;

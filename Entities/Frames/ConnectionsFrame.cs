@@ -56,24 +56,10 @@ namespace MindMap.Entities.Frames {
 			}
 		}
 
-		public ConnectionsFrame(MindMapPage parent, Element target, Dictionary<Direction, int>? initialControls = null) {
+		public ConnectionsFrame(MindMapPage parent, Element target, ControlsInfo? initialControls = null) {
 			this._parent = parent;
 			this._target = target;
-			if(initialControls == null ||
-				initialControls.Count != 4 ||
-				initialControls.Select(i => i.Value).Any(i => i <= 0)
-			) {
-				AddControl(Direction.Top);
-				AddControl(Direction.Bottom);
-				AddControl(Direction.Left);
-				AddControl(Direction.Right);
-			} else {
-				foreach(KeyValuePair<Direction, int> item in initialControls) {
-					for(int i = 0; i < item.Value; i++) {
-						AddControl(item.Key);
-					}
-				}
-			}
+			SetControls(initialControls, false);
 		}
 
 		public List<ConnectionControl> GetList(Direction direction) {
@@ -86,22 +72,59 @@ namespace MindMap.Entities.Frames {
 			};
 		}
 
-		public void AddControl(Direction direction) {
+		public void SetControls(ControlsInfo? controls = null, bool submitHistory = true) {
+			leftDots.ForEach(d => d.ClearDot());
+			topDots.ForEach(d => d.ClearDot());
+			botDots.ForEach(d => d.ClearDot());
+			rightDots.ForEach(d => d.ClearDot());
+
+			leftDots.Clear();
+			topDots.Clear();
+			botDots.Clear();
+			rightDots.Clear();
+
+			if(controls == null || !controls.CheckValid()) {
+				AddControl(Direction.Top, null, submitHistory);
+				AddControl(Direction.Bottom, null, submitHistory);
+				AddControl(Direction.Left, null, submitHistory);
+				AddControl(Direction.Right, null, submitHistory);
+			} else {
+				foreach(Identity item in controls.Tops) {
+					AddControl(Direction.Top, item, submitHistory);
+				}
+				foreach(Identity item in controls.Bots) {
+					AddControl(Direction.Bottom, item, submitHistory);
+				}
+				foreach(Identity item in controls.Lefts) {
+					AddControl(Direction.Left, item, submitHistory);
+				}
+				foreach(Identity item in controls.Rights) {
+					AddControl(Direction.Right, item, submitHistory);
+				}
+			}
+		}
+
+		public void AddControl(Direction direction, Identity? identity = null, bool submitHistory = true) {
+			ControlsInfo oldInfo = GetControlsInfo();
 			switch(direction) {
 				case Direction.Left:
-					leftDots.Add(CreateControl(Direction.Left));
+					leftDots.Add(CreateControl(Direction.Left, identity));
 					break;
 				case Direction.Right:
-					rightDots.Add(CreateControl(Direction.Right));
+					rightDots.Add(CreateControl(Direction.Right, identity));
 					break;
 				case Direction.Top:
-					topDots.Add(CreateControl(Direction.Top));
+					topDots.Add(CreateControl(Direction.Top, identity));
 					break;
 				case Direction.Bottom:
-					botDots.Add(CreateControl(Direction.Bottom));
+					botDots.Add(CreateControl(Direction.Bottom, identity));
 					break;
 				default:
 					throw new Exception("Direction Not Found");
+			}
+			ControlsInfo newInfo = GetControlsInfo();
+			if(submitHistory) {
+				_parent.editHistory.SubmitByElementConnectionControlsChanged(_target, oldInfo, newInfo);
 			}
 			UpdateConnections();
 		}
@@ -137,19 +160,19 @@ namespace MindMap.Entities.Frames {
 			UpdateConnections();
 		}
 
-		private ConnectionControl CreateControl(Direction direction) {
+		private ConnectionControl CreateControl(Direction direction, Identity? identity = null) {
 			return new ConnectionControl(this, _parent, new Ellipse() {
 				Style = DefaultStyle,
-			}, direction);
+			}, direction, identity);
 		}
 
-		public Dictionary<Direction, int> GetControlsInfo() {
-			Dictionary<Direction, int> result = new();
-			result.Add(Direction.Left, leftDots.Count);
-			result.Add(Direction.Right, rightDots.Count);
-			result.Add(Direction.Top, topDots.Count);
-			result.Add(Direction.Bottom, botDots.Count);
-			return result;
+		public ControlsInfo GetControlsInfo() {
+			return new ControlsInfo(
+				topDots.Select(d => d.Identity),
+				botDots.Select(d => d.Identity),
+				leftDots.Select(d => d.Identity),
+				rightDots.Select(d => d.Identity)
+			);
 		}
 
 		public ConnectionControl? GetControlByID(string id) {
@@ -214,7 +237,13 @@ namespace MindMap.Entities.Frames {
 			rightDots.ForEach(d => d.ClearDot());
 			topDots.ForEach(d => d.ClearDot());
 			botDots.ForEach(d => d.ClearDot());
+
 			_parent.connectionsManager.RemoveFrame(this);
+
+			leftDots.Clear();
+			rightDots.Clear();
+			topDots.Clear();
+			botDots.Clear();
 		}
 
 		public void SetVisible(bool visible) {
@@ -376,6 +405,59 @@ namespace MindMap.Entities.Frames {
 
 		public override string ToString() {
 			return $"Dot: {Parent_ID}";
+		}
+	}
+
+	//public class ConnectionInfo {
+	//	public Identity Identity { get; set; }
+	//	public Identity FromElement { get; set; }
+	//	public Identity FromDot { get; set; }
+	//	public Identity ToElement { get; set; }
+	//	public Identity ToDot { get; set; }
+
+	//	public ConnectionInfo(Identity identity, Identity fromElement, Identity fromDot, Identity toElement, Identity toDot) {
+	//		Identity = identity;
+	//		FromElement = fromElement;
+	//		FromDot = fromDot;
+	//		ToElement = toElement;
+	//		ToDot = toDot;
+	//	}
+	//}
+
+	public class ControlsInfo {
+		public List<Identity> Tops { get; set; }
+		public List<Identity> Bots { get; set; }
+		public List<Identity> Lefts { get; set; }
+		public List<Identity> Rights { get; set; }
+
+		public ControlsInfo(IEnumerable<Identity> tops, IEnumerable<Identity> bots, IEnumerable<Identity> lefts, IEnumerable<Identity> rights) {
+			Tops = tops.ToList();
+			Bots = bots.ToList();
+			Lefts = lefts.ToList();
+			Rights = rights.ToList();
+		}
+
+		public ControlsInfo() {
+			Tops = new List<Identity>();
+			Bots = new List<Identity>();
+			Lefts = new List<Identity>();
+			Rights = new List<Identity>();
+		}
+
+		public bool CheckValid() {
+			if(Tops.Count == 0) {
+				return false;
+			}
+			if(Bots.Count == 0) {
+				return false;
+			}
+			if(Lefts.Count == 0) {
+				return false;
+			}
+			if(Rights.Count == 0) {
+				return false;
+			}
+			return true;
 		}
 	}
 

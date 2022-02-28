@@ -23,7 +23,11 @@ namespace MindMap.Entities.Locals {
 		public const string FILTER = "MindMap file (*.mp) | *.mp";
 
 		public static async void SaveTmpFile(string fileName, string content) {
-			await File.WriteAllTextAsync($"F:\\Documents\\MindMap\\{fileName}", content);
+			try {
+				await File.WriteAllTextAsync($"D:\\{fileName}", content);
+			} catch(DirectoryNotFoundException e) {
+				Debug.WriteLine("DirectoryNotFoundException: " + e.Message);
+			}
 		}
 
 		public static async Task<string> Save(List<Element> elements, ConnectionsManager connectionsManager, string filePath = "") {
@@ -111,6 +115,7 @@ namespace MindMap.Entities.Locals {
 	}
 
 	public class ConnectionInfo {
+		public readonly Identity identity;
 		public readonly Identity from_element;
 		public readonly Identity from_dot;
 		public readonly Identity to_element;
@@ -118,7 +123,8 @@ namespace MindMap.Entities.Locals {
 		public readonly string propertyJson;
 
 		[JsonConstructor]
-		public ConnectionInfo(Identity from_element, Identity from_dot, Identity to_element, Identity to_dot, string propertyJson) {
+		public ConnectionInfo(Identity identity, Identity from_element, Identity from_dot, Identity to_element, Identity to_dot, string propertyJson) {
+			this.identity = identity;
 			this.from_element = from_element;
 			this.from_dot = from_dot;
 			this.to_element = to_element;
@@ -133,10 +139,10 @@ namespace MindMap.Entities.Locals {
 		public readonly string propertyJson;
 		public readonly Vector2 position;
 		public readonly Vector2 size;
-		public readonly Dictionary<Direction, int> connectionControls;
+		public readonly ControlsInfo connectionControls;
 
 		[JsonConstructor]
-		public ElementInfo(long type_id, Identity identity, string propertyJson, Vector2 position, Vector2 size, Dictionary<Direction, int> connectionControls) {
+		public ElementInfo(long type_id, Identity identity, string propertyJson, Vector2 position, Vector2 size, ControlsInfo connectionControls) {
 			this.type_id = type_id;
 			this.identity = identity;
 			this.propertyJson = propertyJson;

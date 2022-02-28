@@ -77,7 +77,7 @@ namespace MindMap.Entities.Elements {
 		public abstract void SetProperty(IProperty property);
 		public abstract void SetProperty(string propertyJson);
 
-		public void CreateConnectionsFrame(Dictionary<Direction, int>? initialControls = null) {
+		public void CreateConnectionsFrame(ControlsInfo? initialControls = null) {
 			ConnectionsFrame = new ConnectionsFrame(this.parent, this, initialControls);
 		}
 
@@ -117,21 +117,21 @@ namespace MindMap.Entities.Elements {
 						args => IPropertiesContainer.PropertyChangedHandler(this, () => {
 							border.Background = new SolidColorBrush(args.NewValue);
 						}, (oldP, newP) => {
-							parent.editHistory.SubmitByElementPropertyDelayedChanged(this, oldP, newP, "Background Color");
+							parent.editHistory.SubmitByElementPropertyDelayedChanged(TargetType.Element, this, oldP, newP, "Background Color");
 						})
 					),
 					PropertiesPanel.ColorInput("Border Color", border.BorderColor,
 						args => IPropertiesContainer.PropertyChangedHandler(this, () => {
 							border.BorderColor = new SolidColorBrush(args.NewValue);
 						}, (oldP, newP) => {
-							parent.editHistory.SubmitByElementPropertyDelayedChanged(this, oldP, newP, "Border Color");
+							parent.editHistory.SubmitByElementPropertyDelayedChanged(TargetType.Element, this, oldP, newP, "Border Color");
 						})
 					),
 					PropertiesPanel.SliderInput("Border Thickness", border.BorderThickness.Left, 0, 5,
 						args => IPropertiesContainer.PropertyChangedHandler(this, () => {
 							border.BorderThickness = new Thickness(args.NewValue);
 						}, (oldP, newP) => {
-							parent.editHistory.SubmitByElementPropertyDelayedChanged(this, oldP, newP, "Border Thickness");
+							parent.editHistory.SubmitByElementPropertyDelayedChanged(TargetType.Element, this, oldP, newP, "Border Thickness");
 						})
 					),
 				});
@@ -146,26 +146,26 @@ namespace MindMap.Entities.Elements {
 							}
 							text.FontFamily = args.NewValue;
 						}, (oldP, newP) => {
-							parent.editHistory.SubmitByElementPropertyChanged(this, oldP, newP, "Font Family");
+							parent.editHistory.SubmitByElementPropertyChanged(TargetType.Element, this, oldP, newP, "Font Family");
 						}), FontsList.AvailableFonts),
 					PropertiesPanel.ComboSelector("Font Weight", text.FontWeight,
 						value => IPropertiesContainer.PropertyChangedHandler(this, ()=>{
 							text.FontWeight = value.NewValue;
 						}, (oldP, newP) => {
-							parent.editHistory.SubmitByElementPropertyChanged(this, oldP, newP, "Font Weight");
+							parent.editHistory.SubmitByElementPropertyChanged(TargetType.Element, this, oldP, newP, "Font Weight");
 						})
 					, FontsList.AllFontWeights),
 					PropertiesPanel.SliderInput("Font Size", text.FontSize, 5, 42,
 						args => IPropertiesContainer.PropertyChangedHandler(this, () => {
 							text.FontSize = args.NewValue;
 						}, (oldP, newP) => {
-							parent.editHistory.SubmitByElementPropertyDelayedChanged(this, oldP, newP, "Font Size");
+							parent.editHistory.SubmitByElementPropertyDelayedChanged(TargetType.Element, this, oldP, newP, "Font Size");
 						}), 1, 0),
 					PropertiesPanel.ColorInput("Font Color", text.FontColor,
 						args => IPropertiesContainer.PropertyChangedHandler(this, () => {
 							text.FontColor = args.NewValue;
 						}, (oldP, newP) => {
-							parent.editHistory.SubmitByElementPropertyDelayedChanged(this, oldP, newP, "Font Color");
+							parent.editHistory.SubmitByElementPropertyDelayedChanged(TargetType.Element, this, oldP, newP, "Font Color");
 						}), ()=>{
 							parent.editHistory.InstantSealLastDelayedChange();
 						}

@@ -74,14 +74,14 @@ namespace MindMap.Entities.Connections {
 
 		public bool IsPreview { get; private set; }
 
-		public ConnectionPath(MindMapPage parent, ConnectionsManager connectionsManager, ConnectionControl from, ConnectionControl to) {
+		public ConnectionPath(MindMapPage parent, ConnectionsManager connectionsManager, ConnectionControl from, ConnectionControl to, Identity? identity = null) {
 			this.IsPreview = false;
 			this._parent = parent;
 			this._connectionsManager = connectionsManager;
 			this.from = from;
 			this.to = to;
 			this.Path = CreatePath(from.GetPosition(), to.GetPosition());
-			this.Identity = new Identity(InitializeID(), InitializeDefaultName());
+			this.Identity = identity ?? new Identity(InitializeID(), InitializeDefaultName());
 			this.Initialize();
 		}
 
@@ -91,7 +91,7 @@ namespace MindMap.Entities.Connections {
 			this.from = from;
 			this.to = null;
 			this.Path = CreatePath(from.GetPosition(), to);
-			this.Identity = new Identity(InitializeID(), InitializeDefaultName());
+			this.Identity = new Identity($"Preview_Connection_{Methods.GetTick()}", "Preview Conncetion");
 			this.Initialize();
 		}
 
@@ -131,7 +131,7 @@ namespace MindMap.Entities.Connections {
 					Visibility = Visibility.Collapsed,
 				};
 				MainCanvas.Children.Insert(MainCanvas.Children.IndexOf(Path), _backdgroundPath);
-				FlyoutMenu.CreateBase(this.Path, (s, e) => _connectionsManager?.RemoveConnetion(this));
+				FlyoutMenu.CreateBase(this.Path, (s, e) => _connectionsManager?.RemoveConnection(this));
 				Path.MouseDown += (s, e) => {
 					if(e.MouseDevice.RightButton == MouseButtonState.Pressed) {
 						isRightClick = true;
@@ -229,14 +229,14 @@ namespace MindMap.Entities.Connections {
 				args => IPropertiesContainer.PropertyChangedHandler(this, () => {
 					StrokeThickess = args.NewValue;
 				}, (oldP, newP) => {
-					_parent.editHistory.SubmitByElementPropertyDelayedChanged(this, oldP, newP, "Strock Thickness");
+					_parent.editHistory.SubmitByElementPropertyDelayedChanged(TargetType.ConnectionPath, this, oldP, newP, "Strock Thickness");
 				})
 			, 0.1, 1));
 			panel.Children.Add(PropertiesPanel.ColorInput("Strock Color", StrokeColor,
 				args => IPropertiesContainer.PropertyChangedHandler(this, () => {
 					StrokeColor = args.NewValue;
 				}, (oldP, newP) => {
-					_parent.editHistory.SubmitByElementPropertyDelayedChanged(this, oldP, newP, "Strock Color");
+					_parent.editHistory.SubmitByElementPropertyDelayedChanged(TargetType.ConnectionPath, this, oldP, newP, "Strock Color");
 				}), () => {
 					_parent.editHistory.InstantSealLastDelayedChange();
 				}

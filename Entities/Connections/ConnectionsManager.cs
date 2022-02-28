@@ -26,6 +26,10 @@ namespace MindMap.Entities.Connections {
 			_mainCanvas = mindMapPage.MainCanvas;
 		}
 
+		public List<ConnectionPath> GetAllConnections() {
+			return Connections.Select(s => s.Path).ToList();
+		}
+
 		public bool CheckDuplicate(ConnectionControl from, ConnectionControl to) {
 			return Connections.Any(c =>
 				(c.From == from && c.To == to) ||
@@ -68,18 +72,6 @@ namespace MindMap.Entities.Connections {
 				RemoveConnection(found.Path, submitHistory);
 			}
 		}
-
-		//public void AddConnection(ConnectionPath path, bool submitHistory = true, string? propertyJson = null) {
-		//	if(path.to == null || CheckDuplicate(path.from, path.to)) {
-		//		return;
-		//	}
-		//	Connections.Add(new Connection(path, path.from, path.to));
-		//	path.Initialize(false);
-		//	_parent.UpdateCount();
-		//	if(submitHistory) {
-		//		_parent.editHistory.SubmitByConnectionCreated(path);
-		//	}
-		//}
 
 		public ConnectionPath? AddConnection(ConnectionControl from, ConnectionControl to, Identity? identity = null, bool submitHistory = true) {
 			if(CheckDuplicate(from, to)) {
@@ -132,8 +124,11 @@ namespace MindMap.Entities.Connections {
 		}
 
 		public void Update(ConnectionControl dot) {
-			foreach(Connection item in Connections.Where(c => c.From == dot || c.To == dot)) {
-				item.Update();
+			foreach(Connection connection in Connections.Where(c =>
+				c.From.Identity == dot.Identity ||
+				c.To.Identity == dot.Identity
+			)) {
+				connection.Update();
 			}
 		}
 

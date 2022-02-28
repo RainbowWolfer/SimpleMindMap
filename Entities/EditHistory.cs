@@ -406,7 +406,6 @@ namespace MindMap.Entities {
 				Element? element = _parent.FindElementByIdentity(ecfcc.Identity);
 				if(element != null && element.ConnectionsFrame != null) {
 					element.ConnectionsFrame.SetControls(ecfcc.To, false);
-					//update element related connection path
 				}
 			} else {
 				throw new Exception($"Type({first.GetType()}) is not implemented");

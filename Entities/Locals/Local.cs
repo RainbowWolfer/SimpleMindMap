@@ -27,6 +27,8 @@ namespace MindMap.Entities.Locals {
 				await File.WriteAllTextAsync($"D:\\{fileName}", content);
 			} catch(DirectoryNotFoundException e) {
 				Debug.WriteLine("DirectoryNotFoundException: " + e.Message);
+			} catch(IOException) {
+
 			}
 		}
 

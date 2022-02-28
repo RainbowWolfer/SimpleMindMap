@@ -21,8 +21,14 @@ namespace MindMap.Entities.Connections {
 	public class ConnectionPath: IPropertiesContainer, IIdentityContainer {
 		public Identity Identity { get; set; }
 
-		public readonly ConnectionControl from;
+		//public Identity FromElement { get; set; }
+		//public Identity FromControl { get; set; }
+		//public Identity? ToElement { get; set; }
+		//public Identity? ToControl { get; set; }
+
+		public ConnectionControl from;
 		public ConnectionControl? to;
+
 		private readonly ConnectionsManager? _connectionsManager;
 		private readonly MindMapPage _parent;
 
@@ -91,21 +97,9 @@ namespace MindMap.Entities.Connections {
 			this.from = from;
 			this.to = null;
 			this.Path = CreatePath(from.GetPosition(), to);
-			this.Identity = new Identity($"Preview_Connection_{Methods.GetTick()}", "Preview Conncetion");
+			this.Identity = new Identity($"Preview_Connection_({Methods.GetTick()})", "Preview Conncetion");
 			this.Initialize();
 		}
-
-		//public ConnectionPath(MindMapPage parent, ConnectionsManager connectionsManager, ConnectionControl from, ConnectionControl to, string propertiesJson) {
-		//	this.IsPreview = false;
-		//	this._parent = parent;
-		//	this._connectionsManager = connectionsManager;
-		//	this.from = from;
-		//	this.to = to;
-		//	this.Path = CreatePath(from.GetPosition(), to.GetPosition());
-		//	this.property = (Property)property.Translate(propertiesJson);
-		//	this.Identity = new Identity(InitializeID(), InitializeDefaultName());
-		//	this.Initialize(false);
-		//}
 
 		private string InitializeID() => $"Connection_({Methods.GetTick()})";
 

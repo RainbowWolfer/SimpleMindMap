@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Security.Cryptography.Xml;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -102,6 +103,20 @@ namespace MindMap.Entities.Frames {
 					AddControl(Direction.Right, item, submitHistory);
 				}
 			}
+
+			//UpdateConnections();
+
+			foreach(ConnectionPath path in _parent.connectionsManager.GetAllConnections()) {
+				foreach(ConnectionControl control in AllDots) {
+					if(path.from.Identity == control.Identity) {
+						path.from = control;
+					}
+					if(path.to != null && path.to.Identity == control.Identity) {
+						path.to = control;
+					}
+				}
+				path.Update();
+			}
 		}
 
 		public void AddControl(Direction direction, Identity? identity = null, bool submitHistory = true) {
@@ -129,7 +144,8 @@ namespace MindMap.Entities.Frames {
 			UpdateConnections();
 		}
 
-		public void RemoveControl(Direction direction, ConnectionControl control) {
+		public void RemoveControl(Direction direction, ConnectionControl control, bool submitHistory = true) {
+			ControlsInfo oldInfo = GetControlsInfo();
 			ConnectionControl? found = null;
 			List<ConnectionControl> list;
 			switch(direction) {
@@ -157,6 +173,10 @@ namespace MindMap.Entities.Frames {
 			}
 			found.ClearDot();
 			list.Remove(found);
+			ControlsInfo newInfo = GetControlsInfo();
+			if(submitHistory) {
+				_parent.editHistory.SubmitByElementConnectionControlsChanged(_target, oldInfo, newInfo);
+			}
 			UpdateConnections();
 		}
 
@@ -297,6 +317,7 @@ namespace MindMap.Entities.Frames {
 			parent.BackgroundRectangle.PreviewMouseUp += Canvas_MouseUp;
 			parent.MainCanvas.MouseMove += Canvas_MouseMove;
 			parent.MainCanvas.PreviewMouseUp += Canvas_MouseUp;
+			ToolTipService.SetToolTip(target, $"{Identity.ID}\n{Identity.Name}");
 		}
 
 		private int clickTime = 0;
@@ -342,7 +363,7 @@ namespace MindMap.Entities.Frames {
 
 		private string InitializeID() => $"ConnectionControl_({Methods.GetTick()})";
 
-		private string InitializeDefaultName() => $"Dot_{Parent.Identity}";
+		private string InitializeDefaultName() => $"Dot_({Parent.Identity.Name})";
 
 
 		private void Target_MouseLeave(object sender, MouseEventArgs e) {

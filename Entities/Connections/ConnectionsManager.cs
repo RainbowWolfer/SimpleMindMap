@@ -105,7 +105,7 @@ namespace MindMap.Entities.Connections {
 		public void RemoveFrame(ConnectionsFrame frame) {
 			List<Connection> founds = new();
 			foreach(ConnectionControl item in frame.AllDots) {
-				foreach(Connection c in Connections.Where(c => c.From == item || c.To == item)) {
+				foreach(Connection c in Connections.Where(c => c.From.Identity == item.Identity || c.To.Identity == item.Identity)) {
 					c.Path.ClearFromCanvas();
 					founds.Add(c);
 				}

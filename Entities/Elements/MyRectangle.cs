@@ -54,7 +54,7 @@ namespace MindMap.Entities.Elements {
 
 		public override Panel CreateElementProperties() {
 			StackPanel panel = new();
-			panel.Children.Add(PropertiesPanel.SectionTitle(Identity.Name));
+			panel.Children.Add(PropertiesPanel.SectionTitle(Identity.Name, newName => Identity.Name = newName));
 			panel.Children.Add(PropertiesPanel.SliderInput("Cornder Radius", CornerRadius.TopLeft, 0, 100,
 				args => IPropertiesContainer.PropertyChangedHandler(this, () => {
 					CornerRadius = new CornerRadius(args.NewValue);

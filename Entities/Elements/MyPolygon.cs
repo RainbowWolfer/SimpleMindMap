@@ -193,7 +193,7 @@ namespace MindMap.Entities.Elements {
 
 		public override Panel CreateElementProperties() {
 			StackPanel panel = new();
-			panel.Children.Add(PropertiesPanel.SectionTitle($"{Identity.Name}"));
+			panel.Children.Add(PropertiesPanel.SectionTitle($"{Identity.Name}", newName => Identity.Name = newName));
 			panel.Children.Add(PropertiesPanel.SliderInput("Polygon Points", PointCount, 3, 20,
 				value => PointCount = (int)value.NewValue
 			, 1, 0));

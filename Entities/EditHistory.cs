@@ -11,13 +11,9 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Reflection.Metadata;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Documents;
 
 namespace MindMap.Entities {
 	public class EditHistory {
@@ -25,8 +21,8 @@ namespace MindMap.Entities {
 		public event Action<IChange>? OnUndo;
 		public event Action<IChange>? OnRedo;
 
-		private readonly List<IChange> previous = new();
-		private readonly List<IChange> future = new();
+		private List<IChange> previous = new();
+		private List<IChange> future = new();
 
 		private readonly MindMapPage _parent;
 		public EditHistory(MindMapPage parent) {
@@ -35,8 +31,6 @@ namespace MindMap.Entities {
 				future.Clear();
 				string content = JsonConvert.SerializeObject(ConvertHistoriesJsonPair(list));
 				Local.SaveTmpFile("tmp.json", content);
-				var pairs = JsonConvert.DeserializeObject<List<Pair<int, string>>>(content) ?? new();
-				//List<IChange> converted = ConvertBack(pairs);
 			};
 
 			OnUndo += change => {
@@ -46,6 +40,26 @@ namespace MindMap.Entities {
 			OnRedo += change => {
 				parent.connectionsManager.DeselectAllBackgroundPaths();
 			};
+		}
+
+		public void SetHistory(HistoryInfo info) {
+			List<IChange> converted = ConvertBack(info.HistoryJson);
+			var previous = converted.Take(info.Index);
+			var future = converted.TakeLast(converted.Count - info.Index);
+			Debug.WriteLine(previous.Count());
+			Debug.WriteLine(future.Count());
+
+			this.previous = previous.ToList();
+			this.future = future.ToList();
+		}
+
+		public HistoryInfo GetHistoryInfo() {
+			var list = previous.Concat(future);
+			string json = JsonConvert.SerializeObject(ConvertHistoriesJsonPair(list));
+			int index = previous.Count;
+			Debug.WriteLine($"{previous.Count} - {future.Count}");
+			Debug.WriteLine($"{index}");
+			return new HistoryInfo(json, index);
 		}
 
 		public List<IChange> GetPreviousHistories() => previous.ToArray().Reverse().ToList();
@@ -75,7 +89,7 @@ namespace MindMap.Entities {
 			return changes;
 		}
 
-		public static List<Pair<int, string>> ConvertHistoriesJsonPair(List<IChange> list) {
+		public static List<Pair<int, string>> ConvertHistoriesJsonPair(IEnumerable<IChange> list) {
 			List<Pair<int, string>> changesJson = new();
 			foreach(IChange change in list) {
 				int id;
@@ -202,14 +216,15 @@ namespace MindMap.Entities {
 			}
 		}
 
-		public void SubmitByElementFrameworkChanged(Element target, Vector2 fromSize, Vector2 fromPosition, Vector2 toSize, Vector2 toPosition) {
+		public void SubmitByElementFrameworkChanged(Element target, Vector2 fromSize, Vector2 fromPosition, Vector2 toSize, Vector2 toPosition, FrameChangeType frameChangeType) {
 			InstantSealLastDelayedChange();
 			previous.Add(new ElementFrameworkChange(
 				target.Identity,
 				fromSize,
 				fromPosition,
 				toSize,
-				toPosition
+				toPosition,
+				frameChangeType
 			));
 			OnHistoryChanged?.Invoke(GetPreviousHistories());
 		}
@@ -415,11 +430,14 @@ namespace MindMap.Entities {
 			OnRedo?.Invoke(first);
 		}
 
+		// --------------------------------------------------
+
 		public interface IChange {
 			Identity Identity { get; set; }
 			DateTime Date { get; set; }
 			IconElement GetIcon();
-			string GetDetail();
+			string GetPreviousDetail();
+			string GetAfterDetail();
 		}
 
 		public class ConnectionCreateOrDelete: IChange {
@@ -461,7 +479,11 @@ namespace MindMap.Entities {
 				};
 			}
 
-			public string GetDetail() {
+			public string GetPreviousDetail() {
+				return "";
+			}
+
+			public string GetAfterDetail() {
 				return "";
 			}
 		}
@@ -470,7 +492,11 @@ namespace MindMap.Entities {
 			public const int JSONCONVERTID = 2;
 			public DateTime Date { get; set; }
 			public Identity Identity { get; set; }
-			public IconElement GetIcon() => new FontIcon("\uE11B");
+			public IconElement GetIcon() => Type switch {
+				CreateOrDelete.Create => new ImageIcon("pack://application:,,,/Icons/Element_Add.png"),
+				CreateOrDelete.Delete => new ImageIcon("pack://application:,,,/Icons/Element_Remove.png"),
+				_ => new FontIcon("\uE11B"),
+			};
 
 			public CreateOrDelete Type { get; protected set; }
 
@@ -495,13 +521,17 @@ namespace MindMap.Entities {
 
 			public override string ToString() {
 				return Type switch {
-					CreateOrDelete.Create => $"Created {Identity.ID}",
-					CreateOrDelete.Delete => $"Deleted {Identity.ID}",
+					CreateOrDelete.Create => $"Created Element {Identity.Name}",
+					CreateOrDelete.Delete => $"Deleted Element {Identity.Name}",
 					_ => throw new Exception($"({Type}) Type not found"),
 				};
 			}
 
-			public string GetDetail() {
+			public string GetPreviousDetail() {
+				return "";
+			}
+
+			public string GetAfterDetail() {
 				return "";
 			}
 		}
@@ -510,7 +540,9 @@ namespace MindMap.Entities {
 			public const int JSONCONVERTID = 3;
 			public DateTime Date { get; set; }
 			public Identity Identity { get; set; }
-			public IconElement GetIcon() => new FontIcon("\uE11B");
+			public IconElement GetIcon() => new FontIcon("\uE9E9", 18) {
+				Margin = new Thickness(2, 2, 0, 2)
+			};
 
 			public TargetType TargetType { get; set; }
 
@@ -531,7 +563,11 @@ namespace MindMap.Entities {
 				return $"{Identity.Name} - {PropertyTargetHint ?? "Properties"} - Changed";
 			}
 
-			public string GetDetail() {
+			public string GetPreviousDetail() {
+				return "";
+			}
+
+			public string GetAfterDetail() {
 				return "";
 			}
 		}
@@ -555,27 +591,47 @@ namespace MindMap.Entities {
 			public const int JSONCONVERTID = 5;
 			public DateTime Date { get; set; }
 			public Identity Identity { get; set; }
-			public IconElement GetIcon() => new FontIcon("\uE11B");
+			public IconElement GetIcon() => Type switch {
+				FrameChangeType.Move => new FontIcon("\uE7C2", 18) {
+					Margin = new Thickness(2, 2, 0, 2)
+				},
+				FrameChangeType.Resize => new FontIcon("\uE8B3", 18) {
+					Margin = new Thickness(2, 2, 0, 2)
+				},
+				_ => throw new Exception(),
+			};
+
+			public FrameChangeType Type { get; protected set; }
 
 			public Vector2 FromSize { get; protected set; }
 			public Vector2 FromPosition { get; protected set; }
 			public Vector2 ToSize { get; protected set; }
 			public Vector2 ToPosition { get; protected set; }
 
-			public ElementFrameworkChange(Identity target, Vector2 fromSize, Vector2 fromPosition, Vector2 toSize, Vector2 toPosition) {
+			public ElementFrameworkChange(Identity target, Vector2 fromSize, Vector2 fromPosition, Vector2 toSize, Vector2 toPosition, FrameChangeType type) {
 				Identity = target;
 				FromPosition = fromPosition;
 				FromSize = fromSize;
 				ToSize = toSize;
 				ToPosition = toPosition;
 				Date = DateTime.Now;
+				Type = type;
 			}
 
 			public override string ToString() {
-				return $"{Identity.ID} - Frame Changed";
+				string hint = Type switch {
+					FrameChangeType.Move => "Moved",
+					FrameChangeType.Resize => "Resized",
+					_ => "Frame Changed",
+				};
+				return $"{Identity.Name} - {hint}";
 			}
 
-			public string GetDetail() {
+			public string GetPreviousDetail() {
+				return "";
+			}
+
+			public string GetAfterDetail() {
 				return "";
 			}
 		}
@@ -584,7 +640,7 @@ namespace MindMap.Entities {
 			public const int JSONCONVERTID = 6;
 			public Identity Identity { get; set; }
 			public DateTime Date { get; set; }
-			public IconElement GetIcon() => new FontIcon("\uE11B");
+			public IconElement GetIcon() => new ImageIcon("pack://application:,,,/Icons/ElementConnectionFrameControlsChange.png");
 
 			public ControlsInfo From { get; set; }
 			public ControlsInfo To { get; set; }
@@ -596,13 +652,25 @@ namespace MindMap.Entities {
 				Date = DateTime.Now;
 			}
 
-			public string GetDetail() {
+			public override string ToString() {
+				return $"{Identity.Name} Connection Controls Changed";
+			}
+
+			public string GetPreviousDetail() {
+				return "";
+			}
+
+			public string GetAfterDetail() {
 				return "";
 			}
 		}
 
 		public enum CreateOrDelete {
 			Create, Delete
+		}
+
+		public enum FrameChangeType {
+			Resize, Move
 		}
 	}
 	public enum TargetType {

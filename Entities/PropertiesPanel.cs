@@ -1,4 +1,5 @@
 ﻿using MindMap.Pages;
+using MindMap.UserControls;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -21,14 +22,27 @@ namespace MindMap.Entities {
 			return panel;
 		}
 
-		public static StackPanel SectionTitle(string title) {
+		public static StackPanel SectionTitle(string title, Action<string>? onNameChanged = null) {
 			StackPanel panel = new();
 			panel.Children.Add(new Separator());
-			panel.Children.Add(new TextBlock() {
+			//var textblock = new TextBlock() {
+			//	Text = title,
+			//	FontSize = 14,
+			//	HorizontalAlignment = HorizontalAlignment.Center,
+			//};
+			//var textbox = new TextBox() {
+			//	Text = title,
+			//	FontSize = 14,
+			//	HorizontalAlignment = HorizontalAlignment.Center,
+			//	//Visibility = Visibility.Collapsed,
+			//};
+			//textblock.
+			var nameText = new RenamableTextDisplay() {
 				Text = title,
-				FontSize = 14,
-				HorizontalAlignment = HorizontalAlignment.Center,
-			});
+				EnableInput = onNameChanged != null,
+			};
+			nameText.TextChanged += onNameChanged;
+			panel.Children.Add(nameText);
 			return panel;
 		}
 

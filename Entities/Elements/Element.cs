@@ -17,11 +17,6 @@ using MindMap.Entities.Connections;
 using MindMap.Entities.Identifications;
 using MindMap.Entities.Services;
 
-/**
- * Everytime created a element, calculate the related connecton paths and store these in according element.
- * when deleled, store related paths into history
- * when redo, use these stored paths and reinitialized these.
- */
 namespace MindMap.Entities.Elements {
 	public abstract class Element: IPropertiesContainer, IIdentityContainer {
 		public abstract long TypeID { get; }
@@ -44,6 +39,7 @@ namespace MindMap.Entities.Elements {
 		public Element(MindMapPage parent, Identity? identity = null) {
 			this.parent = parent;
 			Identity = identity ?? new Identity(IntializeID(GetType()), InitializeDefaultName());
+			Identity.OnNameChanged += (n, o) => parent.UpdateHistoryListView();
 			Debug();
 		}
 
@@ -54,10 +50,13 @@ namespace MindMap.Entities.Elements {
 			}
 		}
 
-		private string IntializeID(Type type) => $"{type.Name}_({Methods.GetTick()})";
-		private string InitializeDefaultName() => $"{ElementTypeName} ({parent.elements.Count + 1})";
+		private string IntializeID(Type type) {
+			return $"{type.Name}_({Methods.GetTick()})";
+		}
 
-		//protected string AssignID(string type) => $"{type.Trim()}_({Methods.GetTick()})";
+		private string InitializeDefaultName() {
+			return $"{ElementTypeName} ({new Random().Next(0, 1000)})";
+		}
 
 		public Identity GetIdentity() => Identity;
 
@@ -98,9 +97,9 @@ namespace MindMap.Entities.Elements {
 
 		public void SetConnectionsFrameVisible(bool visible) => ConnectionsFrame?.SetVisible(visible);
 
-		public List<ConnectionControl> GetAllConnectionDots() => ConnectionsFrame == null ? new List<ConnectionControl>() : ConnectionsFrame.AllDots;
-
-		//public abstract FrameworkElement CreateFramework();
+		public List<ConnectionControl> GetAllConnectionDots() {
+			return ConnectionsFrame == null ? new List<ConnectionControl>() : ConnectionsFrame.AllDots;
+		}
 
 		public virtual void CreateFlyoutMenu() {
 			FlyoutMenu.CreateBase(Target, (s, e) => Delete());
@@ -173,12 +172,6 @@ namespace MindMap.Entities.Elements {
 				});
 			}
 			return panels;
-		}
-
-
-
-		public void SubmitPropertyChangedEditHistory(IProperty property) {
-			//parent.editHistory.SubmitByElementPropertyChanged(this, (IProperty)property.Clone());
 		}
 
 		public abstract Panel CreateElementProperties();

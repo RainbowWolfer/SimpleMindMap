@@ -104,7 +104,7 @@ namespace MindMap.Entities.Connections {
 		private string InitializeID() => $"Connection_({Methods.GetTick()})";
 
 		private string InitializeDefaultName() {
-			return $"Connection ({from.Parent_ID} - {to?.Parent_ID ?? "None"})";
+			return $"Connection ({from.Parent.Identity.Name} - {to?.Parent.Identity.Name ?? "None"})";
 		}
 
 		public Identity GetIdentity() => Identity;
@@ -218,7 +218,7 @@ namespace MindMap.Entities.Connections {
 
 		public Panel CreatePropertiesPanel() {
 			StackPanel panel = new();
-			panel.Children.Add(PropertiesPanel.SectionTitle("Connection Path"));
+			panel.Children.Add(PropertiesPanel.SectionTitle("Connection Path", newName => Identity.Name = newName));
 			panel.Children.Add(PropertiesPanel.SliderInput("Strock Thickness", StrokeThickess, 1, 8,
 				args => IPropertiesContainer.PropertyChangedHandler(this, () => {
 					StrokeThickess = args.NewValue;

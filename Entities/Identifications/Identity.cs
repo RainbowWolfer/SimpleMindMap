@@ -6,12 +6,23 @@ using System.Threading.Tasks;
 
 namespace MindMap.Entities.Identifications {
 	public class Identity {
+		public event Action<string, string>? OnNameChanged;
+
+		private string name;
+
 		public string ID { get; set; }
-		public string Name { get; set; }
+		public string Name {
+			get => name;
+			set {
+				string oldValue = name;
+				name = value;
+				OnNameChanged?.Invoke(oldValue, value);
+			}
+		}
 
 		public Identity(string id, string name) {
 			ID = id;
-			Name = name;
+			this.name = name;
 		}
 
 		public override string ToString() {

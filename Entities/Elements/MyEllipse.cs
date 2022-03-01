@@ -250,7 +250,7 @@ namespace MindMap.Entities.Elements {
 		}
 
 		public override Panel CreateElementProperties() {
-			return PropertiesPanel.SectionTitle($"{Identity.Name}");
+			return PropertiesPanel.SectionTitle($"{Identity.Name}", newName => Identity.Name = newName);
 		}
 
 		public void SubmitTextChange() {

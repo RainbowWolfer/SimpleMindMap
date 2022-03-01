@@ -17,6 +17,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using Xceed.Wpf.Toolkit;
+using static MindMap.Entities.EditHistory;
 
 namespace MindMap.Entities.Locals {
 	public static class Local {
@@ -32,7 +33,7 @@ namespace MindMap.Entities.Locals {
 			}
 		}
 
-		public static async Task<string> Save(List<Element> elements, ConnectionsManager connectionsManager, string filePath = "") {
+		public static async Task<string> Save(List<Element> elements, ConnectionsManager connectionsManager, EditHistory editHistory, string filePath = "") {
 			if(string.IsNullOrEmpty(filePath)) {
 				SaveFileDialog dialog = new() {
 					Filter = FILTER,
@@ -47,7 +48,8 @@ namespace MindMap.Entities.Locals {
 
 			MapInfo info = new(
 				elements.Select(e => new ElementInfo(e)).ToArray(),
-				connectionsManager.ConvertInfo()
+				connectionsManager.ConvertInfo(),
+				editHistory.GetHistoryInfo()
 			);
 			string json = JsonConvert.SerializeObject(info);
 			string converted = StringToBinary(json);
@@ -108,11 +110,22 @@ namespace MindMap.Entities.Locals {
 	public class MapInfo {
 		public readonly ElementInfo[] elements;
 		public readonly ConnectionInfo[] connections;
-		//history info
+		public readonly HistoryInfo history;
 
-		public MapInfo(ElementInfo[] elements, ConnectionInfo[] connections) {
+		public MapInfo(ElementInfo[] elements, ConnectionInfo[] connections, HistoryInfo history) {
 			this.elements = elements;
 			this.connections = connections;
+			this.history = history;
+		}
+	}
+
+	public class HistoryInfo {
+		public string HistoryJson { get; private set; }
+		public int Index { get; private set; }
+
+		public HistoryInfo(string historyJson, int index) {
+			HistoryJson = historyJson;
+			Index = index;
 		}
 	}
 

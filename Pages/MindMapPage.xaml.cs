@@ -90,9 +90,9 @@ namespace MindMap.Pages {
 			UpdateHistoryListView(history);
 		}
 
-		private void UpdateHistoryListView(List<EditHistory.IChange>? history = null) {
+		public void UpdateHistoryListView(List<EditHistory.IChange>? history = null) {
 			EditHistoryListView.Items.Clear();
-			foreach(var item in history ?? editHistory.GetPreviousHistories()) {
+			foreach(EditHistory.IChange item in history ?? editHistory.GetPreviousHistories()) {
 				Grid grid = new() {
 					Tag = item,
 				};
@@ -108,7 +108,7 @@ namespace MindMap.Pages {
 					Margin = new Thickness(10, 0, 0, 0),
 					TextWrapping = TextWrapping.Wrap,
 					HorizontalAlignment = HorizontalAlignment.Stretch,
-					Width = 230,
+					Width = 210,
 				};
 				Grid.SetColumn(text, 1);
 				grid.Children.Add(text);
@@ -119,7 +119,7 @@ namespace MindMap.Pages {
 
 		private void EditHistoryListView_SelectionChanged(object sender, SelectionChangedEventArgs e) {
 			if(e.AddedItems != null && e.AddedItems.Count > 0 && e.AddedItems[0] is Grid grid && grid.Tag is EditHistory.IChange change) {
-				UpdateEditHistoryDetail(change.GetDetail());
+				UpdateEditHistoryDetail(change.GetPreviousDetail());
 			} else {
 				UpdateEditHistoryDetail(null);
 			}
@@ -153,7 +153,7 @@ namespace MindMap.Pages {
 
 		public async void Save() {
 			SavingPanel.Visibility = Visibility.Visible;
-			_path = await Local.Save(elements.Values.ToList(), connectionsManager, _path);
+			_path = await Local.Save(elements.Values.ToList(), connectionsManager, editHistory, _path);
 			FileName = _path[(_path.LastIndexOf('\\') + 1)..];
 			ElementsChanged = false;
 			//set window title
@@ -169,7 +169,7 @@ namespace MindMap.Pages {
 			CreatedDateText.Text = $"Created Date ({fileInfo.CreatedDate})";
 
 			foreach(ElementInfo ele in mapInfo.elements) {
-				Element element = AddElement(ele.type_id, ele.identity, ele.position, ele.size);
+				Element element = AddElement(ele.type_id, ele.identity, ele.position, ele.size, ele.connectionControls, false);
 				element.SetProperty(ele.propertyJson);
 				await Task.Delay(1);
 			}
@@ -181,10 +181,11 @@ namespace MindMap.Pages {
 				if(from == null || to == null || fromDot == null || toDot == null) {
 					continue;
 				}
-				ConnectionPath? connection = connectionsManager.AddConnection(fromDot, toDot, item.identity, true);
+				ConnectionPath? connection = connectionsManager.AddConnection(fromDot, toDot, item.identity, false);
 				connection?.SetProperty(item.propertyJson);
 				await Task.Delay(1);
 			}
+			editHistory.SetHistory(mapInfo.history);
 			LoadingPanel.Visibility = Visibility.Collapsed;
 			SetSetOprationHintText("Loaded Successfully");
 		}
@@ -443,7 +444,8 @@ namespace MindMap.Pages {
 						element.GetSize(),
 						elementStartPos,
 						element.GetSize(),
-						element.GetPosition()
+						element.GetPosition(),
+						EditHistory.FrameChangeType.Move
 					);
 				} else {
 					switch(mouseType) {
@@ -513,19 +515,23 @@ namespace MindMap.Pages {
 			UpdateBackgroundDot();
 		}
 
-		//not working as intended
-		private void TabItem_PreviewMouseDoubleClick(object sender, MouseButtonEventArgs e) {
-			if(RightTabControl.Width > 100) {
-				RightTabControl.Width = 20;
-			} else {
-				RightTabControl.Width = 280;
+		private long lastClickTick = 0;
+		private void HistoryTabItemHeader_PreviewMouseUp(object sender, MouseButtonEventArgs e) {
+			if(DateTime.Now.Ticks - lastClickTick < 2500000) {
+				if(RightTabControl.Width > 100) {
+					RightTabControl.Width = 20;
+				} else {
+					RightTabControl.Width = 280;
+				}
+				RightTabControl.UpdateLayout();
+				UpdateBackgroundDot();
 			}
-			RightTabControl.UpdateLayout();
-			UpdateBackgroundDot();
+			lastClickTick = DateTime.Now.Ticks;
 		}
 
 		private enum MouseType {
 			Left, Middle, Right
 		}
+
 	}
 }

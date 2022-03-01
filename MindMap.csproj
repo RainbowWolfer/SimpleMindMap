@@ -14,6 +14,12 @@
     <None Remove="Icons\Connection_Add.psd" />
     <None Remove="Icons\Connection_Remove.png" />
     <None Remove="Icons\Connection_Remove.psd" />
+    <None Remove="Icons\ElementConnectionFrameControlsChange.png" />
+    <None Remove="Icons\ElementConnectionFrameControlsChange.psd" />
+    <None Remove="Icons\Element_Add.png" />
+    <None Remove="Icons\Element_Add.psd" />
+    <None Remove="Icons\Element_Remove.png" />
+    <None Remove="Icons\Element_Remove.psd" />
   </ItemGroup>
 
   <ItemGroup>
@@ -24,6 +30,9 @@
   <ItemGroup>
     <Resource Include="Icons\Connection_Add.png" />
     <Resource Include="Icons\Connection_Remove.png" />
+    <Resource Include="Icons\ElementConnectionFrameControlsChange.png" />
+    <Resource Include="Icons\Element_Add.png" />
+    <Resource Include="Icons\Element_Remove.png" />
   </ItemGroup>
 
 </Project>

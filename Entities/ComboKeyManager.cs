@@ -12,19 +12,25 @@ namespace MindMap.Entities {
 		private readonly List<Combo> pool = new();
 
 		private readonly List<Key> current = new();
+
+		private bool isLocked = false;
+
 		public ComboKeyManager(Window target) {
-			target.KeyDown += (s, e) => {
-				if(e.Key == Key.System) {
+			target.PreviewKeyDown += (s, e) => {
+				if(isLocked || e.Key == Key.System) {
 					return;
 				}
 				if(!current.Contains(e.Key)) {
 					current.Add(e.Key);
-					//Debug.WriteLine("add" + e.Key);
+					Debug.WriteLine("add " + e.Key);
 				}
 				Listen(KeyState.Pressed);
 			};
 
-			target.KeyUp += (s, e) => {
+			target.PreviewKeyUp += (s, e) => {
+				if(isLocked) {
+					return;
+				}
 				Listen(KeyState.Released);
 				if(current.Contains(e.Key)) {
 					current.Remove(e.Key);
@@ -32,28 +38,42 @@ namespace MindMap.Entities {
 			};
 
 			target.Activated += (s, e) => {
-				//Debug.WriteLine("Window Activated");
+				Debug.WriteLine("Window Activated");
 				current.Clear();
+				Lock();
 			};
 			target.Deactivated += (s, e) => {
-				//Debug.WriteLine("Window Deactivated");
+				Debug.WriteLine("Window Deactivated");
 				current.Clear();
+				Lock();
 			};
 
-			//DebugKeys();
+			DebugKeys();
 		}
 
 		private async void DebugKeys() {
+			bool once = false;
 			while(true) {
 				string result = "";
 				current.ForEach(c => result += c + " ");
 				if(string.IsNullOrWhiteSpace(result)) {
 					await Task.Delay(10);
+					if(once) {
+						Debug.WriteLine("Emptied");
+						once = false;
+					}
 					continue;
 				}
+				once = true;
 				Debug.WriteLine(result);
-				await Task.Delay(10);
+				await Task.Delay(50);
 			}
+		}
+
+		private async void Lock(int millisecondsDelay = 100) {
+			isLocked = true;
+			await Task.Delay(millisecondsDelay);
+			isLocked = false;
 		}
 
 		private void Listen(KeyState state) {

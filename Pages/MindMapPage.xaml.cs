@@ -31,7 +31,7 @@ namespace MindMap.Pages {
 		public readonly ConnectionsManager connectionsManager;
 		public readonly EditHistory editHistory;
 		public bool holdShift;
-		private string _path = "";
+		private string? savePath = null;
 		private string fileName = "(Not Saved)";
 		private bool elementsChanged = false;
 
@@ -164,19 +164,28 @@ namespace MindMap.Pages {
 
 		public async void Save() {
 			SavingPanel.Visibility = Visibility.Visible;
-			_path = await Local.Save(elements.Values.ToList(), connectionsManager, editHistory, _path);
-			FileName = _path[(_path.LastIndexOf('\\') + 1)..];
-			ElementsChanged = false;
-			//set window title
-			//set created time
+			savePath = await Local.Save(
+				elements.Values.ToList(),
+				connectionsManager,
+				editHistory,
+				savePath
+			);
+			if(string.IsNullOrWhiteSpace(savePath)) {
+
+			} else {
+				FileName = savePath[(savePath.LastIndexOf('\\') + 1)..];
+				ElementsChanged = false;
+				MainWindow.SetTitle($"Mind Map - {FileName}");
+				//set created time
+				SetSetOprationHintText("Saved Successfully");
+			}
 			SavingPanel.Visibility = Visibility.Collapsed;
-			SetSetOprationHintText("Saved Successfully");
 		}
 
 		public async void Load(MapInfo mapInfo, FileInfo fileInfo) {
 			LoadingPanel.Visibility = Visibility.Visible;
 			FileName = fileInfo.FileName;
-			_path = fileInfo.FilePath;
+			savePath = fileInfo.FilePath;
 			CreatedDateText.Text = $"Created Date ({fileInfo.CreatedDate})";
 
 			foreach(ElementInfo ele in mapInfo.elements) {
@@ -273,6 +282,7 @@ namespace MindMap.Pages {
 						Height = SIZE,
 						Fill = new SolidColorBrush(Colors.Gray),
 					};
+					t.MouseDown += BackgroundRectangle_MouseDown;
 					Canvas.SetLeft(t, i * GAP);
 					Canvas.SetTop(t, j * GAP);
 					backgroundPool.Add(new Vector2(i, j), t);

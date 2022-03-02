@@ -4,6 +4,7 @@ using MindMap.Entities.Elements;
 using MindMap.Entities.Frames;
 using MindMap.Entities.Identifications;
 using MindMap.Entities.Properties;
+using MindMap.Entities.Services;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -33,19 +34,16 @@ namespace MindMap.Entities.Locals {
 			}
 		}
 
-		public static async Task<string> Save(List<Element> elements, ConnectionsManager connectionsManager, EditHistory editHistory, string filePath = "") {
-			if(string.IsNullOrEmpty(filePath)) {
-				SaveFileDialog dialog = new() {
-					Filter = FILTER,
-					InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
-				};
-				if(dialog.ShowDialog() == true) {
-					filePath = dialog.FileName;
-				} else {
-					return filePath;
+		public static async Task<string?> Save(List<Element> elements, ConnectionsManager connectionsManager, EditHistory editHistory, string? filePath = null) {
+			if(string.IsNullOrWhiteSpace(filePath)) {
+				SaveResult result = WindowsService.CreateSaveFileDialog(FILTER);
+				if(result.Success) {
+					filePath = result.Path;
 				}
 			}
-
+			if(string.IsNullOrWhiteSpace(filePath)) {
+				return null;
+			}
 			MapInfo info = new(
 				elements.Select(e => new ElementInfo(e)).ToArray(),
 				connectionsManager.ConvertInfo(),
@@ -54,7 +52,6 @@ namespace MindMap.Entities.Locals {
 			string json = JsonConvert.SerializeObject(info);
 			string converted = StringToBinary(json);
 			await File.WriteAllTextAsync(filePath, converted);
-
 			return filePath;
 		}
 

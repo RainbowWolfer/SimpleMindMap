@@ -62,6 +62,13 @@ namespace MindMap {
 			}
 		}
 
+		public static void SetTitle(string title) {
+			if(Instance == null) {
+				return;
+			}
+			Instance.Title = title;
+		}
+
 		private void NewFileMenuItem_Click(object sender, RoutedEventArgs e) {
 			NavigateToMindMap();
 		}

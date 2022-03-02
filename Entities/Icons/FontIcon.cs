@@ -10,6 +10,7 @@ using System.Windows.Media;
 namespace MindMap.Entities.Icons {
 	public class FontIcon: IconElement {
 		public const string SEGOE_ASSETS = "Segoe MDL2 Assets";
+		public const string SEGOE_FLUENT = "Segoe Fluent Icons";
 		public const string SEGOE_SYMBOL = "Segoe UI Symbol";
 		public string FontFamily { get; set; }
 		public double FontSize { get; set; }

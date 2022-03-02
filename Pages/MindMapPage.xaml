@@ -114,7 +114,7 @@
 							<RowDefinition Height="*"/>
 							<RowDefinition Height="auto"/>
 						</Grid.RowDefinitions>
-						<ListView x:Name="EditHistoryListView" SelectionChanged="EditHistoryListView_SelectionChanged">
+						<ListView x:Name="EditHistoryListView" SelectionChanged="EditHistoryListView_SelectionChanged" d:ItemsSource="{d:SampleData ItemCount=5}">
 							<ListBox.ItemContainerStyle>
 								<Style TargetType="ListBoxItem">
 									<Setter Property="IsManipulationEnabled" Value="False"/>

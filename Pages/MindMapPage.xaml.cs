@@ -6,7 +6,10 @@ using MindMap.Entities.Frames;
 using MindMap.Entities.Identifications;
 using MindMap.Entities.Locals;
 using MindMap.Entities.Properties;
+using MindMap.Entities.Tags;
+using MindMap.Pages.Interfaces;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -21,9 +24,10 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using Xceed.Wpf.Toolkit.PropertyGrid.Attributes;
 
 namespace MindMap.Pages {
-	public partial class MindMapPage: Page {//Editor Page
+	public partial class MindMapPage: Page, IPage {//Editor Page
 		public readonly ConnectionsManager connectionsManager;
 		public readonly EditHistory editHistory;
 		public bool holdShift;
@@ -76,6 +80,13 @@ namespace MindMap.Pages {
 				() => Redo(),
 				() => { },
 			false, Key.LeftCtrl, Key.Y);
+		}
+
+		public void OnClose() {
+			MainWindow.Instance?.KeyManager.Remove(Key.LeftShift);
+			MainWindow.Instance?.KeyManager.Remove(Key.LeftCtrl, Key.S);
+			MainWindow.Instance?.KeyManager.Remove(Key.LeftCtrl, Key.Z);
+			MainWindow.Instance?.KeyManager.Remove(Key.LeftCtrl, Key.Y);
 		}
 
 		private void EditHistory_OnUndo(EditHistory.IChange obj) {
@@ -173,6 +184,7 @@ namespace MindMap.Pages {
 				element.SetProperty(ele.propertyJson);
 				await Task.Delay(1);
 			}
+
 			foreach(ConnectionInfo item in mapInfo.connections) {
 				Element? from = elements.Select(e => e.Value).ToList().Find(i => i.Identity == item.from_element);
 				ConnectionControl? fromDot = from?.GetConnectionControlByID(item.from_dot.ID);
@@ -185,7 +197,9 @@ namespace MindMap.Pages {
 				connection?.SetProperty(item.propertyJson);
 				await Task.Delay(1);
 			}
+
 			editHistory.SetHistory(mapInfo.history);
+			UpdateHistoryListView();
 			LoadingPanel.Visibility = Visibility.Collapsed;
 			SetSetOprationHintText("Loaded Successfully");
 		}
@@ -335,7 +349,7 @@ namespace MindMap.Pages {
 			element.SetFramework();
 			element.CreateConnectionsFrame(initialControls);
 			element.CreateFlyoutMenu();
-			element.Target.MouseDown += Element_MouseDown;
+			element.Target.MouseDown += (s, e) => Element_MouseDown(s, e, element);
 			elements.Add(element.Target, element);
 			if(element is IUpdate update) {
 				update.Update();
@@ -371,7 +385,52 @@ namespace MindMap.Pages {
 			RemoveElement(element, submitEditHistory);
 		}
 
-		private void Element_MouseDown(object sender, MouseButtonEventArgs e) {
+		public void PutElementOnTop(Element element) {
+			//FrameworkElement? target = null;
+
+			int lastIndex = MainCanvas.Children.Count;
+			for(int i = MainCanvas.Children.Count - 1; i >= 0; i--) {
+				if(MainCanvas.Children[i] is FrameworkElement e && e.Tag is ResizeFrameworkTag) {
+					lastIndex = i;
+				}
+			}
+
+			for(int i = 0; i < MainCanvas.Children.Count; i++) {
+				if(MainCanvas.Children[i] is FrameworkElement e &&
+					e.Tag is ElementFrameworkTag tag &&
+					tag.Target == element
+				) {
+					var targets = element.GetRelatedFrameworks();
+					foreach(FrameworkElement item in targets) {
+						MainCanvas.Children.Remove(item);
+					}
+					targets.Reverse();
+					foreach(FrameworkElement item in targets) {
+						MainCanvas.Children.Insert(lastIndex - targets.Count, item);
+					}
+					break;
+				}
+			}
+
+			for(int i = 0; i < MainCanvas.Children.Count; i++) {
+				if(MainCanvas.Children[i] is FrameworkElement e &&
+					e.Tag is ElementFrameworkTag tag &&
+					tag.Target == element
+				) {
+					var targets = element.GetRelatedPaths();
+					foreach(ConnectionPath path in targets) {
+						MainCanvas.Children.Remove(path.Path);
+					}
+					foreach(ConnectionPath path in targets) {
+						MainCanvas.Children.Insert(lastIndex - targets.Count, path.Path);
+					}
+					break;
+				}
+			}
+
+		}
+
+		private void Element_MouseDown(object sender, MouseButtonEventArgs e, Element element) {
 			FrameworkElement? target = sender as FrameworkElement;
 			current = target;
 			if(current != Selection?.target) {
@@ -383,6 +442,7 @@ namespace MindMap.Pages {
 			elementStartPos = new Vector2(Canvas.GetLeft(target), Canvas.GetTop(target));
 			Mouse.Capture(sender as UIElement);
 			hasMoved = false;
+			PutElementOnTop(element);
 			if(e.MouseDevice.LeftButton == MouseButtonState.Pressed) {
 				mouseType = MouseType.Left;
 			} else if(e.MouseDevice.RightButton == MouseButtonState.Pressed) {

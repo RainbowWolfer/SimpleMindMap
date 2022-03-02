@@ -2,6 +2,7 @@
 using MindMap.Entities.Elements;
 using MindMap.Entities.Locals;
 using MindMap.Pages;
+using MindMap.Pages.Interfaces;
 using MindMap.SubWindows;
 using System;
 using System.Collections.Generic;
@@ -41,9 +42,16 @@ namespace MindMap {
 		}
 
 		public void NavigateToMindMap() {
+			ClosePreviousPage();
 			_mindMapPage = new MindMapPage();
 			MainFrame.Navigate(_mindMapPage);
 			_mindMapPage.Focus();
+		}
+
+		public void ClosePreviousPage() {
+			if(MainFrame.Content is IPage page) {
+				page.OnClose();
+			}
 		}
 
 		public async void OpenFile() {

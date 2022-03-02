@@ -326,11 +326,9 @@ namespace MindMap.Entities {
 			} else if(last is ConnectionCreateOrDelete ccd) {
 				switch(ccd.Type) {
 					case CreateOrDelete.Create:
-						//_parent.connectionsManager.Remove(ccd.Path, false);
 						_parent.connectionsManager.RemoveConnection(ccd.Identity, false);
 						break;
 					case CreateOrDelete.Delete:
-						//_parent.connectionsManager.Add(ccd.Path, false);
 						_parent.connectionsManager.AddConnection(
 							ccd.Identity,
 							ccd.FromElement,
@@ -399,7 +397,6 @@ namespace MindMap.Entities {
 			} else if(first is ConnectionCreateOrDelete ccd) {
 				switch(ccd.Type) {
 					case CreateOrDelete.Create:
-						//_parent.connectionsManager.Add(ccd.Path, false);
 						_parent.connectionsManager.AddConnection(
 							ccd.Identity,
 							ccd.FromElement,
@@ -411,7 +408,6 @@ namespace MindMap.Entities {
 						);
 						break;
 					case CreateOrDelete.Delete:
-						//_parent.connectionsManager.Remove(ccd.Path, false);
 						_parent.connectionsManager.RemoveConnection(ccd.Identity, false);
 						break;
 					default:

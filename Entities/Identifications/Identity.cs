@@ -40,5 +40,9 @@ namespace MindMap.Entities.Identifications {
 		public override int GetHashCode() {
 			return base.GetHashCode();
 		}
+
+		public static bool operator ==(Identity i1, Identity i2) => i1.Equals(i2);
+		public static bool operator !=(Identity i1, Identity i2) => !i1.Equals(i2);
+
 	}
 }

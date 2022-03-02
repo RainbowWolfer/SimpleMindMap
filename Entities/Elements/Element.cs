@@ -16,6 +16,7 @@ using MindMap.Entities.Properties;
 using MindMap.Entities.Connections;
 using MindMap.Entities.Identifications;
 using MindMap.Entities.Services;
+using MindMap.Entities.Tags;
 
 namespace MindMap.Entities.Elements {
 	public abstract class Element: IPropertiesContainer, IIdentityContainer {
@@ -40,12 +41,13 @@ namespace MindMap.Entities.Elements {
 			this.parent = parent;
 			Identity = identity ?? new Identity(IntializeID(GetType()), InitializeDefaultName());
 			Identity.OnNameChanged += (n, o) => parent.UpdateHistoryListView();
+			Target.Tag = new ElementFrameworkTag(this);
 			Debug();
 		}
 
 		private async void Debug() {
 			while(true) {
-				ToolTipService.SetToolTip(Target, $"");
+				ToolTipService.SetToolTip(Target, $"{Identity}");
 				await Task.Delay(100);
 			}
 		}
@@ -75,6 +77,14 @@ namespace MindMap.Entities.Elements {
 
 		public abstract void SetProperty(IProperty property);
 		public abstract void SetProperty(string propertyJson);
+
+		public List<FrameworkElement> GetRelatedFrameworks() {
+			List<FrameworkElement> result = new() { Target };
+			if(ConnectionsFrame != null) {
+				result.AddRange(ConnectionsFrame.AllDots.Select(d => d.target));
+			}
+			return result;
+		}
 
 		public void CreateConnectionsFrame(ControlsInfo? initialControls = null) {
 			ConnectionsFrame = new ConnectionsFrame(this.parent, this, initialControls);

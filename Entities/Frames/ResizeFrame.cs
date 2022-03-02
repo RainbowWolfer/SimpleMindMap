@@ -1,5 +1,6 @@
 ﻿using MindMap.Entities.Elements;
 using MindMap.Entities.Elements.Interfaces;
+using MindMap.Entities.Tags;
 using MindMap.Pages;
 using System;
 using System.Collections.Generic;
@@ -28,10 +29,22 @@ namespace MindMap.Entities.Frames {
 			style_line.Setters.Add(new Setter(Shape.StrokeThicknessProperty, STROKE));
 
 			//line pattern cannot handle mousedown, consider using rectangle -> stroke
-			Line top = new() { Style = style_line };
-			Line bottom = new() { Style = style_line };
-			Line left = new() { Style = style_line };
-			Line right = new() { Style = style_line };
+			Line top = new() {
+				Style = style_line,
+				Tag = new ResizeFrameworkTag(),
+			};
+			Line bottom = new() {
+				Style = style_line,
+				Tag = new ResizeFrameworkTag(),
+			};
+			Line left = new() {
+				Style = style_line,
+				Tag = new ResizeFrameworkTag(),
+			};
+			Line right = new() {
+				Style = style_line,
+				Tag = new ResizeFrameworkTag(),
+			};
 
 			mainCanvas.Children.Add(top);
 			mainCanvas.Children.Add(bottom);
@@ -46,10 +59,22 @@ namespace MindMap.Entities.Frames {
 			style_rect.Setters.Add(new Setter(Shape.StrokeProperty, Brushes.Black));
 			style_rect.Setters.Add(new Setter(Shape.StrokeDashArrayProperty, new DoubleCollection(new double[] { 3, 1 })));
 
-			Rectangle top_left = new() { Style = style_rect };
-			Rectangle top_right = new() { Style = style_rect };
-			Rectangle bot_left = new() { Style = style_rect };
-			Rectangle bot_right = new() { Style = style_rect };
+			Rectangle top_left = new() {
+				Style = style_rect,
+				Tag = new ResizeFrameworkTag(),
+			};
+			Rectangle top_right = new() {
+				Style = style_rect,
+				Tag = new ResizeFrameworkTag(),
+			};
+			Rectangle bot_left = new() {
+				Style = style_rect,
+				Tag = new ResizeFrameworkTag(),
+			};
+			Rectangle bot_right = new() {
+				Style = style_rect,
+				Tag = new ResizeFrameworkTag(),
+			};
 
 			mainCanvas.Children.Add(top_left);
 			mainCanvas.Children.Add(top_right);

@@ -19,6 +19,7 @@ namespace MindMap.Entities {
 				}
 				if(!current.Contains(e.Key)) {
 					current.Add(e.Key);
+					//Debug.WriteLine("add" + e.Key);
 				}
 				Listen(KeyState.Pressed);
 			};
@@ -31,11 +32,11 @@ namespace MindMap.Entities {
 			};
 
 			target.Activated += (s, e) => {
-				Debug.WriteLine("Window Activated");
+				//Debug.WriteLine("Window Activated");
 				current.Clear();
 			};
 			target.Deactivated += (s, e) => {
-				Debug.WriteLine("Window Deactivated");
+				//Debug.WriteLine("Window Deactivated");
 				current.Clear();
 			};
 
@@ -46,6 +47,10 @@ namespace MindMap.Entities {
 			while(true) {
 				string result = "";
 				current.ForEach(c => result += c + " ");
+				if(string.IsNullOrWhiteSpace(result)) {
+					await Task.Delay(10);
+					continue;
+				}
 				Debug.WriteLine(result);
 				await Task.Delay(10);
 			}
@@ -76,6 +81,10 @@ namespace MindMap.Entities {
 				return;
 			}
 			pool.Add(new Combo(keyDown, keyUp, keys, resetAfterKeyDown));
+		}
+
+		public void Remove(params Key[] keys) {
+			pool.RemoveAll(p => p.keys.SequenceEqual(keys));
 		}
 
 		private bool CheckKeysExisted(Key[] keys) => FindByKeys(keys) != null;

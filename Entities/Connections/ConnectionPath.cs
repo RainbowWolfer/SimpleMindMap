@@ -3,6 +3,7 @@ using MindMap.Entities.Frames;
 using MindMap.Entities.Identifications;
 using MindMap.Entities.Properties;
 using MindMap.Entities.Services;
+using MindMap.Entities.Tags;
 using MindMap.Pages;
 using Newtonsoft.Json;
 using System;
@@ -273,9 +274,10 @@ namespace MindMap.Entities.Connections {
 			return $"Conection: {from.Parent_ID}-{to?.Parent_ID ?? "None"}";
 		}
 
-		public static Path CreatePath(Vector2 from, Vector2 to) {
+		public Path CreatePath(Vector2 from, Vector2 to) {
 			return new Path() {
 				Data = CreateGeometry(from, to),
+				Tag = new ConnectionPathFrameworkTag(this),
 			};
 		}
 

@@ -12,6 +12,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace MindMap.UserControls {
 	public partial class RenamableTextDisplay: UserControl {
@@ -34,6 +35,7 @@ namespace MindMap.UserControls {
 					if(string.IsNullOrWhiteSpace(newInput)) {
 						return;
 					}
+					Text = newInput;
 					Block.Text = newInput;
 					TextChanged?.Invoke(newInput);
 				}

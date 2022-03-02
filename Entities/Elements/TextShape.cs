@@ -1,6 +1,7 @@
 ﻿using MindMap.Entities.Elements.Interfaces;
 using MindMap.Entities.Identifications;
 using MindMap.Entities.Properties;
+using MindMap.Entities.Tags;
 using MindMap.Pages;
 using System;
 using System.Collections.Generic;

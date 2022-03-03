@@ -33,13 +33,13 @@ namespace MindMap.Pages {
 		public bool holdShift;
 		private string? savePath = null;
 		private string fileName = "(Not Saved)";
-		private bool elementsChanged = false;
+		private bool hasChanged = false;
 
 		public string FileName {
 			get => fileName;
 			set {
 				fileName = value;
-				FileNameText.Text = FileName + (ElementsChanged ? "*" : "");
+				FileNameText.Text = FileName + (HasChanged ? "*" : "");
 			}
 		}
 
@@ -90,14 +90,20 @@ namespace MindMap.Pages {
 		}
 
 		private void EditHistory_OnUndo(EditHistory.IChange obj) {
+			MainWindow.Instance?.SetUndoMenuItemActive(editHistory.GetPreviousHistories().Count > 0);
+			MainWindow.Instance?.SetRedoMenuItemActive(true);
 			UpdateHistoryListView();
 		}
 
 		private void EditHistory_OnRedo(EditHistory.IChange obj) {
+			MainWindow.Instance?.SetRedoMenuItemActive(editHistory.GetFuturesHistories().Count > 0);
+			MainWindow.Instance?.SetUndoMenuItemActive(true);
 			UpdateHistoryListView();
 		}
 
 		private void EditHistory_OnHistoryChanged(List<EditHistory.IChange> history) {
+			HasChanged = true;
+			MainWindow.Instance?.SetUndoMenuItemActive(true);
 			UpdateHistoryListView(history);
 		}
 
@@ -162,19 +168,17 @@ namespace MindMap.Pages {
 			OprationHintText.Visibility = Visibility.Collapsed;
 		}
 
-		public async void Save() {
+		public async void Save(bool saveAs = false) {
 			SavingPanel.Visibility = Visibility.Visible;
 			savePath = await Local.Save(
 				elements.Values.ToList(),
 				connectionsManager,
 				editHistory,
-				savePath
+				saveAs ? null : savePath
 			);
-			if(string.IsNullOrWhiteSpace(savePath)) {
-
-			} else {
+			if(!string.IsNullOrWhiteSpace(savePath)) {
 				FileName = savePath[(savePath.LastIndexOf('\\') + 1)..];
-				ElementsChanged = false;
+				HasChanged = false;
 				MainWindow.SetTitle($"Mind Map - {FileName}");
 				//set created time
 				SetSetOprationHintText("Saved Successfully");
@@ -223,11 +227,11 @@ namespace MindMap.Pages {
 
 		private static ResizeFrame? Selection => ResizeFrame.Current;
 
-		public bool ElementsChanged {
-			get => elementsChanged;
+		public bool HasChanged {
+			get => hasChanged;
 			set {
-				elementsChanged = value;
-				FileNameText.Text = FileName + (ElementsChanged ? "*" : "");
+				hasChanged = value;
+				FileNameText.Text = FileName + (HasChanged ? "*" : "");
 			}
 		}
 

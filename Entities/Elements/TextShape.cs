@@ -16,6 +16,7 @@ using System.Windows.Shapes;
 
 namespace MindMap.Entities.Elements {
 	public abstract class TextShape: Element, ITextGrid, IBorderBasedStyle {
+		public abstract FrameworkElement Shape { get; }
 		public TextBox MyTextBox { get; set; } = new();
 		public TextBlock MyTextBlock { get; set; } = new();
 
@@ -178,6 +179,16 @@ namespace MindMap.Entities.Elements {
 			MyTextBox.HorizontalAlignment = HorizontalAlignment.Stretch;
 			MyTextBox.AcceptsReturn = true;
 			MyTextBox.AcceptsTab = true;
+
+			if(Shape is Border border) {
+				border.Background = Background;
+				border.BorderBrush = BorderColor;
+				border.BorderThickness = BorderThickness;
+			} else if(Shape is Shape shape) {
+				shape.Fill = Background;
+				shape.Stroke = BorderColor;
+				shape.StrokeThickness = BorderThickness.Top;
+			}
 		}
 	}
 }

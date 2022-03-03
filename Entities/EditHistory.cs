@@ -1,5 +1,6 @@
 ﻿using MindMap.Entities.Connections;
 using MindMap.Entities.Elements;
+using MindMap.Entities.Elements.Interfaces;
 using MindMap.Entities.Frames;
 using MindMap.Entities.Icons;
 using MindMap.Entities.Identifications;
@@ -63,6 +64,7 @@ namespace MindMap.Entities {
 		}
 
 		public List<IChange> GetPreviousHistories() => previous.ToArray().Reverse().ToList();
+		public List<IChange> GetFuturesHistories() => future.ToArray().Reverse().ToList();
 
 		public static List<IChange> ConvertBack(string pairsJson) {
 			List<Pair<int, string>>? pairs = JsonConvert.DeserializeObject<List<Pair<int, string>>>(pairsJson);
@@ -322,6 +324,9 @@ namespace MindMap.Entities {
 					element.SetSize(fc.FromSize);
 					element.UpdateConnectionsFrame();
 					ResizeFrame.Current?.UpdateResizeFrame();
+					if(element is IUpdate update) {
+						update.Update();
+					}
 				}
 			} else if(last is ConnectionCreateOrDelete ccd) {
 				switch(ccd.Type) {
@@ -393,6 +398,9 @@ namespace MindMap.Entities {
 					element.SetSize(fc.ToSize);
 					element.UpdateConnectionsFrame();
 					ResizeFrame.Current?.UpdateResizeFrame();
+					if(element is IUpdate update) {
+						update.Update();
+					}
 				}
 			} else if(first is ConnectionCreateOrDelete ccd) {
 				switch(ccd.Type) {

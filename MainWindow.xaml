@@ -3,8 +3,8 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:MindMap"
-        mc:Ignorable="d"
+        xmlns:local="clr-namespace:MindMap" xmlns:usercontrols="clr-namespace:MindMap.UserControls"
+		mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
 	<Grid>
 		<Grid.RowDefinitions>
@@ -13,19 +13,20 @@
 		</Grid.RowDefinitions>
 		<Menu>
 			<MenuItem Header="Files">
-				<MenuItem x:Name="NewFileMenuItem" Header="New File" Click="NewFileMenuItem_Click"/>
+				<MenuItem x:Name="NewFileMenuItem" Header="New Item" Click="NewFileMenuItem_Click"/>
 				<MenuItem x:Name="OpenFileMenuItem" Header="Open File" Click="OpenFileMenuItem_Click"/>
 				<Separator/>
 				<MenuItem x:Name="SaveMenuItem" Header="Save" Click="SaveMenuItem_Click"/>
-				<MenuItem Header="Save As"/>
+				<MenuItem x:Name="SaveAsMenuItem" Header="Save As" Click="SaveAsMenuItem_Click"/>
 				<Separator/>
-				<MenuItem Header="Exit"/>
+				<MenuItem x:Name="ExitMenuItem" Header="Exit" Click="ExitMenuItem_Click"/>
 			</MenuItem>
 			<MenuItem Header="Edit">
-				<MenuItem Name="RedoMenuItem" Header="Redo" Click="RedoMenuItem_Click"/>
-				<MenuItem Name="UndoMenuItem" Header="Undo" Click="UndoMenuItem_Click"/>
+				<MenuItem x:Name="RedoMenuItem" Header="Redo" Click="RedoMenuItem_Click"/>
+				<MenuItem x:Name="UndoMenuItem" Header="Undo" Click="UndoMenuItem_Click"/>
 			</MenuItem>
-			<MenuItem Header="About">
+			<MenuItem Header="More">
+				<MenuItem x:Name="SettingsMenuItem" Header="Settings" Click="SettingsMenuItem_Click"/>
 				<MenuItem x:Name="AboutThisMenuItem" Header="About This" Click="AboutThisMenuItem_Click"/>
 			</MenuItem>
 		</Menu>

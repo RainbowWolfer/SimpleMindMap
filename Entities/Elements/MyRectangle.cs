@@ -5,6 +5,7 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -40,6 +41,7 @@ namespace MindMap.Entities.Elements {
 
 
 		private readonly Border _rect = new();
+		public override FrameworkElement Shape => _rect;
 
 		public MyRectangle(MindMapPage parent, Identity? identity = null, string? propertyJson = null) : base(parent, identity) {
 			if(!string.IsNullOrWhiteSpace(propertyJson)) {
@@ -76,9 +78,6 @@ namespace MindMap.Entities.Elements {
 
 		protected override void UpdateStyle() {
 			base.UpdateStyle();
-			_rect.Background = Background;
-			_rect.BorderBrush = BorderColor;
-			_rect.BorderThickness = BorderThickness;
 			_rect.CornerRadius = CornerRadius;
 		}
 	}

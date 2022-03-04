@@ -12,11 +12,11 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Shapes;
 
-namespace MindMap.Entities.Elements {
+namespace MindMap.Entities.Elements.TextShapes {
 	public class MyRectangle: TextShape {
 		public override long TypeID => ID_Rectangle;
 		public override string ElementTypeName => "Rectangle";
-		private class Property: BaseProperty {
+		private class Property: TextShapeProperty {
 			public CornerRadius cornerRadius = new(0);
 
 			public override object Clone() {
@@ -37,7 +37,7 @@ namespace MindMap.Entities.Elements {
 			}
 		}
 
-		protected override BaseProperty BaseProperties => property;
+		protected override TextShapeProperty BaseProperties => property;
 
 
 		private readonly Border _rect = new();

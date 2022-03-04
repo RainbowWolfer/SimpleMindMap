@@ -21,6 +21,7 @@
     <None Remove="Icons\Element_Add.psd" />
     <None Remove="Icons\Element_Remove.png" />
     <None Remove="Icons\Element_Remove.psd" />
+    <None Remove="Images\20210620_130110.jpg" />
   </ItemGroup>
 
   <ItemGroup>
@@ -34,6 +35,7 @@
     <Resource Include="Icons\ElementConnectionFrameControlsChange.png" />
     <Resource Include="Icons\Element_Add.png" />
     <Resource Include="Icons\Element_Remove.png" />
+    <Resource Include="Images\20210620_130110.jpg" />
   </ItemGroup>
 
 </Project>

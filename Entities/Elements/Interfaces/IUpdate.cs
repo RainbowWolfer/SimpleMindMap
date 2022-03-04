@@ -6,6 +6,6 @@ using System.Threading.Tasks;
 
 namespace MindMap.Entities.Elements.Interfaces {
 	public interface IUpdate {
-		public void Update();
+		void Update();
 	}
 }

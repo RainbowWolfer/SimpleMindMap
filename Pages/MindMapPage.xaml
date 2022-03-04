@@ -90,7 +90,16 @@
 				<!--Only for detecting contacting canvas through mouse-->
 				<Rectangle x:Name="BackgroundRectangle" Fill="Transparent" MouseDown="BackgroundRectangle_MouseDown" MouseMove="BackgroundRectangle_MouseMove" MouseUp="BackgroundRectangle_MouseUp"/>
 				<Canvas x:Name="MainCanvas" Loaded="MainCanvas_Loaded">
-					<Canvas x:Name="BackgroundCanvas"/>
+					<Canvas x:Name="BackgroundCanvas">
+						<Grid Width="150" Height="150">
+							<Image Source="/Images/20210620_130110.jpg" Stretch="Uniform"/>
+							<TextBlock Text="This is Annotation" HorizontalAlignment="Center" VerticalAlignment="Center">
+								<TextBlock.RenderTransform>
+									<TranslateTransform X="0" Y="75"/>
+								</TextBlock.RenderTransform>
+							</TextBlock>
+						</Grid>
+					</Canvas>
 					<Canvas.RenderTransform>
 						<TransformGroup>
 							<TranslateTransform x:Name="MainCanvas_TranslateTransform" X="0" Y="0"/>

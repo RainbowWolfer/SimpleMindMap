@@ -14,12 +14,12 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Shapes;
 
-namespace MindMap.Entities.Elements {
+namespace MindMap.Entities.Elements.TextShapes {
 	public class MyPolygon: TextShape, IUpdate {
 		public override long TypeID => ID_Polygon;
 		public override string ElementTypeName => "Polygon";
 
-		private class Property: BaseProperty {
+		private class Property: TextShapeProperty {
 			public int pointCount = 6;
 
 			public override object Clone() {
@@ -40,7 +40,7 @@ namespace MindMap.Entities.Elements {
 			}
 		}
 
-		protected override BaseProperty BaseProperties => property;
+		protected override TextShapeProperty BaseProperties => property;
 
 		private readonly Grid _root = new();
 		private readonly Polygon _polygon = new();

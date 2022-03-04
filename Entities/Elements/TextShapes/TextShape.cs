@@ -14,47 +14,12 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
 
-namespace MindMap.Entities.Elements {
-	public abstract class TextShape: Element, ITextGrid, IBorderBasedStyle {
+namespace MindMap.Entities.Elements.TextShapes {
+	public abstract class TextShape: TextRelated, ITextGrid, IBorderBasedStyle {
 		public abstract FrameworkElement Shape { get; }
 		public TextBox MyTextBox { get; set; } = new();
 		public TextBlock MyTextBlock { get; set; } = new();
 
-		public string Text {
-			get => BaseProperties.text;
-			set {
-				BaseProperties.text = value;
-				UpdateStyle();
-			}
-		}
-		public FontFamily FontFamily {
-			get => BaseProperties.fontFamily;
-			set {
-				BaseProperties.fontFamily = value;
-				UpdateStyle();
-			}
-		}
-		public FontWeight FontWeight {
-			get => BaseProperties.fontWeight;
-			set {
-				BaseProperties.fontWeight = value;
-				UpdateStyle();
-			}
-		}
-		public double FontSize {
-			get => BaseProperties.fontSize;
-			set {
-				BaseProperties.fontSize = value;
-				UpdateStyle();
-			}
-		}
-		public Color FontColor {
-			get => BaseProperties.fontColor;
-			set {
-				BaseProperties.fontColor = value;
-				UpdateStyle();
-			}
-		}
 		public Brush Background {
 			get => BaseProperties.background;
 			set {
@@ -80,20 +45,13 @@ namespace MindMap.Entities.Elements {
 		protected readonly Grid root = new();
 		public override FrameworkElement Target => root;
 
-		protected abstract class BaseProperty: IProperty {
-			public string text = "(Hello World)";//textbox
-			public FontFamily fontFamily = new("Microsoft YaHei UI");//comboBox
-			public FontWeight fontWeight = FontWeights.Normal;//comboBox
-			public double fontSize = 14;//slider
-			public Color fontColor = Colors.Black;
+		protected abstract class TextShapeProperty: TextRelatedProperty {
 			public Brush background = Brushes.Gray;
 			public Brush borderColor = Brushes.Aquamarine;
 			public Thickness borderThickness = new(2);
-			public abstract IProperty Translate(string json);
-			public abstract object Clone();
 		}
 
-		protected abstract BaseProperty BaseProperties { get; }
+		protected abstract TextShapeProperty BaseProperties { get; }
 		public override IProperty Properties => BaseProperties;
 
 		public TextShape(MindMapPage parent, Identity? identity = null) : base(parent, identity) {

@@ -14,12 +14,12 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Media;
 using System.Windows.Shapes;
 
-namespace MindMap.Entities.Elements {
+namespace MindMap.Entities.Elements.TextShapes {
 	public class MyEllipse: TextShape {
 		public override long TypeID => ID_Ellipse;
 		public override string ElementTypeName => "Ellipse";
 
-		private class Property: BaseProperty {
+		private class Property: TextShapeProperty {
 
 			public override object Clone() {
 				return MemberwiseClone();
@@ -30,7 +30,7 @@ namespace MindMap.Entities.Elements {
 			}
 		}
 		private Property property = new();
-		protected override BaseProperty BaseProperties => property;
+		protected override TextShapeProperty BaseProperties => property;
 
 		private readonly Ellipse _ellipse = new();
 		public override FrameworkElement Shape => _ellipse;

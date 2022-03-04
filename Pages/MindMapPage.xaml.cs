@@ -2,6 +2,7 @@
 using MindMap.Entities.Connections;
 using MindMap.Entities.Elements;
 using MindMap.Entities.Elements.Interfaces;
+using MindMap.Entities.Elements.TextShapes;
 using MindMap.Entities.Frames;
 using MindMap.Entities.Identifications;
 using MindMap.Entities.Locals;

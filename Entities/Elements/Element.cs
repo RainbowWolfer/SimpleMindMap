@@ -24,6 +24,7 @@ namespace MindMap.Entities.Elements {
 		public const long ID_Rectangle = 1;
 		public const long ID_Ellipse = 2;
 		public const long ID_Polygon = 3;
+		public const long ID_Image = 4;
 
 		public abstract string ElementTypeName { get; }
 

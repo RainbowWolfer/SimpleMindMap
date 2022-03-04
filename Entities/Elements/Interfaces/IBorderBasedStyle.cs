@@ -9,9 +9,8 @@ using System.Windows.Shapes;
 
 namespace MindMap.Entities.Elements.Interfaces {
 	public interface IBorderBasedStyle {
-		//public Shape MyShape { get; }
-		public Brush Background { get; set; }
-		public Brush BorderColor { get; set; }
-		public Thickness BorderThickness { get; set; }
+		Brush Background { get; set; }
+		Brush BorderColor { get; set; }
+		Thickness BorderThickness { get; set; }
 	}
 }

@@ -8,18 +8,12 @@ using System.Windows.Controls;
 using System.Windows.Media;
 
 namespace MindMap.Entities.Elements.Interfaces {
-	public interface ITextGrid {
-		public TextBox MyTextBox { get; set; }
-		public TextBlock MyTextBlock { get; set; }
+	public interface ITextGrid: ITextContainer {
+		TextBox MyTextBox { get; set; }
+		TextBlock MyTextBlock { get; set; }
 
-		public string Text { get; set; }
-		public FontFamily FontFamily { get; set; }
-		public FontWeight FontWeight { get; set; }
-		public double FontSize { get; set; }
-		public Color FontColor { get; set; }
-
-		public void SubmitTextChange();
-		public void ShowTextBox();
-		public void ShowTextBlock();
+		void SubmitTextChange();
+		void ShowTextBox();
+		void ShowTextBlock();
 	}
 }

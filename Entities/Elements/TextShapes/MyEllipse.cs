@@ -31,6 +31,8 @@ namespace MindMap.Entities.Elements.TextShapes {
 		}
 		private Property property = new();
 		protected override TextShapeProperty BaseProperties => property;
+		protected override TextRelatedProperty TextRelatedProperties => property;
+
 
 		private readonly Ellipse _ellipse = new();
 		public override FrameworkElement Shape => _ellipse;

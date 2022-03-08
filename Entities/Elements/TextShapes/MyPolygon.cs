@@ -41,6 +41,8 @@ namespace MindMap.Entities.Elements.TextShapes {
 		}
 
 		protected override TextShapeProperty BaseProperties => property;
+		protected override TextRelatedProperty TextRelatedProperties => property;
+
 
 		private readonly Grid _root = new();
 		private readonly Polygon _polygon = new();

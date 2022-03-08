@@ -481,8 +481,4 @@ namespace MindMap.Entities.Frames {
 			return true;
 		}
 	}
-
-	public enum Direction {
-		Left, Right, Top, Bottom
-	}
 }

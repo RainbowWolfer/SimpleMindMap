@@ -38,11 +38,10 @@ namespace MindMap.Entities.Elements.TextShapes {
 		}
 
 		protected override TextShapeProperty BaseProperties => property;
-
+		protected override TextRelatedProperty TextRelatedProperties => property;
 
 		private readonly Border _rect = new();
 		public override FrameworkElement Shape => _rect;
-
 		public MyRectangle(MindMapPage parent, Identity? identity = null, string? propertyJson = null) : base(parent, identity) {
 			if(!string.IsNullOrWhiteSpace(propertyJson)) {
 				SetProperty(propertyJson);
@@ -71,6 +70,7 @@ namespace MindMap.Entities.Elements.TextShapes {
 			this.property = (Property)property;
 			UpdateStyle();
 		}
+
 		public override void SetProperty(string propertyJson) {
 			property = (Property)property.Translate(propertyJson);
 			UpdateStyle();

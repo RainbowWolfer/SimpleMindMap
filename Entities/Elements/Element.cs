@@ -121,32 +121,31 @@ namespace MindMap.Entities.Elements {
 			panels.Add(CreateElementProperties());
 
 			if(this is IBorderBasedStyle border) {
-				panels.AddRange(new Panel[] {
-					PropertiesPanel.SectionTitle("Border"),
-					PropertiesPanel.ColorInput("Background Color", border.Background,
-						args => IPropertiesContainer.PropertyChangedHandler(this, () => {
-							border.Background = new SolidColorBrush(args.NewValue);
-						}, (oldP, newP) => {
-							parent.editHistory.SubmitByElementPropertyDelayedChanged(TargetType.Element, this, oldP, newP, "Background Color");
-						})
-					),
-					PropertiesPanel.ColorInput("Border Color", border.BorderColor,
-						args => IPropertiesContainer.PropertyChangedHandler(this, () => {
-							border.BorderColor = new SolidColorBrush(args.NewValue);
-						}, (oldP, newP) => {
-							parent.editHistory.SubmitByElementPropertyDelayedChanged(TargetType.Element, this, oldP, newP, "Border Color");
-						})
-					),
-					PropertiesPanel.SliderInput("Border Thickness", border.BorderThickness.Left, 0, 5,
-						args => IPropertiesContainer.PropertyChangedHandler(this, () => {
-							border.BorderThickness = new Thickness(args.NewValue);
-						}, (oldP, newP) => {
-							parent.editHistory.SubmitByElementPropertyDelayedChanged(TargetType.Element, this, oldP, newP, "Border Thickness");
-						})
-					),
-				});
+				var title = PropertiesPanel.SectionTitle("Border");
+				var pro1 = PropertiesPanel.ColorInput("Background Color", border.Background,
+					args => IPropertiesContainer.PropertyChangedHandler(this, () => {
+						border.Background = new SolidColorBrush(args.NewValue);
+					}, (oldP, newP) => {
+						parent.editHistory.SubmitByElementPropertyDelayedChanged(TargetType.Element, this, oldP, newP, "Background Color");
+					})
+				);
+				var pro2 = PropertiesPanel.ColorInput("Border Color", border.BorderColor,
+					args => IPropertiesContainer.PropertyChangedHandler(this, () => {
+						border.BorderColor = new SolidColorBrush(args.NewValue);
+					}, (oldP, newP) => {
+						parent.editHistory.SubmitByElementPropertyDelayedChanged(TargetType.Element, this, oldP, newP, "Border Color");
+					})
+				);
+				var pro3 = PropertiesPanel.SliderInput("Border Thickness", border.BorderThickness.Left, 0, 5,
+					args => IPropertiesContainer.PropertyChangedHandler(this, () => {
+						border.BorderThickness = new Thickness(args.NewValue);
+					}, (oldP, newP) => {
+						parent.editHistory.SubmitByElementPropertyDelayedChanged(TargetType.Element, this, oldP, newP, "Border Thickness");
+					})
+				);
+				panels.AddRange(new Panel[] { title, pro1, pro2, pro3, });
 			}
-			if(this is ITextGrid text) {
+			if(this is ITextContainer text) {
 				panels.AddRange(new Panel[] {
 					PropertiesPanel.SectionTitle("Text"),
 					PropertiesPanel.FontSelector("Font Family", text.FontFamily,

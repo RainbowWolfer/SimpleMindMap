@@ -357,11 +357,12 @@ namespace MindMap.Pages {
 				Element.ID_Rectangle => new MyRectangle(this, identity),
 				Element.ID_Ellipse => new MyEllipse(this, identity),
 				Element.ID_Polygon => new MyPolygon(this, identity),
+				Element.ID_Image => new MyImage(this, identity),
 				_ => throw new Exception($"ID({type_id}) Not Found"),
 			};
+			element.SetFramework();
 			element.SetPosition(position);
 			element.SetSize(size == default ? element.DefaultSize : size);
-			element.SetFramework();
 			element.CreateConnectionsFrame(initialControls);
 			element.CreateFlyoutMenu();
 			element.Target.MouseDown += (s, e) => Element_MouseDown(s, e, element);
@@ -478,6 +479,10 @@ namespace MindMap.Pages {
 
 		private void AddPolygonButton_Click(object sender, RoutedEventArgs e) {
 			AddElement(Element.ID_Polygon);
+		}
+
+		private void AddImageButton_Click(object sender, RoutedEventArgs e) {
+			AddElement(Element.ID_Image);
 		}
 
 		private Vector2 offset;

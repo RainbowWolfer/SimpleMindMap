@@ -10,140 +10,145 @@
 	  d:Background="Gray"
 	  Title="MindMapPage">
 
-	<Page.Resources>
-		<Style x:Key="MenuButton" TargetType="Button">
-			<Setter Property="Margin" Value="10,2,10,2"/>
-			<Setter Property="Height" Value="25"/>
-		</Style>
-		<Style x:Key="RightTabs" TargetType="TabItem">
-			<Setter Property="LayoutTransform">
-				<Setter.Value>
-					<RotateTransform Angle="90"/>
-				</Setter.Value>
-			</Setter>
-		</Style>
-	</Page.Resources>
-	<Grid>
-		<Grid.ColumnDefinitions>
-			<ColumnDefinition Width="170"/>
-			<ColumnDefinition Width="auto"/>
-			<ColumnDefinition Width="*"/>
-			<ColumnDefinition Width="auto"/>
-		</Grid.ColumnDefinitions>
-		<Grid.RowDefinitions>
-			<RowDefinition Height="*"/>
-			<RowDefinition Height="auto"/>
-		</Grid.RowDefinitions>
-		<Grid>
-			<Grid.RowDefinitions>
-				<RowDefinition Height="auto"/>
-				<RowDefinition Height="*"/>
-			</Grid.RowDefinitions>
-			<StackPanel>
-				<!--<Button Visibility="Visible" Content="Debug" Click="DebugButton_Click"/>-->
-				<TextBlock x:Name="FileNameText" Text="MindMap.mp*" HorizontalAlignment="Center"/>
-			</StackPanel>
-			<TabControl Grid.Row="1">
-				<TabItem Header="Elements" Width="83">
-					<ScrollViewer VerticalScrollBarVisibility="Auto">
-						<StackPanel>
-							<Expander Header="Rectangles" IsExpanded="True">
-								<StackPanel>
-									<Button Content="Normal Rectangle" Click="AddRectableButton_Click" Style="{StaticResource MenuButton}"/>
-								</StackPanel>
-							</Expander>
-							<Expander Header="Ellipses" IsExpanded="True">
-								<StackPanel>
-									<Button Content="Normal Ellipse" Click="AddEllipseButton_Click" Style="{StaticResource MenuButton}"/>
-								</StackPanel>
-							</Expander>
-							<Expander Header="Polygon" IsExpanded="True">
-								<StackPanel>
-									<Button Content="Octagon" Click="AddPolygonButton_Click" Style="{StaticResource MenuButton}"/>
-								</StackPanel>
-							</Expander>
-							<Expander Header="Clipboard" IsExpanded="True">
+    <Page.Resources>
+        <Style x:Key="MenuButton" TargetType="Button">
+            <Setter Property="Margin" Value="10,2,10,2"/>
+            <Setter Property="Height" Value="25"/>
+        </Style>
+        <Style x:Key="RightTabs" TargetType="TabItem">
+            <Setter Property="LayoutTransform">
+                <Setter.Value>
+                    <RotateTransform Angle="90"/>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Page.Resources>
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="170"/>
+            <ColumnDefinition Width="auto"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="auto"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="auto"/>
+        </Grid.RowDefinitions>
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+            <StackPanel>
+                <!--<Button Visibility="Visible" Content="Debug" Click="DebugButton_Click"/>-->
+                <TextBlock x:Name="FileNameText" Text="MindMap.mp*" HorizontalAlignment="Center"/>
+            </StackPanel>
+            <TabControl Grid.Row="1">
+                <TabItem Header="Elements" Width="83">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <StackPanel>
+                            <Expander Header="Rectangles" IsExpanded="True">
+                                <StackPanel>
+                                    <Button Content="Normal Rectangle" Click="AddRectableButton_Click" Style="{StaticResource MenuButton}"/>
+                                </StackPanel>
+                            </Expander>
+                            <Expander Header="Ellipses" IsExpanded="True">
+                                <StackPanel>
+                                    <Button Content="Normal Ellipse" Click="AddEllipseButton_Click" Style="{StaticResource MenuButton}"/>
+                                </StackPanel>
+                            </Expander>
+                            <Expander Header="Polygon" IsExpanded="True">
+                                <StackPanel>
+                                    <Button Content="Octagon" Click="AddPolygonButton_Click" Style="{StaticResource MenuButton}"/>
+                                </StackPanel>
+                            </Expander>
+                            <Expander Header="Images" IsExpanded="True">
+                                <StackPanel>
+                                    <Button Content="Annotation Image" Click="AddImageButton_Click" Style="{StaticResource MenuButton}"/>
+                                </StackPanel>
+                            </Expander>
+                            <Expander Header="Clipboard" IsExpanded="True">
 
-							</Expander>
-						</StackPanel>
-					</ScrollViewer>
-				</TabItem>
-				<TabItem Header="Properties" Width="83">
-					<ScrollViewer VerticalScrollBarVisibility="Auto">
-						<StackPanel x:Name="ElementPropertiesPanel">
-							<!-- SelectionChanged=""-->
-							<ComboBox SelectedIndex="0">
-								<ComboBoxItem Content="1"/>
-								<ComboBoxItem Content="2"/>
-								<ComboBoxItem Content="4121"/>
-								<ComboBoxItem Content="3"/>
-								<ComboBoxItem Content="4"/>
-							</ComboBox>
-						</StackPanel>
-					</ScrollViewer>
-				</TabItem>
-			</TabControl>
-		</Grid>
-		<Rectangle Grid.Column="1" Width="1" Fill="Gray"/>
-		<Border Grid.Column="2" ClipToBounds="True">
-			<Grid>
-				<!--Only for detecting contacting canvas through mouse-->
-				<Rectangle x:Name="BackgroundRectangle" Fill="Transparent" MouseDown="BackgroundRectangle_MouseDown" MouseMove="BackgroundRectangle_MouseMove" MouseUp="BackgroundRectangle_MouseUp"/>
-				<Canvas x:Name="MainCanvas" Loaded="MainCanvas_Loaded">
-					<Canvas x:Name="BackgroundCanvas">
-						<Grid Width="150" Height="150">
-							<Image Source="/Images/20210620_130110.jpg" Stretch="Uniform"/>
-							<TextBlock Text="This is Annotation" HorizontalAlignment="Center" VerticalAlignment="Center">
-								<TextBlock.RenderTransform>
-									<TranslateTransform X="0" Y="75"/>
-								</TextBlock.RenderTransform>
-							</TextBlock>
-						</Grid>
-					</Canvas>
-					<Canvas.RenderTransform>
-						<TransformGroup>
-							<TranslateTransform x:Name="MainCanvas_TranslateTransform" X="0" Y="0"/>
-							<!--Need further working-->
-							<ScaleTransform ScaleX="1" ScaleY="1"/>
-						</TransformGroup>
-					</Canvas.RenderTransform>
-				</Canvas>
-			</Grid>
-		</Border>
-		<Rectangle Grid.Column="2" Width="1" Fill="Gray" HorizontalAlignment="Right"/>
+                            </Expander>
+                        </StackPanel>
+                    </ScrollViewer>
+                </TabItem>
+                <TabItem Header="Properties" Width="83">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <StackPanel x:Name="ElementPropertiesPanel">
+                            <!-- SelectionChanged=""-->
+                            <ComboBox SelectedIndex="0">
+                                <ComboBoxItem Content="1"/>
+                                <ComboBoxItem Content="2"/>
+                                <ComboBoxItem Content="4121"/>
+                                <ComboBoxItem Content="3"/>
+                                <ComboBoxItem Content="4"/>
+                            </ComboBox>
+                        </StackPanel>
+                    </ScrollViewer>
+                </TabItem>
+            </TabControl>
+        </Grid>
+        <Rectangle Grid.Column="1" Width="1" Fill="Gray"/>
+        <Border Grid.Column="2" ClipToBounds="True">
+            <Grid>
+                <!--Only for detecting contacting canvas through mouse-->
+                <Rectangle x:Name="BackgroundRectangle" Fill="Transparent" MouseDown="BackgroundRectangle_MouseDown" MouseMove="BackgroundRectangle_MouseMove" MouseUp="BackgroundRectangle_MouseUp"/>
+                <Canvas x:Name="MainCanvas" Loaded="MainCanvas_Loaded">
+                    <Canvas x:Name="BackgroundCanvas">
+                        <Grid Width="150" Height="150">
+                            <Image Source="/Images/20210620_130110.jpg" Stretch="Uniform"/>
+                            <TextBlock Text="This is Annotation" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <TextBlock.RenderTransform>
+                                    <TranslateTransform X="0" Y="75"/>
+                                </TextBlock.RenderTransform>
+                            </TextBlock>
+                        </Grid>
+                    </Canvas>
+                    <Canvas.RenderTransform>
+                        <TransformGroup>
+                            <TranslateTransform x:Name="MainCanvas_TranslateTransform" X="0" Y="0"/>
+                            <!--Need further working-->
+                            <ScaleTransform ScaleX="1" ScaleY="1"/>
+                        </TransformGroup>
+                    </Canvas.RenderTransform>
+                </Canvas>
+            </Grid>
+        </Border>
+        <Rectangle Grid.Column="2" Width="1" Fill="Gray" HorizontalAlignment="Right"/>
 
-		<Grid Grid.Column="3">
-			<TabControl x:Name="RightTabControl" TabStripPlacement="Left" Width="280">
-				<TabItem Style="{StaticResource RightTabs}" >
-					<TabItem.Header>
-						<TextBlock x:Name="HistoryTabItemHeader" Text="History" PreviewMouseUp="HistoryTabItemHeader_PreviewMouseUp"/>
-					</TabItem.Header>
-					<Grid>
-						<Grid.RowDefinitions>
-							<RowDefinition Height="*"/>
-							<RowDefinition Height="auto"/>
-						</Grid.RowDefinitions>
-						<ListView x:Name="EditHistoryListView" SelectionChanged="EditHistoryListView_SelectionChanged" d:ItemsSource="{d:SampleData ItemCount=5}">
-							<ListBox.ItemContainerStyle>
-								<Style TargetType="ListBoxItem">
-									<Setter Property="IsManipulationEnabled" Value="False"/>
-								</Style>
-							</ListBox.ItemContainerStyle>
-						</ListView>
-						<StackPanel Grid.Row="1">
-							<TextBlock x:Name="DetailText" Text="" Visibility="Collapsed"/>
-						</StackPanel>
-					</Grid>
-				</TabItem>
-				<TabItem Header="WHATDOWEDO" Style="{StaticResource RightTabs}">
-					<Grid>
-						<TextBlock Text="Hello World 2"/>
-					</Grid>
-				</TabItem>
-			</TabControl>
-		</Grid>
-		<Grid Grid.Row="1" Grid.ColumnSpan="4" Height="20" Background="White">
-			<!--
+        <Grid Grid.Column="3">
+            <TabControl x:Name="RightTabControl" TabStripPlacement="Left" Width="280">
+                <TabItem Style="{StaticResource RightTabs}" >
+                    <TabItem.Header>
+                        <TextBlock x:Name="HistoryTabItemHeader" Text="History" PreviewMouseUp="HistoryTabItemHeader_PreviewMouseUp"/>
+                    </TabItem.Header>
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="auto"/>
+                        </Grid.RowDefinitions>
+                        <ListView x:Name="EditHistoryListView" SelectionChanged="EditHistoryListView_SelectionChanged" d:ItemsSource="{d:SampleData ItemCount=5}">
+                            <ListBox.ItemContainerStyle>
+                                <Style TargetType="ListBoxItem">
+                                    <Setter Property="IsManipulationEnabled" Value="False"/>
+                                </Style>
+                            </ListBox.ItemContainerStyle>
+                        </ListView>
+                        <StackPanel Grid.Row="1">
+                            <TextBlock x:Name="DetailText" Text="" Visibility="Collapsed"/>
+                        </StackPanel>
+                    </Grid>
+                </TabItem>
+                <TabItem Header="WHATDOWEDO" Style="{StaticResource RightTabs}">
+                    <Grid>
+                        <TextBlock Text="Hello World 2"/>
+                    </Grid>
+                </TabItem>
+            </TabControl>
+        </Grid>
+        <Grid Grid.Row="1" Grid.ColumnSpan="4" Height="20" Background="White">
+            <!--
 				Save Progress
 				Load Progress
 				Elements Count
@@ -151,28 +156,28 @@
 				Created Date
 				Last Modified Date
 			-->
-			<StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-				<StackPanel x:Name="LoadingPanel" Orientation="Horizontal" Margin="10,0,0,0" VerticalAlignment="Center">
-					<TextBlock Text="Loading" Margin="0,0,5,0"/>
-					<ProgressBar Width="100" Height="15" IsIndeterminate="True"/>
-				</StackPanel>
-				<StackPanel x:Name="SavingPanel" Orientation="Horizontal" Margin="10,0,0,0" VerticalAlignment="Center">
-					<TextBlock Text="Saving" Margin="0,0,5,0"/>
-					<ProgressBar Width="100" Height="15" IsIndeterminate="True"/>
-				</StackPanel>
-				<TextBlock x:Name="OprationHintText" Text="" VerticalAlignment="Center" Margin="10,0,0,0"/>
-			</StackPanel>
-			<StackPanel HorizontalAlignment="Right" Orientation="Horizontal" VerticalAlignment="Center">
-				<StackPanel Orientation="Horizontal" Margin="0,0,10,0" VerticalAlignment="Center">
-					<TextBlock Text="&#xE18A;" VerticalAlignment="Center" FontFamily="Segoe MDL2 Assets"/>
-					<TextBlock x:Name="ElementsCountText" Text=" : 0" VerticalAlignment="Center" Margin="0,0,10,0"/>
-					<TextBlock Text="&#xE1D9;" VerticalAlignment="Center" FontFamily="Segoe MDL2 Assets"/>
-					<TextBlock x:Name="ConnectionsCountText" Text=" : 0" VerticalAlignment="Center"/>
-				</StackPanel>
-				<StackPanel Orientation="Horizontal" Margin="0,0,10,0" VerticalAlignment="Center">
-					<TextBlock x:Name="CreatedDateText" Text=""/>
-				</StackPanel>
-			</StackPanel>
-		</Grid>
-	</Grid>
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                <StackPanel x:Name="LoadingPanel" Orientation="Horizontal" Margin="10,0,0,0" VerticalAlignment="Center">
+                    <TextBlock Text="Loading" Margin="0,0,5,0"/>
+                    <ProgressBar Width="100" Height="15" IsIndeterminate="True"/>
+                </StackPanel>
+                <StackPanel x:Name="SavingPanel" Orientation="Horizontal" Margin="10,0,0,0" VerticalAlignment="Center">
+                    <TextBlock Text="Saving" Margin="0,0,5,0"/>
+                    <ProgressBar Width="100" Height="15" IsIndeterminate="True"/>
+                </StackPanel>
+                <TextBlock x:Name="OprationHintText" Text="" VerticalAlignment="Center" Margin="10,0,0,0"/>
+            </StackPanel>
+            <StackPanel HorizontalAlignment="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                <StackPanel Orientation="Horizontal" Margin="0,0,10,0" VerticalAlignment="Center">
+                    <TextBlock Text="&#xE18A;" VerticalAlignment="Center" FontFamily="Segoe MDL2 Assets"/>
+                    <TextBlock x:Name="ElementsCountText" Text=" : 0" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                    <TextBlock Text="&#xE1D9;" VerticalAlignment="Center" FontFamily="Segoe MDL2 Assets"/>
+                    <TextBlock x:Name="ConnectionsCountText" Text=" : 0" VerticalAlignment="Center"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Margin="0,0,10,0" VerticalAlignment="Center">
+                    <TextBlock x:Name="CreatedDateText" Text=""/>
+                </StackPanel>
+            </StackPanel>
+        </Grid>
+    </Grid>
 </Page>

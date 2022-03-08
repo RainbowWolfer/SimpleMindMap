@@ -1,4 +1,6 @@
-﻿using MindMap.Pages;
+﻿using MindMap.Entities.Frames;
+using MindMap.Entities.Icons;
+using MindMap.Pages;
 using MindMap.UserControls;
 using System;
 using System.Collections.Generic;
@@ -108,11 +110,11 @@ namespace MindMap.Entities {
 			panel.Children.Add(picker);
 			return panel;
 		}
-		public static StackPanel ColorInput(string title, Brush initBrush, Action<ValueChangedArgs<Color>> OnColorChanged) {
-			return ColorInput(title, initBrush is SolidColorBrush solid ? solid.Color : Colors.White, OnColorChanged);
+		public static StackPanel ColorInput(string title, Brush initBrush, Action<ValueChangedArgs<Color>> onColorChanged) {
+			return ColorInput(title, initBrush is SolidColorBrush solid ? solid.Color : Colors.White, onColorChanged);
 		}
 
-		public static StackPanel FontSelector(string title, FontFamily initFont, Action<ValueChangedArgs<FontFamily>> OnFontChanged, params string[] availableFonts) {
+		public static StackPanel FontSelector(string title, FontFamily initFont, Action<ValueChangedArgs<FontFamily>> onFontChanged, params string[] availableFonts) {
 			StackPanel panel = CreateBase(title);
 			ComboBox comboBox = new() {
 				SelectedIndex = availableFonts.ToList().IndexOf(initFont.Source),
@@ -127,14 +129,14 @@ namespace MindMap.Entities {
 					if(e.RemovedItems.Count > 0 && e.RemovedItems[0] is ComboBoxItem remove) {
 						old = new FontFamily(remove.Content as string);
 					}
-					OnFontChanged.Invoke(new ValueChangedArgs<FontFamily>(old, new FontFamily(item.Content as string)));
+					onFontChanged.Invoke(new ValueChangedArgs<FontFamily>(old, new FontFamily(item.Content as string)));
 				}
 			};
 			panel.Children.Add(comboBox);
 			return panel;
 		}
 
-		public static StackPanel ComboSelector<T>(string title, T initData, Action<ValueChangedArgs<T>> OnValueChanged, params T[] selections) {
+		public static StackPanel ComboSelector<T>(string title, T initData, Action<ValueChangedArgs<T>> onValueChanged, params T[] selections) {
 			StackPanel panel = CreateBase(title);
 			ComboBox comboBox = new() {
 				SelectedIndex = selections.ToList().IndexOf(initData),
@@ -148,7 +150,7 @@ namespace MindMap.Entities {
 					if(e.RemovedItems != null && e.RemovedItems.Count > 0 && e.RemovedItems[0] is ComboBoxItem remove) {
 						old = (T?)remove.Content;
 					}
-					OnValueChanged.Invoke(new ValueChangedArgs<T>(old, (T?)item.Content));
+					onValueChanged.Invoke(new ValueChangedArgs<T>(old, (T?)item.Content));
 				}
 			};
 			panel.Children.Add(comboBox);
@@ -157,6 +159,49 @@ namespace MindMap.Entities {
 
 		public static StackPanel DuoNumberInput(string title) {
 			StackPanel panel = CreateBase(title);
+			return panel;
+		}
+
+		public static StackPanel DirectionSelector(string title, Direction initalData, Action<ValueChangedArgs<Direction>> onValueChanged, DirectionArgs allowedDirections) {
+			StackPanel panel = CreateBase(title);
+			panel.Children.Add(new DirectionSelector());
+			return panel;
+		}
+
+		public static StackPanel ActionButton(bool showTitle, string title, Action onClickAction, out Button button, string? icon = null, int fontSize = 15, bool leftToRight = true) {
+			StackPanel panel = showTitle ? CreateBase(title) : new();
+			button = new Button();
+			if(string.IsNullOrWhiteSpace(icon)) {
+				button.Content = title;
+				button.FontSize = fontSize;
+			} else {
+				StackPanel content = new() {
+					HorizontalAlignment = HorizontalAlignment.Center,
+					Orientation = Orientation.Horizontal,
+				};
+				FrameworkElement iconElement = new FontIcon(icon, (int)(fontSize * 1.2)).Generate();
+				iconElement.VerticalAlignment = VerticalAlignment.Center;
+				TextBlock text = new() {
+					Text = title,
+					FontSize = fontSize,
+					VerticalAlignment = VerticalAlignment.Center,
+				};
+				if(leftToRight) {
+					content.Children.Add(iconElement);
+					content.Children.Add(text);
+					text.Margin = new Thickness(7, 0, 0, 0);
+				} else {
+					content.Children.Add(text);
+					content.Children.Add(iconElement);
+					iconElement.Margin = new Thickness(0, 0, 7, 0);
+				}
+
+				button.Content = content;
+			}
+			button.Click += (s, e) => {
+				onClickAction.Invoke();
+			};
+			panel.Children.Add(button);
 			return panel;
 		}
 	}

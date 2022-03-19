@@ -17,8 +17,20 @@ using System.Windows.Shapes;
 namespace MindMap.Entities.Elements.TextShapes {
 	public abstract class TextShape: TextRelated, ITextGrid, IBorderBasedStyle {
 		public abstract FrameworkElement Shape { get; }
-		public TextBox MyTextBox { get; set; } = new();
-		public TextBlock MyTextBlock { get; set; } = new();
+		public TextBox MyTextBox { get; set; } = new() {
+			TextWrapping = TextWrapping.Wrap,
+			TextAlignment = TextAlignment.Center,
+			VerticalAlignment = VerticalAlignment.Center,
+			HorizontalAlignment = HorizontalAlignment.Center,
+			AcceptsReturn = true,
+			AcceptsTab = true,
+		};
+		public TextBlock MyTextBlock { get; set; } = new() {
+			TextWrapping = TextWrapping.Wrap,
+			TextAlignment = TextAlignment.Center,
+			VerticalAlignment = VerticalAlignment.Center,
+			HorizontalAlignment = HorizontalAlignment.Center,
+		};
 
 		public Brush Background {
 			get => BaseProperties.background;
@@ -120,10 +132,6 @@ namespace MindMap.Entities.Elements.TextShapes {
 			MyTextBlock.FontWeight = FontWeight;
 			MyTextBlock.FontSize = FontSize;
 			MyTextBlock.Padding = new Thickness(10);
-			MyTextBlock.TextWrapping = TextWrapping.Wrap;
-			MyTextBlock.TextAlignment = TextAlignment.Center;
-			MyTextBlock.VerticalAlignment = VerticalAlignment.Center;
-			MyTextBlock.HorizontalAlignment = HorizontalAlignment.Center;
 
 			MyTextBox.Text = Text;
 			MyTextBox.Foreground = new SolidColorBrush(FontColor);
@@ -131,12 +139,6 @@ namespace MindMap.Entities.Elements.TextShapes {
 			MyTextBox.FontWeight = FontWeight;
 			MyTextBox.FontSize = FontSize;
 			MyTextBox.Padding = new Thickness(10);
-			MyTextBox.TextWrapping = TextWrapping.Wrap;
-			MyTextBox.TextAlignment = TextAlignment.Center;
-			MyTextBox.VerticalAlignment = VerticalAlignment.Stretch;
-			MyTextBox.HorizontalAlignment = HorizontalAlignment.Stretch;
-			MyTextBox.AcceptsReturn = true;
-			MyTextBox.AcceptsTab = true;
 
 			if(Shape is Border border) {
 				border.Background = Background;

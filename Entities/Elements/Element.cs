@@ -60,7 +60,7 @@ namespace MindMap.Entities.Elements {
 		}
 
 		private string InitializeDefaultName() {
-			return $"{ElementTypeName} ({new Random().Next(0, 1000)})";
+			return $"{ElementTypeName} ({new Random().Next()})";
 		}
 
 		public Identity GetIdentity() => Identity;

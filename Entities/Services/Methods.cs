@@ -10,7 +10,7 @@ namespace MindMap.Entities.Services {
 			long ticks = DateTime.Now.Ticks;
 			string random = "";
 			for(int i = 0; i < randomLength; i++) {
-				random += new Random().Next(0, 10);
+				random += new Random().Next();
 			}
 			return $"{ticks}_{random}";
 		}

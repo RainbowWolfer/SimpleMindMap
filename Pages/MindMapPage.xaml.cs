@@ -31,6 +31,7 @@ namespace MindMap.Pages {
 	public partial class MindMapPage: Page, IPage {//Editor Page
 		public readonly ConnectionsManager connectionsManager;
 		public readonly EditHistory editHistory;
+		public readonly ImagesAssets imagesAssets;
 		public bool holdShift;
 		private string? savePath = null;
 		private string fileName = "(Not Saved)";
@@ -51,6 +52,8 @@ namespace MindMap.Pages {
 			editHistory.OnHistoryChanged += EditHistory_OnHistoryChanged;
 			editHistory.OnUndo += EditHistory_OnUndo;
 			editHistory.OnRedo += EditHistory_OnRedo;
+
+			imagesAssets = new ImagesAssets();
 
 			MainCanvas.MouseMove += MainCanvas_MouseMove;
 			MainCanvas.MouseUp += MainCanvas_MouseUp;
@@ -94,12 +97,16 @@ namespace MindMap.Pages {
 			MainWindow.Instance?.SetUndoMenuItemActive(editHistory.GetPreviousHistories().Count > 0);
 			MainWindow.Instance?.SetRedoMenuItemActive(true);
 			UpdateHistoryListView();
+			Deselect();
+			//ClearResizePanel();
 		}
 
 		private void EditHistory_OnRedo(EditHistory.IChange obj) {
 			MainWindow.Instance?.SetRedoMenuItemActive(editHistory.GetFuturesHistories().Count > 0);
 			MainWindow.Instance?.SetUndoMenuItemActive(true);
 			UpdateHistoryListView();
+			Deselect();
+			//ClearResizePanel();
 		}
 
 		private void EditHistory_OnHistoryChanged(List<EditHistory.IChange> history) {
@@ -175,6 +182,7 @@ namespace MindMap.Pages {
 				elements.Values.ToList(),
 				connectionsManager,
 				editHistory,
+				imagesAssets,
 				saveAs ? null : savePath
 			);
 			if(!string.IsNullOrWhiteSpace(savePath)) {
@@ -298,6 +306,13 @@ namespace MindMap.Pages {
 
 		public readonly Dictionary<FrameworkElement, Element> elements = new();
 
+		public void ShowElementProperties() {
+			Element? found = elements.FirstOrDefault(p => p.Key == current).Value;
+			if(found == null) {
+				return;
+			}
+			ShowElementProperties(found);
+		}
 		public void ShowElementProperties(Element element) {
 			ElementPropertiesPanel.Children.Clear();
 			foreach(Panel item in element.CreatePropertiesList()) {
@@ -469,20 +484,41 @@ namespace MindMap.Pages {
 
 		}
 
+		private void AddElementByClick(long id) {
+			Element element = AddElement(id);
+			Reposition(element);
+		}
+
 		private void AddRectableButton_Click(object sender, RoutedEventArgs e) {
-			AddElement(Element.ID_Rectangle);
+			AddElementByClick(Element.ID_Rectangle);
 		}
 
 		private void AddEllipseButton_Click(object sender, RoutedEventArgs e) {
-			AddElement(Element.ID_Ellipse);
+			AddElementByClick(Element.ID_Ellipse);
 		}
 
 		private void AddPolygonButton_Click(object sender, RoutedEventArgs e) {
-			AddElement(Element.ID_Polygon);
+			AddElementByClick(Element.ID_Polygon);
 		}
 
 		private void AddImageButton_Click(object sender, RoutedEventArgs e) {
-			AddElement(Element.ID_Image);
+			AddElementByClick(Element.ID_Image);
+		}
+
+		private void Reposition(Element element) {
+			if(element.GetPosition() != Vector2.Zero) {
+				return;
+			}
+			const int GAP = 20;
+			int count = 0;
+			foreach(Element item in elements.Select(e => e.Value).Where(e => e != element)) {
+				Vector2 pos = item.GetPosition() - Vector2.One * GAP * count;
+				if(pos.Magnitude < 5) {
+					count++;
+				}
+			}
+			element.SetPosition(Vector2.One * count * GAP);
+			element.UpdateConnectionsFrame();
 		}
 
 		private Vector2 offset;

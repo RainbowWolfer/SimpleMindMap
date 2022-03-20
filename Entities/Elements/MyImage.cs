@@ -1,4 +1,5 @@
-﻿using MindMap.Entities.Elements.Interfaces;
+﻿using Microsoft.Win32;
+using MindMap.Entities.Elements.Interfaces;
 using MindMap.Entities.Frames;
 using MindMap.Entities.Identifications;
 using MindMap.Entities.Properties;
@@ -7,6 +8,7 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -29,6 +31,8 @@ namespace MindMap.Entities.Elements {
 			public Brush background = Brushes.Gray;
 			public Brush borderColor = Brushes.Aquamarine;
 			public Thickness borderThickness = new(2);
+
+			public string? imageKey = null;
 
 			public override object Clone() {
 				return MemberwiseClone();
@@ -55,7 +59,9 @@ namespace MindMap.Entities.Elements {
 				Color = Colors.Transparent,
 			},
 		};
-		private readonly Image _image = new();
+		private readonly Image _image = new() {
+			Stretch = Stretch.Uniform,
+		};
 		public override FrameworkElement Target => _root;
 
 		public Grid AnnotationGrid { get; set; } = new() {
@@ -82,7 +88,7 @@ namespace MindMap.Entities.Elements {
 			get => property.direction;
 			set {
 				property.direction = value;
-				Update();
+				SizeUpdate();
 			}
 		}
 		/// <summary> Range From -100 to 100 </summary>
@@ -90,7 +96,7 @@ namespace MindMap.Entities.Elements {
 			get => property.offsetPercentage;
 			set {
 				property.offsetPercentage = value;
-				Update();
+				SizeUpdate();
 			}
 		}
 		public Brush Background {
@@ -115,6 +121,15 @@ namespace MindMap.Entities.Elements {
 			}
 		}
 
+		public string? ImageKey {
+			get => property.imageKey;
+			set {
+				property.imageKey = value;
+				SizeUpdate();
+				UpdateStyle();
+			}
+		}
+
 		public override Vector2 DefaultSize {
 			get {
 				if(ImageSize == Vector2.Zero) {
@@ -130,18 +145,17 @@ namespace MindMap.Entities.Elements {
 		private int ImageDefaultHeight = 150;
 
 		public MyImage(MindMapPage parent, Identity? identity = null) : base(parent, identity) {
-			BitmapImage bitmapImage = new(new Uri("pack://application:,,,/Images/20210620_130110.jpg"));
+			BitmapImage bitmapImage = new(new Uri("pack://application:,,,/Images/DefaultImage.png"));
 			ImageSize = new Vector2(bitmapImage.PixelWidth, bitmapImage.PixelHeight);
 			_image.Source = bitmapImage;
-			_image.Stretch = Stretch.Uniform;
 			_image.SizeChanged += (s, e) => {
-				Update();
+				SizeUpdate();
 			};
 			AnnotationTextBlock.SizeChanged += (s, e) => {
-				Update();
+				SizeUpdate();
 			};
 			AnnotationTextBox.SizeChanged += (s, e) => {
-				Update();
+				SizeUpdate();
 			};
 		}
 
@@ -150,9 +164,27 @@ namespace MindMap.Entities.Elements {
 			panel.Children.Add(PropertiesPanel.SectionTitle(Identity.Name,
 				newName => Identity.Name = newName
 			));
+			panel.Children.Add(PropertiesPanel.ActionButton(true, "Image Source", () => {
+				OpenFileDialog dialog = new OpenFileDialog() {
+					Filter = "Image (*.jpg, *.png) | *.jpg; *.png;",
+				};
+				if(dialog.ShowDialog() == true) {
+					byte[] bytes = File.ReadAllBytes(dialog.FileName);
+					string b64 = Convert.ToBase64String(bytes);
+					string key = parent.imagesAssets.AddImage(b64);
+					IPropertiesContainer.PropertyChangedHandler(this, () => {
+						SetImageByKey(key);
+					}, (oldP, newP) => {
+						parent.editHistory.SubmitByElementPropertyChanged(TargetType.Element, this, oldP, newP, "Image Source");
+					});
+				}
+			}, out Button imageSourceButton, "\uEB9F"));
 			panel.Children.Add(PropertiesPanel.ActionButton(true, "Reset Ratio", () => {
 				Vector2 before_size = GetSize();
 				Vector2 before_pos = GetPosition();
+				if(before_size == DefaultSize) {
+					return;
+				}
 				SetSize(DefaultSize);
 				Vector2 after_size = GetSize();
 				Vector2 after_pos = GetPosition();
@@ -218,11 +250,15 @@ namespace MindMap.Entities.Elements {
 		public override void SetProperty(IProperty property) {
 			this.property = (Property)property;
 			UpdateStyle();
+			SizeUpdate();
+			UpdateImage();
 		}
 
 		public override void SetProperty(string propertyJson) {
 			property = (Property)property.Translate(propertyJson);
 			UpdateStyle();
+			SizeUpdate();
+			UpdateImage();
 		}
 
 		protected override void UpdateStyle() {
@@ -245,21 +281,26 @@ namespace MindMap.Entities.Elements {
 			AnnotationTextBox.Padding = new Thickness(10);
 		}
 
-		public void Update() {
-			Debug.WriteLine("!");
+		public void SizeUpdate() {
 			double w = _image.ActualWidth;
 			double h = _image.ActualHeight;
 			double selfWidth = AnnotationTextBlock.ActualWidth;
 			double selfHeight = AnnotationTextBlock.ActualHeight;
 			switch(Direction) {
 				case Direction.Left:
+					GridTransform.X = -w / 2 - selfWidth / 2;
+					GridTransform.Y = OffsetPercentage * h / 200;
 					break;
 				case Direction.Right:
+					GridTransform.X = w / 2 + selfWidth / 2;
+					GridTransform.Y = OffsetPercentage * h / 200;
 					break;
 				case Direction.Top:
+					GridTransform.X = OffsetPercentage * w / 200;
+					GridTransform.Y = -h / 2 - selfHeight / 2;
 					break;
 				case Direction.Bottom:
-					GridTransform.X = OffsetPercentage * w / 100;
+					GridTransform.X = OffsetPercentage * w / 200;
 					GridTransform.Y = h / 2 + selfHeight / 2;
 					break;
 				default:
@@ -282,6 +323,36 @@ namespace MindMap.Entities.Elements {
 		public void ShowTextBlock() {
 			AnnotationTextBlock.Visibility = Visibility.Visible;
 			AnnotationTextBox.Visibility = Visibility.Collapsed;
+		}
+
+		public void UpdateImage() {
+			if(ImageKey == null) {
+				SetImageByBase64(null);
+			} else {
+				string? base64 = parent.imagesAssets.FindBase64(ImageKey);
+				SetImageByBase64(base64);
+			}
+		}
+
+		public void SetImageByKey(string key) {
+			ImageKey = key;
+			string? base64 = parent.imagesAssets.FindBase64(key);
+			SetImageByBase64(base64);
+		}
+
+		public void SetImageByBase64(string? base64) {
+			if(string.IsNullOrWhiteSpace(base64)) {
+				BitmapImage bitmapImage = new(new Uri("pack://application:,,,/Images/DefaultImage.png"));
+				_image.Source = bitmapImage;
+			} else {
+				byte[] binaryData = Convert.FromBase64String(base64);
+				BitmapImage bitmap = new BitmapImage();
+				bitmap.BeginInit();
+				bitmap.StreamSource = new MemoryStream(binaryData);
+				bitmap.EndInit();
+				_image.Source = bitmap;
+				ImageSize = new Vector2(bitmap.PixelWidth, bitmap.PixelHeight);
+			}
 		}
 	}
 }

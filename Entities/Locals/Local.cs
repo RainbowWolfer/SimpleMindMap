@@ -34,7 +34,7 @@ namespace MindMap.Entities.Locals {
 			}
 		}
 
-		public static async Task<string?> Save(List<Element> elements, ConnectionsManager connectionsManager, EditHistory editHistory, string? filePath = null) {
+		public static async Task<string?> Save(List<Element> elements, ConnectionsManager connectionsManager, EditHistory editHistory, ImagesAssets imagesAssets, string? filePath = null) {
 			if(string.IsNullOrWhiteSpace(filePath)) {
 				SaveResult result = WindowsService.CreateSaveFileDialog(FILTER);
 				if(result.Success) {
@@ -47,29 +47,30 @@ namespace MindMap.Entities.Locals {
 			MapInfo info = new(
 				elements.Select(e => new ElementInfo(e)).ToArray(),
 				connectionsManager.ConvertInfo(),
-				editHistory.GetHistoryInfo()
+				editHistory.GetHistoryInfo(),
+				imagesAssets.GetAssets()
 			);
 			string json = JsonConvert.SerializeObject(info);
-			string converted = StringToBinary(json);
-			await File.WriteAllTextAsync(filePath, converted);
+			//string converted = StringToBinary(json);
+			await File.WriteAllTextAsync(filePath, json);
 			return filePath;
 		}
 
-		public static string StringToBinary(string data) {
-			string result = "";
-			foreach(char c in data.ToCharArray()) {
-				result += Convert.ToString(c, 2).PadLeft(8, '0');
-			}
-			return result;
-		}
+		//public static string StringToBinary(string data) {
+		//	string result = "";
+		//	foreach(char c in data.ToCharArray()) {
+		//		result += Convert.ToString(c, 2).PadLeft(8, '0');
+		//	}
+		//	return result;
+		//}
 
-		public static string BinaryToString(string data) {
-			List<byte> byteList = new();
-			for(int i = 0; i < data.Length; i += 8) {
-				byteList.Add(Convert.ToByte(data.Substring(i, 8), 2));
-			}
-			return Encoding.ASCII.GetString(byteList.ToArray());
-		}
+		//public static string BinaryToString(string data) {
+		//	List<byte> byteList = new();
+		//	for(int i = 0; i < data.Length; i += 8) {
+		//		byteList.Add(Convert.ToByte(data.Substring(i, 8), 2));
+		//	}
+		//	return Encoding.ASCII.GetString(byteList.ToArray());
+		//}
 
 		public static async Task<LocalInfo?> Load() {
 			OpenFileDialog openFileDialog = new() {
@@ -79,9 +80,9 @@ namespace MindMap.Entities.Locals {
 			if(openFileDialog.ShowDialog() == true) {
 				Debug.WriteLine(openFileDialog.FileName);
 				string json = await File.ReadAllTextAsync(openFileDialog.FileName);
-				string converted = BinaryToString(json);
+				//string converted = BinaryToString(json);
 				LocalInfo info = new(
-					JsonConvert.DeserializeObject<MapInfo>(converted),
+					JsonConvert.DeserializeObject<MapInfo>(json),
 					openFileDialog.SafeFileName,
 					openFileDialog.FileName,
 					File.GetCreationTime(openFileDialog.FileName)
@@ -108,11 +109,13 @@ namespace MindMap.Entities.Locals {
 		public readonly ElementInfo[] elements;
 		public readonly ConnectionInfo[] connections;
 		public readonly HistoryInfo history;
+		public readonly List<ImageAsset> imagesAssets;
 
-		public MapInfo(ElementInfo[] elements, ConnectionInfo[] connections, HistoryInfo history) {
+		public MapInfo(ElementInfo[] elements, ConnectionInfo[] connections, HistoryInfo history, List<ImageAsset> imagesAssets) {
 			this.elements = elements;
 			this.connections = connections;
 			this.history = history;
+			this.imagesAssets = imagesAssets;
 		}
 	}
 

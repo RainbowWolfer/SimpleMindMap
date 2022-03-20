@@ -13,25 +13,25 @@
             <ColumnDefinition Width="*"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
-        <ToggleButton x:Name="LeftButton" ToolTipService.ToolTip="Left Side">
+        <local:LockableToggleButton x:Name="LeftButton" ToolTipService.ToolTip="Left Side" LockToggle="True" Click="LeftButton_Click">
             <ToggleButton.Content>
                 <TextBlock Text="&#xE112;" FontFamily="Segoe MDL2 Assets" FontSize="15" Margin="3"/>
             </ToggleButton.Content>
-        </ToggleButton>
-        <ToggleButton x:Name="RightButton" Grid.Column="1" ToolTipService.ToolTip="Right Side">
+        </local:LockableToggleButton>
+		<local:LockableToggleButton x:Name="RightButton" Grid.Column="1" ToolTipService.ToolTip="Right Side" LockToggle="True" Click="RightButton_Click">
             <ToggleButton.Content>
                 <TextBlock Text="&#xE111;" FontFamily="Segoe MDL2 Assets" FontSize="15" Margin="3"/>
             </ToggleButton.Content>
-        </ToggleButton>
-        <ToggleButton x:Name="TopButton" Grid.Column="2" ToolTipService.ToolTip="Top Side">
+        </local:LockableToggleButton>
+		<local:LockableToggleButton x:Name="TopButton" Grid.Column="2" ToolTipService.ToolTip="Top Side" LockToggle="True" Click="TopButton_Click">
             <ToggleButton.Content>
                 <TextBlock Text="&#xE74A;" FontFamily="Segoe MDL2 Assets" FontSize="15" Margin="3"/>
             </ToggleButton.Content>
-        </ToggleButton>
-        <ToggleButton x:Name="BottomButton" Grid.Column="3" ToolTipService.ToolTip="Bottom Side">
+        </local:LockableToggleButton>
+		<local:LockableToggleButton x:Name="BottomButton" Grid.Column="3" ToolTipService.ToolTip="Bottom Side" LockToggle="True" Click="BottomButton_Click">
             <ToggleButton.Content>
                 <TextBlock Text="&#xE74B;" FontFamily="Segoe MDL2 Assets" FontSize="15" Margin="3"/>
             </ToggleButton.Content>
-        </ToggleButton>
+        </local:LockableToggleButton>
     </Grid>
 </UserControl>

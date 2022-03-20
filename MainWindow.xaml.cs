@@ -43,6 +43,9 @@ namespace MindMap {
 			KeyManager = new ComboKeyManager(this);
 
 			MainFrame.Navigate(new WelcomePage(this));
+
+			Icon = new BitmapImage(new Uri("pack://application:,,,/Images/AppIcon_Color.png"));
+			SetTitle("Mind Map");
 		}
 
 		private void AboutThisMenuItem_Click(object sender, RoutedEventArgs e) {
@@ -85,7 +88,7 @@ namespace MindMap {
 			if(Instance == null) {
 				return;
 			}
-			Instance.Title = title;
+			Instance.Title = " " + title;
 		}
 
 		private void NewFileMenuItem_Click(object sender, RoutedEventArgs e) {

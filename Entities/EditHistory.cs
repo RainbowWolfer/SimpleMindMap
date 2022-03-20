@@ -30,8 +30,13 @@ namespace MindMap.Entities {
 			_parent = parent;
 			OnHistoryChanged += list => {
 				future.Clear();
-				string content = JsonConvert.SerializeObject(ConvertHistoriesJsonPair(list));
-				Local.SaveTmpFile("tmp.json", content);
+				//string content = JsonConvert.SerializeObject(ConvertHistoriesJsonPair(list));
+				//Local.SaveTmpFile("tmp.json", content);
+
+				IChange? last = previous.LastOrDefault();
+				if(last != null) {
+					_parent.imagesAssets.RemoveByDateTime(last.Date);
+				}
 			};
 
 			OnUndo += change => {
@@ -289,6 +294,7 @@ namespace MindMap.Entities {
 		}
 
 		public void Undo() {
+			InstantSealLastDelayedChange();
 			if(previous.Count < 1) {
 				return;
 			}
@@ -361,6 +367,7 @@ namespace MindMap.Entities {
 		}
 
 		public void Redo() {
+			InstantSealLastDelayedChange();
 			if(future.Count < 1) {
 				return;
 			}

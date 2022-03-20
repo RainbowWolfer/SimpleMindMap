@@ -6,9 +6,10 @@
     <Nullable>enable</Nullable>
     <UseWPF>true</UseWPF>
     <RunAnalyzersDuringBuild>False</RunAnalyzersDuringBuild>
-    <RunAnalyzersDuringLiveAnalysis>False</RunAnalyzersDuringLiveAnalysis>
+    <RunAnalyzersDuringLiveAnalysis>True</RunAnalyzersDuringLiveAnalysis>
     <EnableNETAnalyzers>False</EnableNETAnalyzers>
     <EnforceCodeStyleInBuild>False</EnforceCodeStyleInBuild>
+    <AnalysisLevel>latest-recommended</AnalysisLevel>
   </PropertyGroup>
 
   <ItemGroup>
@@ -23,6 +24,10 @@
     <None Remove="Icons\Element_Remove.png" />
     <None Remove="Icons\Element_Remove.psd" />
     <None Remove="Images\20210620_130110.jpg" />
+    <None Remove="Images\AppIcon_Black.png" />
+    <None Remove="Images\AppIcon_Color.png" />
+    <None Remove="Images\AppIcon_White.png" />
+    <None Remove="Images\DefaultImage.png" />
   </ItemGroup>
 
   <ItemGroup>
@@ -37,6 +42,10 @@
     <Resource Include="Icons\Element_Add.png" />
     <Resource Include="Icons\Element_Remove.png" />
     <Resource Include="Images\20210620_130110.jpg" />
+    <Resource Include="Images\AppIcon_Black.png" />
+    <Resource Include="Images\AppIcon_Color.png" />
+    <Resource Include="Images\AppIcon_White.png" />
+    <Resource Include="Images\DefaultImage.png" />
   </ItemGroup>
 
 </Project>

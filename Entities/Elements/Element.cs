@@ -38,6 +38,8 @@ namespace MindMap.Entities.Elements {
 		public abstract FrameworkElement Target { get; }
 		public abstract IProperty Properties { get; }
 
+		//public bool Handled { get; set; } = false;
+
 		public Element(MindMapPage parent, Identity? identity = null) {
 			this.parent = parent;
 			Identity = identity ?? new Identity(IntializeID(GetType()), InitializeDefaultName());

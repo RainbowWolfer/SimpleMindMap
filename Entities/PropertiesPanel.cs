@@ -27,18 +27,6 @@ namespace MindMap.Entities {
 		public static StackPanel SectionTitle(string title, Action<string>? onNameChanged = null) {
 			StackPanel panel = new();
 			panel.Children.Add(new Separator());
-			//var textblock = new TextBlock() {
-			//	Text = title,
-			//	FontSize = 14,
-			//	HorizontalAlignment = HorizontalAlignment.Center,
-			//};
-			//var textbox = new TextBox() {
-			//	Text = title,
-			//	FontSize = 14,
-			//	HorizontalAlignment = HorizontalAlignment.Center,
-			//	//Visibility = Visibility.Collapsed,
-			//};
-			//textblock.
 			var nameText = new RenamableTextDisplay() {
 				Text = title,
 				EnableInput = onNameChanged != null,
@@ -74,6 +62,9 @@ namespace MindMap.Entities {
 				TickFrequency = gap,
 				IsSnapToTickEnabled = gap != 0,
 			};
+			CreateContextMenu(slider, () => {
+				slider.Value = initValue;
+			});
 			slider.ValueChanged += (s, e) => {
 				OnValueChanged.Invoke(new ValueChangedArgs<double>(e.OldValue, e.NewValue));
 				ToolTipService.SetToolTip(slider, $"{slider.Value:0.00}");
@@ -88,6 +79,9 @@ namespace MindMap.Entities {
 			ColorPicker picker = new() {
 				SelectedColor = initColor,
 			};
+			CreateContextMenu(picker, () => {
+				picker.SelectedColor = initColor;
+			});
 			bool changed = false;
 			picker.SelectedColorChanged += (s, e) => {
 				Color oldColor = default;
@@ -119,7 +113,9 @@ namespace MindMap.Entities {
 			ComboBox comboBox = new() {
 				SelectedIndex = availableFonts.ToList().IndexOf(initFont.Source),
 			};
-
+			CreateContextMenu(comboBox, () => {
+				comboBox.SelectedIndex = availableFonts.ToList().IndexOf(initFont.Source);
+			});
 			foreach(string item in availableFonts) {
 				comboBox.Items.Add(new ComboBoxItem() { Content = item });
 			}
@@ -144,6 +140,9 @@ namespace MindMap.Entities {
 			foreach(T item in selections) {
 				comboBox.Items.Add(new ComboBoxItem() { Content = item });
 			}
+			CreateContextMenu(comboBox, () => {
+				comboBox.SelectedIndex = selections.ToList().IndexOf(initData);
+			});
 			comboBox.SelectionChanged += (s, e) => {
 				if(e.AddedItems != null && e.AddedItems.Count > 0 && e.AddedItems[0] is ComboBoxItem item) {
 					T? old = default;
@@ -162,9 +161,17 @@ namespace MindMap.Entities {
 			return panel;
 		}
 
-		public static StackPanel DirectionSelector(string title, Direction initalData, Action<ValueChangedArgs<Direction>> onValueChanged, DirectionArgs allowedDirections) {
+		public static StackPanel DirectionSelector(string title, Direction initialData, Action<ValueChangedArgs<Direction>> onValueChanged, DirectionArgs allowedDirections) {
 			StackPanel panel = CreateBase(title);
-			panel.Children.Add(new DirectionSelector());
+			var selector = new DirectionSelector(initialData) {
+				OnValueChanged = (oldV, newV) => {
+					onValueChanged.Invoke(new ValueChangedArgs<Direction>(oldV, newV));
+				}
+			};
+			CreateContextMenu(selector, () => {
+				selector.Select(initialData);
+			});
+			panel.Children.Add(selector);
 			return panel;
 		}
 
@@ -203,6 +210,17 @@ namespace MindMap.Entities {
 			};
 			panel.Children.Add(button);
 			return panel;
+		}
+
+		private static void CreateContextMenu(FrameworkElement target, Action onReset) {
+			ContextMenu menu = new();
+			MenuItem item_reset = new() {
+				Header = "Reset To Default",
+				Icon = new FontIcon("\uE72C").Generate(),
+			};
+			item_reset.Click += (s, e) => onReset.Invoke();
+			menu.Items.Add(item_reset);
+			target.ContextMenu = menu;
 		}
 	}
 

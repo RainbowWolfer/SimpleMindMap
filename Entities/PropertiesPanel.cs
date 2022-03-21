@@ -1,10 +1,12 @@
-﻿using MindMap.Entities.Frames;
+﻿using MindMap.Entities.Elements;
+using MindMap.Entities.Frames;
 using MindMap.Entities.Icons;
 using MindMap.Pages;
 using MindMap.UserControls;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -156,8 +158,33 @@ namespace MindMap.Entities {
 			return panel;
 		}
 
-		public static StackPanel DuoNumberInput(string title) {
+		public static StackPanel DuoNumberInputs(string title, DuoNumber initial, Action<ValueChangedArgs<DuoNumber>> onValueChanged) {
 			StackPanel panel = CreateBase(title);
+			Grid grid = new();
+			grid.ColumnDefinitions.Add(new ColumnDefinition());
+			grid.ColumnDefinitions.Add(new ColumnDefinition());
+			NumberInput input_left = new(initial.Left);
+			NumberInput input_right = new(initial.Right);
+			input_left.OnNumberChanged += args => {
+				DuoNumber oldV = new(args.From, input_right.GetNumber());
+				DuoNumber newV = new(args.To, input_right.GetNumber());
+				if(oldV == newV) {
+					return;
+				}
+				onValueChanged.Invoke(new ValueChangedArgs<DuoNumber>(oldV, newV));
+			};
+			input_right.OnNumberChanged += args => {
+				DuoNumber oldV = new(input_left.GetNumber(), args.From);
+				DuoNumber newV = new(input_left.GetNumber(), args.To);
+				if(oldV == newV) {
+					return;
+				}
+				onValueChanged.Invoke(new ValueChangedArgs<DuoNumber>(oldV, newV));
+			};
+			Grid.SetColumn(input_right, 1);
+			grid.Children.Add(input_left);
+			grid.Children.Add(input_right);
+			panel.Children.Add(grid);
 			return panel;
 		}
 
@@ -233,6 +260,39 @@ namespace MindMap.Entities {
 		}
 		public override string ToString() {
 			return $"({typeof(T)}) {OldValue} -> {NewValue}";
+		}
+	}
+
+	public struct DuoNumber {
+		public int Left { get; set; } = 1;
+		public int Right { get; set; } = 1;
+		public DuoNumber(int left, int right) {
+			Left = left;
+			Right = right;
+		}
+
+		public double[] ToArray() {
+			return new double[] { Left, Right };
+		}
+
+		public override string ToString() {
+			return $"Duo ({Left}|{Right})";
+		}
+
+		public override bool Equals([NotNullWhen(true)] object? obj) {
+			return obj is DuoNumber duo && duo.Left == Left && duo.Right == Right;
+		}
+
+		public override int GetHashCode() {
+			return base.GetHashCode();
+		}
+
+		public static bool operator ==(DuoNumber a, DuoNumber b) {
+			return a.Equals(b);
+		}
+
+		public static bool operator !=(DuoNumber a, DuoNumber b) {
+			return !a.Equals(b);
 		}
 	}
 }

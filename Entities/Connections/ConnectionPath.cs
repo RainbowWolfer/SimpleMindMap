@@ -18,6 +18,28 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
 
+/**
+ * <Grid VerticalAlignment="Center" HorizontalAlignment="Center" >
+ *       <Path StrokeThickness="2"
+ *           Stroke="Red"
+ *           Fill="{Binding Stroke, RelativeSource={RelativeSource Self}}">
+ *           <Path.Data>
+ *               <PathGeometry>
+ *                   <PathFigure StartPoint="0 0" IsFilled="False">
+ *                       <LineSegment Point="20 0"/>
+ *                       <LineSegment Point="20 100"/>
+ *                       <LineSegment Point="0 100"/>
+ *                   </PathFigure>
+ *                   <PathFigure StartPoint="0 100" IsClosed="False">
+ *                       <LineSegment Point="10 95"/>
+ *                       <LineSegment Point="10 105"/>
+ *                   </PathFigure>
+ *               </PathGeometry>
+ *           </Path.Data>
+ *       </Path>
+ *   </Grid>
+ */
+
 namespace MindMap.Entities.Connections {
 	public class ConnectionPath: IPropertiesContainer, IIdentityContainer {
 		public Identity Identity { get; set; }
@@ -35,31 +57,40 @@ namespace MindMap.Entities.Connections {
 
 		public Canvas MainCanvas => _parent.MainCanvas;
 
-		private struct Property: IProperty {
-			public double strokeThickess;
-			public Color strokeColor;
+		private class Property: IProperty {
+			public double strokeThickess = 3;
+			public Color strokeColor = Colors.Gray;
+			public DuoNumber dashStroke = new DuoNumber(5, 0);
 
 			public object Clone() {
 				return MemberwiseClone();
 			}
 
 			public IProperty Translate(string json) {
-				return JsonConvert.DeserializeObject<Property>(json);
+				return JsonConvert.DeserializeObject<Property>(json) ?? new();
 			}
 		}
-		private Property property;
+		private Property property = new();
 		public IProperty Properties => property;
 
 		public Path Path { get; private set; }
 		public bool IsSelected { get; private set; }
-		private Path _backdgroundPath = new();
+		private Path _backgroundPath = new();
 
-		public Style PathStyle {
-			get {
-				Style style = new(typeof(Path));
-				style.Setters.Add(new Setter(Path.StrokeThicknessProperty, StrokeThickess));
-				style.Setters.Add(new Setter(Path.StrokeProperty, new SolidColorBrush(StrokeColor)));
-				return style;
+		//public Style PathStyle {
+		//	get {
+		//		Style style = new(typeof(Path));
+		//		style.Setters.Add(new Setter(Path.StrokeThicknessProperty, StrokeThickess));
+		//		style.Setters.Add(new Setter(Path.StrokeProperty, new SolidColorBrush(StrokeColor)));
+		//		return style;
+		//	}
+		//}
+
+		public DuoNumber DashStroke {
+			get => property.dashStroke;
+			set {
+				property.dashStroke = value;
+				UpdateStyle();
 			}
 		}
 
@@ -89,6 +120,7 @@ namespace MindMap.Entities.Connections {
 			this.to = to;
 			this.Path = CreatePath(from.GetPosition(), to.GetPosition());
 			this.Identity = identity ?? new Identity(InitializeID(), InitializeDefaultName());
+			this.DashStroke = new DuoNumber(5, 0);
 			this.Initialize();
 		}
 
@@ -99,6 +131,7 @@ namespace MindMap.Entities.Connections {
 			this.to = null;
 			this.Path = CreatePath(from.GetPosition(), to);
 			this.Identity = new Identity($"Preview_Connection_({Methods.GetTick()})", "Preview Conncetion");
+			this.DashStroke = new DuoNumber(5, 2);
 			this.Initialize();
 		}
 
@@ -121,11 +154,11 @@ namespace MindMap.Entities.Connections {
 					property.strokeThickess = 3;
 					property.strokeColor = Colors.Gray;
 				}
-				_backdgroundPath = new() {
+				_backgroundPath = new() {
 					Data = Path.Data,
 					Visibility = Visibility.Collapsed,
 				};
-				MainCanvas.Children.Insert(MainCanvas.Children.IndexOf(Path), _backdgroundPath);
+				MainCanvas.Children.Insert(MainCanvas.Children.IndexOf(Path), _backgroundPath);
 				FlyoutMenu.CreateBase(this.Path, (s, e) => _connectionsManager?.RemoveConnection(this));
 				Path.MouseDown += (s, e) => {
 					if(e.MouseDevice.RightButton == MouseButtonState.Pressed) {
@@ -183,8 +216,8 @@ namespace MindMap.Entities.Connections {
 			if(IsSelected) {
 				return;
 			}
-			_backdgroundPath.Visibility = Visibility.Visible;
-			_backdgroundPath.StrokeDashArray = new DoubleCollection(new double[] { 2, 0.5 });
+			_backgroundPath.Visibility = Visibility.Visible;
+			_backgroundPath.StrokeDashArray = new DoubleCollection(new double[] { 2, 0.5 });
 			UpdateBackgroundStyle();
 		}
 
@@ -192,7 +225,7 @@ namespace MindMap.Entities.Connections {
 			if(IsSelected) {
 				return;
 			}
-			_backdgroundPath.Visibility = Visibility.Collapsed;
+			_backgroundPath.Visibility = Visibility.Collapsed;
 		}
 
 		public void Select() {
@@ -200,8 +233,8 @@ namespace MindMap.Entities.Connections {
 				_connectionsManager.CurrentSelection = this;
 			}
 			IsSelected = true;
-			_backdgroundPath.Visibility = Visibility.Visible;
-			_backdgroundPath.StrokeDashArray = new DoubleCollection(new double[] { 1, 0 });
+			_backgroundPath.Visibility = Visibility.Visible;
+			_backgroundPath.StrokeDashArray = new DoubleCollection(new double[] { 1, 0 });
 			UpdateBackgroundStyle();
 		}
 
@@ -210,7 +243,7 @@ namespace MindMap.Entities.Connections {
 				_connectionsManager.CurrentSelection = null;
 			}
 			IsSelected = false;
-			_backdgroundPath.Visibility = Visibility.Collapsed;
+			_backgroundPath.Visibility = Visibility.Collapsed;
 		}
 
 		public static Color Invert(Color color, byte alpha = 255) {
@@ -236,6 +269,11 @@ namespace MindMap.Entities.Connections {
 					_parent.editHistory.InstantSealLastDelayedChange();
 				}
 			));
+			panel.Children.Add(PropertiesPanel.DuoNumberInputs("Stroke Dash Array", DashStroke, args => IPropertiesContainer.PropertyChangedHandler(this, () => {
+				DashStroke = args.NewValue;
+			}, (oldP, newP) => {
+				_parent.editHistory.SubmitByElementPropertyChanged(TargetType.ConnectionPath, this, oldP, newP, "Stroke Dash");
+			})));
 			return panel;
 		}
 
@@ -243,13 +281,14 @@ namespace MindMap.Entities.Connections {
 			//Path.Style = PathStyle;
 			Path.StrokeThickness = StrokeThickess;
 			Path.Stroke = new SolidColorBrush(StrokeColor);
+			Path.StrokeDashArray = new DoubleCollection(DashStroke.ToArray());
 		}
 
 		public void UpdateBackgroundStyle() {
-			_backdgroundPath.Data = Path.Data;
-			_backdgroundPath.Stroke = Path.Stroke;
-			_backdgroundPath.Stroke = new SolidColorBrush(Invert(((SolidColorBrush)Path.Stroke).Color));
-			_backdgroundPath.StrokeThickness = Path.StrokeThickness * 1.7;
+			_backgroundPath.Data = Path.Data;
+			//_backdgroundPath.Stroke = Path.Stroke;
+			_backgroundPath.Stroke = new SolidColorBrush(Invert(((SolidColorBrush)Path.Stroke).Color, 130));
+			_backgroundPath.StrokeThickness = Path.StrokeThickness * 1.7;
 		}
 
 		public void Update(Vector2 to) {
@@ -264,10 +303,10 @@ namespace MindMap.Entities.Connections {
 		}
 
 		public void ClearBackground() {
-			if(!MainCanvas.Children.Contains(_backdgroundPath)) {
+			if(!MainCanvas.Children.Contains(_backgroundPath)) {
 				return;
 			}
-			MainCanvas.Children.Remove(_backdgroundPath);
+			MainCanvas.Children.Remove(_backgroundPath);
 		}
 
 		public override string ToString() {

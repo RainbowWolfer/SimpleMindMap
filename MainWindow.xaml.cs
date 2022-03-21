@@ -72,7 +72,9 @@ namespace MindMap {
 			LocalInfo? result = await Local.Load();
 			if(result != null && result.MapInfo != null) {
 				NavigateToMindMap();
-				_mindMapPage?.Load(result.MapInfo, result.FileInfo);
+				if(_mindMapPage != null) {
+					await _mindMapPage.Load(result.MapInfo, result.FileInfo);
+				}
 			}
 		}
 

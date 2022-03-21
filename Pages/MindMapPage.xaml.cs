@@ -195,11 +195,13 @@ namespace MindMap.Pages {
 			SavingPanel.Visibility = Visibility.Collapsed;
 		}
 
-		public async void Load(MapInfo mapInfo, FileInfo fileInfo) {
+		public async Task Load(MapInfo mapInfo, FileInfo fileInfo) {
 			LoadingPanel.Visibility = Visibility.Visible;
 			FileName = fileInfo.FileName;
 			savePath = fileInfo.FilePath;
 			CreatedDateText.Text = $"Created Date ({fileInfo.CreatedDate})";
+
+			imagesAssets.SetAssets(mapInfo.imagesAssets);
 
 			foreach(ElementInfo ele in mapInfo.elements) {
 				Element element = AddElement(ele.type_id, ele.identity, ele.position, ele.size, ele.connectionControls, false);

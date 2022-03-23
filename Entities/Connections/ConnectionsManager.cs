@@ -14,8 +14,9 @@ using System.Windows.Controls;
 
 namespace MindMap.Entities.Connections {
 	public class ConnectionsManager {
+		public event Action<ConnectionPathChangeArgs>? OnConnectionPathChanged;
 		private List<Connection> Connections { get; } = new();
-		private readonly Canvas _mainCanvas;
+		//private readonly Canvas _mainCanvas;
 		private readonly MindMapPage _parent;
 
 		public int Count => Connections.Count;
@@ -23,7 +24,7 @@ namespace MindMap.Entities.Connections {
 
 		public ConnectionsManager(MindMapPage mindMapPage) {
 			_parent = mindMapPage;
-			_mainCanvas = mindMapPage.MainCanvas;
+			//_mainCanvas = mindMapPage.MainCanvas;
 		}
 
 		public List<ConnectionPath> GetAllConnections() {
@@ -60,6 +61,7 @@ namespace MindMap.Entities.Connections {
 				if(submitHistory) {
 					_parent.editHistory.SubmitByConnectionCreated(path);
 				}
+				OnConnectionPathChanged?.Invoke(new ConnectionPathChangeArgs(null, path));
 				return path;
 			} else {
 				return null;
@@ -83,6 +85,7 @@ namespace MindMap.Entities.Connections {
 			if(submitHistory) {
 				_parent.editHistory.SubmitByConnectionCreated(connectionPath);
 			}
+			OnConnectionPathChanged?.Invoke(new ConnectionPathChangeArgs(null, connectionPath));
 			return connectionPath;
 		}
 
@@ -97,7 +100,9 @@ namespace MindMap.Entities.Connections {
 				}
 				found.Path.ClearBackground();
 				found.Path.ClearFromCanvas();
+				found.Path.ClearText();
 				Connections.Remove(found);
+				OnConnectionPathChanged?.Invoke(new ConnectionPathChangeArgs(found.Path, null));
 			}
 			_parent.UpdateCount();
 		}
@@ -107,6 +112,8 @@ namespace MindMap.Entities.Connections {
 			foreach(ConnectionControl item in frame.AllDots) {
 				foreach(Connection c in Connections.Where(c => c.From.Identity == item.Identity || c.To.Identity == item.Identity)) {
 					c.Path.ClearFromCanvas();
+					c.Path.ClearFromCanvas();
+					c.Path.ClearText();
 					founds.Add(c);
 				}
 			}
@@ -192,4 +199,13 @@ namespace MindMap.Entities.Connections {
 		}
 	}
 
+
+	public class ConnectionPathChangeArgs {
+		public ConnectionPath? RemovedItem { get; set; }
+		public ConnectionPath? AddedItem { get; set; }
+		public ConnectionPathChangeArgs(ConnectionPath? removedItem, ConnectionPath? addedItem) {
+			RemovedItem = removedItem;
+			AddedItem = addedItem;
+		}
+	}
 }

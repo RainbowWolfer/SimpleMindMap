@@ -44,7 +44,7 @@
 				<TextBlock x:Name="FileNameText" Text="MindMap.mp*" HorizontalAlignment="Center"/>
 			</StackPanel>
 			<TabControl Grid.Row="1">
-				<TabItem Header="Elements" Width="83">
+				<TabItem x:Name="ElementsTabItem" Header="Elements" Width="83">
 					<ScrollViewer VerticalScrollBarVisibility="Auto">
 						<StackPanel>
 							<Expander Header="Rectangles" IsExpanded="True">
@@ -73,17 +73,17 @@
 						</StackPanel>
 					</ScrollViewer>
 				</TabItem>
-				<TabItem Header="Properties" Width="83">
+				<TabItem x:Name="PropertiesTabItem" Header="Properties" Width="83">
 					<ScrollViewer VerticalScrollBarVisibility="Auto">
 						<StackPanel x:Name="ElementPropertiesPanel">
 							<!-- SelectionChanged=""-->
-							<ComboBox SelectedIndex="0">
+							<d:ComboBox SelectedIndex="0">
 								<ComboBoxItem Content="1"/>
 								<ComboBoxItem Content="2"/>
 								<ComboBoxItem Content="4121"/>
 								<ComboBoxItem Content="3"/>
 								<ComboBoxItem Content="4"/>
-							</ComboBox>
+							</d:ComboBox>
 						</StackPanel>
 					</ScrollViewer>
 				</TabItem>
@@ -138,7 +138,7 @@
 			<TabControl x:Name="RightTabControl" TabStripPlacement="Left" Width="280">
 				<TabItem Style="{StaticResource RightTabs}" >
 					<TabItem.Header>
-						<TextBlock x:Name="HistoryTabItemHeader" Text="History" PreviewMouseUp="HistoryTabItemHeader_PreviewMouseUp"/>
+						<TextBlock x:Name="HistoryTabItemHeader" Text="History" PreviewMouseUp="TabItemHeader_PreviewMouseUp"/>
 					</TabItem.Header>
 					<Grid>
 						<Grid.RowDefinitions>
@@ -157,9 +157,14 @@
 						</StackPanel>
 					</Grid>
 				</TabItem>
-				<TabItem Header="WHATDOWEDO" Style="{StaticResource RightTabs}">
+				<TabItem Style="{StaticResource RightTabs}">
+					<TabItem.Header>
+						<TextBlock Text="Map Elements" PreviewMouseUp="TabItemHeader_PreviewMouseUp"/>
+					</TabItem.Header>
 					<Grid>
-						<TextBlock Text="Hello World 2"/>
+						<ListView x:Name="MapElementsListView" SelectionChanged="MapElementsListView_SelectionChanged" d:ItemsSource="{d:SampleData ItemCount=7}">
+
+						</ListView>
 					</Grid>
 				</TabItem>
 			</TabControl>

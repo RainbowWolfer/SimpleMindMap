@@ -85,7 +85,7 @@ namespace MindMap.Entities.Elements.TextShapes {
 			ShowTextBox();
 		}
 
-		public override void LeftClick() {
+		public override void LeftClick(MouseButtonEventArgs e) {
 
 		}
 

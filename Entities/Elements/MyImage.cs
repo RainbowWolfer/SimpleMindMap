@@ -14,6 +14,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
@@ -216,7 +217,7 @@ namespace MindMap.Entities.Elements {
 			ShowTextBox();
 		}
 
-		public override void LeftClick() {
+		public override void LeftClick(MouseButtonEventArgs e) {
 
 		}
 

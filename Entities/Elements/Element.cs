@@ -17,9 +17,11 @@ using MindMap.Entities.Connections;
 using MindMap.Entities.Identifications;
 using MindMap.Entities.Services;
 using MindMap.Entities.Tags;
+using MindMap.Entities.Interactions;
+using System.Windows.Input;
 
 namespace MindMap.Entities.Elements {
-	public abstract class Element: IPropertiesContainer, IIdentityContainer {
+	public abstract class Element: IPropertiesContainer, IIdentityContainer, IInteractive {
 		public abstract long TypeID { get; }
 		public const long ID_Rectangle = 1;
 		public const long ID_Ellipse = 2;
@@ -118,67 +120,65 @@ namespace MindMap.Entities.Elements {
 			FlyoutMenu.CreateBase(Target, (s, e) => Delete());
 		}
 
-		public List<Panel> CreatePropertiesList() {
+		public static List<Panel> CreatePropertiesList(IPropertiesContainer container, EditHistory editHistory) {
 			List<Panel> panels = new();
-			panels.Add(CreateElementProperties());
-
-			if(this is IBorderBasedStyle border) {
+			if(container is IBorderBasedStyle border) {
 				var title = PropertiesPanel.SectionTitle("Border");
 				var pro1 = PropertiesPanel.ColorInput("Background Color", border.Background,
-					args => IPropertiesContainer.PropertyChangedHandler(this, () => {
+					args => IPropertiesContainer.PropertyChangedHandler(container, () => {
 						border.Background = new SolidColorBrush(args.NewValue);
 					}, (oldP, newP) => {
-						parent.editHistory.SubmitByElementPropertyDelayedChanged(TargetType.Element, this, oldP, newP, "Background Color");
+						editHistory.SubmitByElementPropertyDelayedChanged(TargetType.Element, container, oldP, newP, "Background Color");
 					})
 				);
 				var pro2 = PropertiesPanel.ColorInput("Border Color", border.BorderColor,
-					args => IPropertiesContainer.PropertyChangedHandler(this, () => {
+					args => IPropertiesContainer.PropertyChangedHandler(container, () => {
 						border.BorderColor = new SolidColorBrush(args.NewValue);
 					}, (oldP, newP) => {
-						parent.editHistory.SubmitByElementPropertyDelayedChanged(TargetType.Element, this, oldP, newP, "Border Color");
+						editHistory.SubmitByElementPropertyDelayedChanged(TargetType.Element, container, oldP, newP, "Border Color");
 					})
 				);
 				var pro3 = PropertiesPanel.SliderInput("Border Thickness", border.BorderThickness.Left, 0, 5,
-					args => IPropertiesContainer.PropertyChangedHandler(this, () => {
+					args => IPropertiesContainer.PropertyChangedHandler(container, () => {
 						border.BorderThickness = new Thickness(args.NewValue);
 					}, (oldP, newP) => {
-						parent.editHistory.SubmitByElementPropertyDelayedChanged(TargetType.Element, this, oldP, newP, "Border Thickness");
+						editHistory.SubmitByElementPropertyDelayedChanged(TargetType.Element, container, oldP, newP, "Border Thickness");
 					})
 				);
 				panels.AddRange(new Panel[] { title, pro1, pro2, pro3, });
 			}
-			if(this is ITextContainer text) {
+			if(container is ITextContainer text) {
 				panels.AddRange(new Panel[] {
 					PropertiesPanel.SectionTitle("Text"),
 					PropertiesPanel.FontSelector("Font Family", text.FontFamily,
-						args => IPropertiesContainer.PropertyChangedHandler(this, () => {
+						args => IPropertiesContainer.PropertyChangedHandler(container, () => {
 							if(args.NewValue == null){
 								return;
 							}
 							text.FontFamily = args.NewValue;
 						}, (oldP, newP) => {
-							parent.editHistory.SubmitByElementPropertyChanged(TargetType.Element, this, oldP, newP, "Font Family");
+							editHistory.SubmitByElementPropertyChanged(TargetType.Element, container, oldP, newP, "Font Family");
 						}), FontsList.AvailableFonts),
 					PropertiesPanel.ComboSelector("Font Weight", text.FontWeight,
-						value => IPropertiesContainer.PropertyChangedHandler(this, ()=>{
+						value => IPropertiesContainer.PropertyChangedHandler(container, ()=>{
 							text.FontWeight = value.NewValue;
 						}, (oldP, newP) => {
-							parent.editHistory.SubmitByElementPropertyChanged(TargetType.Element, this, oldP, newP, "Font Weight");
+							editHistory.SubmitByElementPropertyChanged(TargetType.Element, container, oldP, newP, "Font Weight");
 						})
 					, FontsList.AllFontWeights),
 					PropertiesPanel.SliderInput("Font Size", text.FontSize, 5, 42,
-						args => IPropertiesContainer.PropertyChangedHandler(this, () => {
+						args => IPropertiesContainer.PropertyChangedHandler(container, () => {
 							text.FontSize = args.NewValue;
 						}, (oldP, newP) => {
-							parent.editHistory.SubmitByElementPropertyDelayedChanged(TargetType.Element, this, oldP, newP, "Font Size");
+							editHistory.SubmitByElementPropertyDelayedChanged(TargetType.Element, container, oldP, newP, "Font Size");
 						}), 1, 0),
 					PropertiesPanel.ColorInput("Font Color", text.FontColor,
-						args => IPropertiesContainer.PropertyChangedHandler(this, () => {
+						args => IPropertiesContainer.PropertyChangedHandler(container, () => {
 							text.FontColor = args.NewValue;
 						}, (oldP, newP) => {
-							parent.editHistory.SubmitByElementPropertyDelayedChanged(TargetType.Element, this, oldP, newP, "Font Color");
+							editHistory.SubmitByElementPropertyDelayedChanged(TargetType.Element, container, oldP, newP, "Font Color");
 						}), ()=>{
-							parent.editHistory.InstantSealLastDelayedChange();
+							editHistory.InstantSealLastDelayedChange();
 						}
 					),
 				});
@@ -193,7 +193,7 @@ namespace MindMap.Entities.Elements {
 		protected abstract void UpdateStyle();
 
 		public abstract void DoubleClick();
-		public abstract void LeftClick();
+		public abstract void LeftClick(MouseButtonEventArgs e);
 		public abstract void MiddleClick();
 		public abstract void RightClick();
 		public abstract void Deselect();

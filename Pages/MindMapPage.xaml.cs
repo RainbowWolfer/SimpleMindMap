@@ -48,6 +48,9 @@ namespace MindMap.Pages {
 		public MindMapPage() {
 			InitializeComponent();
 			connectionsManager = new ConnectionsManager(this);
+			connectionsManager.OnConnectionPathChanged += args => {
+				RefreshMapElementsListView();
+			};
 			editHistory = new EditHistory(this);
 			editHistory.OnHistoryChanged += EditHistory_OnHistoryChanged;
 			editHistory.OnUndo += EditHistory_OnUndo;
@@ -315,10 +318,17 @@ namespace MindMap.Pages {
 			}
 			ShowElementProperties(found);
 		}
-		public void ShowElementProperties(Element element) {
+
+		public void ShowElementProperties(Element element, bool showPropertiesTabItem = false) {
 			ElementPropertiesPanel.Children.Clear();
-			foreach(Panel item in element.CreatePropertiesList()) {
+
+			ElementPropertiesPanel.Children.Add(element.CreateElementProperties());
+			foreach(Panel item in Element.CreatePropertiesList(element, editHistory)) {
 				ElementPropertiesPanel.Children.Add(item);
+			}
+
+			if(showPropertiesTabItem) {
+				PropertiesTabItem.IsSelected = true;
 			}
 		}
 
@@ -387,6 +397,8 @@ namespace MindMap.Pages {
 			if(element is IUpdate update) {
 				update.Update();
 			}
+			UpdateCount();
+			RefreshMapElementsListView();
 			if(submitEditHistory) {
 				editHistory.SubmitByElementCreated(element);
 			}
@@ -405,6 +417,7 @@ namespace MindMap.Pages {
 			MainCanvas.Children.Remove(element.Target);
 			element.ConnectionsFrame?.ClearConnections();
 			UpdateCount();
+			RefreshMapElementsListView();
 			if(submitEditHistory) {
 				editHistory.SubmitByElementDeleted(element, related, connections);
 			}
@@ -450,12 +463,16 @@ namespace MindMap.Pages {
 					e.Tag is ElementFrameworkTag tag &&
 					tag.Target == element
 				) {
-					var targets = element.GetRelatedPaths();
-					foreach(ConnectionPath path in targets) {
-						MainCanvas.Children.Remove(path.Path);
+					List<FrameworkElement> frameworks = new();
+					foreach(ConnectionPath item in element.GetRelatedPaths()) {
+						frameworks.AddRange(item.GetRelatedFrameworks());
 					}
-					foreach(ConnectionPath path in targets) {
-						MainCanvas.Children.Insert(lastIndex - targets.Count, path.Path);
+					foreach(FrameworkElement fe in frameworks) {
+						MainCanvas.Children.Remove(fe);
+					}
+					frameworks.Reverse();
+					foreach(FrameworkElement fe in frameworks) {
+						MainCanvas.Children.Insert(lastIndex - frameworks.Count, fe);
 					}
 					break;
 				}
@@ -577,8 +594,9 @@ namespace MindMap.Pages {
 							if(clickCount == 1) {
 								Debug.WriteLine("This is double click");
 								element.DoubleClick();
+								ShowElementProperties(element, true);
 							} else {
-								element.LeftClick();//care
+								element.LeftClick(e);//care
 								ShowElementProperties(element);
 							}
 							break;
@@ -634,7 +652,7 @@ namespace MindMap.Pages {
 		}
 
 		private long lastClickTick = 0;
-		private void HistoryTabItemHeader_PreviewMouseUp(object sender, MouseButtonEventArgs e) {
+		private void TabItemHeader_PreviewMouseUp(object sender, MouseButtonEventArgs e) {
 			if(DateTime.Now.Ticks - lastClickTick < 2500000) {
 				if(RightTabControl.Width > 100) {
 					RightTabControl.Width = 20;
@@ -647,9 +665,19 @@ namespace MindMap.Pages {
 			lastClickTick = DateTime.Now.Ticks;
 		}
 
+		private void MapElementsListView_SelectionChanged(object sender, SelectionChangedEventArgs e) {
+
+		}
+
+		private void RefreshMapElementsListView() {
+			MapElementsListView.Items.Clear();
+			foreach(object item in MainCanvas.Children) {
+				MapElementsListView.Items.Add(item.ToString());
+			}
+		}
+
 		private enum MouseType {
 			Left, Middle, Right
 		}
-
 	}
 }

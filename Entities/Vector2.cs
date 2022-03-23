@@ -76,6 +76,10 @@ namespace MindMap.Entities {
 			return new Vector2(Math.Floor(X), Math.Floor(Y));
 		}
 
+		public Point ToPoint() {
+			return new Point(X, Y);
+		}
+
 		public string ToString(int lengthAfterDot) {//"bug": does not work with negative number
 			return $"Vector2: (" +
 			$"{Math.Round(X, lengthAfterDot)}," +

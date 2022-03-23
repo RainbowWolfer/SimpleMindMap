@@ -59,8 +59,10 @@ namespace MindMap.Entities.Connections {
 
 		private class Property: IProperty {
 			public double strokeThickess = 3;
-			public Color strokeColor = Colors.Gray;
+			public Color strokeColor = Colors.ForestGreen;
 			public DuoNumber dashStroke = new DuoNumber(5, 0);
+			public int extendLengthPercentage = 50;
+			public PathType pathType = PathType.Linear;
 
 			public object Clone() {
 				return MemberwiseClone();
@@ -77,14 +79,21 @@ namespace MindMap.Entities.Connections {
 		public bool IsSelected { get; private set; }
 		private Path _backgroundPath = new();
 
-		//public Style PathStyle {
-		//	get {
-		//		Style style = new(typeof(Path));
-		//		style.Setters.Add(new Setter(Path.StrokeThicknessProperty, StrokeThickess));
-		//		style.Setters.Add(new Setter(Path.StrokeProperty, new SolidColorBrush(StrokeColor)));
-		//		return style;
-		//	}
-		//}
+
+		public PathType PathType {
+			get => property.pathType;
+			set {
+				property.pathType = value;
+				Update();
+			}
+		}
+		public int ExtendLengthPercentage {
+			get => property.extendLengthPercentage;
+			set {
+				property.extendLengthPercentage = value;
+				Update();
+			}
+		}
 
 		public DuoNumber DashStroke {
 			get => property.dashStroke;
@@ -118,7 +127,11 @@ namespace MindMap.Entities.Connections {
 			this._connectionsManager = connectionsManager;
 			this.from = from;
 			this.to = to;
-			this.Path = CreatePath(from.GetPosition(), to.GetPosition());
+			//this.Path = CreatePath(from.GetPosition(), to.GetPosition(), from.Direction);
+			this.Path = new Path() {
+				Data = CreateGeometry(new ConnectionDotInfo(from), new ConnectionDotInfo(to)),
+				Tag = new ConnectionPathFrameworkTag(this),
+			};
 			this.Identity = identity ?? new Identity(InitializeID(), InitializeDefaultName());
 			this.DashStroke = new DuoNumber(5, 0);
 			this.Initialize();
@@ -129,7 +142,11 @@ namespace MindMap.Entities.Connections {
 			this._parent = parent;
 			this.from = from;
 			this.to = null;
-			this.Path = CreatePath(from.GetPosition(), to);
+			//this.Path = CreatePath(from.GetPosition(), to, from.Direction);
+			this.Path = new Path() {
+				Data = CreateGeometry(new ConnectionDotInfo(from), new ConnectionDotInfo(to)),
+				Tag = new ConnectionPathFrameworkTag(this),
+			};
 			this.Identity = new Identity($"Preview_Connection_({Methods.GetTick()})", "Preview Conncetion");
 			this.DashStroke = new DuoNumber(5, 2);
 			this.Initialize();
@@ -152,7 +169,7 @@ namespace MindMap.Entities.Connections {
 			if(!IsPreview) {
 				if(initializeProperty) {
 					property.strokeThickess = 3;
-					property.strokeColor = Colors.Gray;
+					property.strokeColor = Colors.ForestGreen;
 				}
 				_backgroundPath = new() {
 					Data = Path.Data,
@@ -274,6 +291,11 @@ namespace MindMap.Entities.Connections {
 			}, (oldP, newP) => {
 				_parent.editHistory.SubmitByElementPropertyChanged(TargetType.ConnectionPath, this, oldP, newP, "Stroke Dash");
 			})));
+			panel.Children.Add(PropertiesPanel.SliderInput("Extend Length", ExtendLengthPercentage, 0, 100, args => IPropertiesContainer.PropertyChangedHandler(this, () => {
+				ExtendLengthPercentage = (int)args.NewValue;
+			}, (oldP, newP) => {
+				_parent.editHistory.SubmitByElementPropertyDelayedChanged(TargetType.ConnectionPath, this, oldP, newP, "Extend Length");
+			}), 5, 0));
 			return panel;
 		}
 
@@ -291,15 +313,17 @@ namespace MindMap.Entities.Connections {
 			_backgroundPath.StrokeThickness = Path.StrokeThickness * 1.7;
 		}
 
-		public void Update(Vector2 to) {
-			this.Path.Data = CreateGeometry(from.GetPosition(), to);
+		public void Update(Vector2 to, ConnectionControl? target) {
+			this.Path.Data = CreateGeometry(new ConnectionDotInfo(from), target == null ? new ConnectionDotInfo(to) : new ConnectionDotInfo(target));
+			//this.Path.Data = CreateLinearGeometry(from.GetPosition(), to, from.Direction);
 		}
 
 		public void Update() {
 			if(to == null) {
 				throw new Exception("to is null");
 			}
-			this.Path.Data = CreateGeometry(from.GetPosition(), to.GetPosition());
+			this.Path.Data = CreateGeometry(new ConnectionDotInfo(from), new ConnectionDotInfo(to));
+			//this.Path.Data = CreateLinearGeometry(from.GetPosition(), to.GetPosition(), from.Direction);
 		}
 
 		public void ClearBackground() {
@@ -313,20 +337,274 @@ namespace MindMap.Entities.Connections {
 			return $"Conection: {from.Parent_ID}-{to?.Parent_ID ?? "None"}";
 		}
 
-		public Path CreatePath(Vector2 from, Vector2 to) {
-			return new Path() {
-				Data = CreateGeometry(from, to),
-				Tag = new ConnectionPathFrameworkTag(this),
-			};
+		//private Path CreatePath(Vector2 from, Vector2 to, Direction direction) {
+		//	return new Path() {
+		//		Data = CreateLinearGeometry(from, to, direction),
+		//		Tag = new ConnectionPathFrameworkTag(this),
+		//	};
+		//}
+
+		private Geometry CreateGeometry(ConnectionDotInfo from, ConnectionDotInfo to) {
+			Geometry geometry;
+			switch(PathType) {
+				case PathType.Linear:
+					geometry = CreatePathGeometry(from, to);
+					break;
+				case PathType.RightAngle:
+					geometry = CreatePathGeometry(from, to);
+					break;
+				default:
+					throw new Exception($"PathType ({PathType}) not found");
+			}
+			return geometry;
 		}
 
-		public static Geometry CreateGeometry(Vector2 from, Vector2 to) {
+		private Geometry CreateLinearGeometry(ConnectionDotInfo from, ConnectionDotInfo to) {
+			Vector2 startJoint;
+			Vector2 endJoint;
+			double length = ExtendLengthPercentage * 2;
+			if(from.Direction == Direction.Left) {
+				startJoint = new Vector2(from.X - length, from.Y);
+			} else if(from.Direction == Direction.Right) {
+				startJoint = new Vector2(from.X + length, from.Y);
+			} else if(from.Direction == Direction.Top) {
+				startJoint = new Vector2(from.X, from.Y - length);
+			} else if(from.Direction == Direction.Bottom) {
+				startJoint = new Vector2(from.X, from.Y + length);
+			} else {
+				throw new Exception($"Direction ({from.Direction}) Not Found");
+			}
+			if(to.IsExisted) {
+				if(to.Direction == Direction.Left) {
+					endJoint = new Vector2(to.X - length, to.Y);
+				} else if(to.Direction == Direction.Right) {
+					endJoint = new Vector2(to.X + length, to.Y);
+				} else if(to.Direction == Direction.Top) {
+					endJoint = new Vector2(to.X, to.Y - length);
+				} else if(to.Direction == Direction.Bottom) {
+					endJoint = new Vector2(to.X, to.Y + length);
+				} else {
+					throw new Exception($"Direction ({to.Direction}) Not Found");
+				}
+			} else {
+				if(from.Direction == Direction.Left) {
+					endJoint = new Vector2(to.X + length, to.Y);
+				} else if(from.Direction == Direction.Right) {
+					endJoint = new Vector2(to.X - length, to.Y);
+				} else if(from.Direction == Direction.Top) {
+					endJoint = new Vector2(to.X, to.Y + length);
+				} else if(from.Direction == Direction.Bottom) {
+					endJoint = new Vector2(to.X, to.Y - length);
+				} else {
+					throw new Exception($"Direction ({from.Direction}) Not Found");
+				}
+			}
 			return Geometry.Parse(
-				$"M {from.X},{from.Y} " +
-				$"C {from.X + (to.X - from.X) * 0.5},{from.Y} " +
-				$"{from.X + (to.X - from.X) * 0.5},{to.Y} " +
-				$"{to.X},{to.Y}");
+				$"M {from.Position.X},{from.Position.Y} " +
+				$"C {startJoint.X},{startJoint.Y} " +
+				$"	{endJoint.X},{endJoint.Y} " +
+				$"	{to.Position.X},{to.Position.Y}");
 		}
 
+		private LineSegment NewLine(Vector2 position) {
+			return new LineSegment(position.ToPoint(), true);
+		}
+		private LineSegment NewLine(double x, double y) {
+			return new LineSegment(new Point(x, y), true);
+		}
+
+		private Geometry CreatePathGeometry(ConnectionDotInfo from, ConnectionDotInfo to) {
+			const int MIN_GAP = 40;
+			List<LineSegment> segments = new();
+			if(from.Direction == Direction.Left) {
+				if(!to.IsExisted || to.Direction == Direction.Right) {
+					if(from.X - MIN_GAP < to.X + MIN_GAP) {
+						double mid = from.Y + (to.Y - from.Y) / 2;
+						if(from.Y > to.Y) {
+							if(from.Y - from.Height / 2 - MIN_GAP < mid
+								|| to.Y + to.Height / 2 + MIN_GAP > mid) {
+								double toEdge = to.Y + to.Height / 2 + MIN_GAP;
+								double fromEdge = from.Y - from.Height / 2 - MIN_GAP;
+								double mid_X = from.X + (to.X - from.X) / 2;
+								segments.Add(NewLine(from.X - MIN_GAP, from.Y));
+								segments.Add(NewLine(from.X - MIN_GAP, fromEdge));
+								segments.Add(NewLine(mid_X, fromEdge));
+								segments.Add(NewLine(mid_X, toEdge));
+								segments.Add(NewLine(to.X + MIN_GAP, toEdge));
+								segments.Add(NewLine(to.X + MIN_GAP, to.Y));
+							} else {
+								segments.Add(NewLine(from.X - MIN_GAP, from.Y));
+								segments.Add(NewLine(from.X - MIN_GAP, mid));
+								segments.Add(NewLine(to.X + MIN_GAP, mid));
+								segments.Add(NewLine(to.X + MIN_GAP, to.Y));
+							}
+						} else {
+							if(from.Y + from.Height / 2 + MIN_GAP > mid
+								|| to.Y - to.Height / 2 - MIN_GAP < mid) {
+								double toEdge = to.Y - to.Height / 2 - MIN_GAP;
+								double fromEdge = from.Y + from.Height / 2 + MIN_GAP;
+								double mid_X = from.X + (to.X - from.X) / 2;
+								segments.Add(NewLine(from.X - MIN_GAP, from.Y));
+								segments.Add(NewLine(from.X - MIN_GAP, fromEdge));
+								segments.Add(NewLine(mid_X, fromEdge));
+								segments.Add(NewLine(mid_X, toEdge));
+								segments.Add(NewLine(to.X + MIN_GAP, toEdge));
+								segments.Add(NewLine(to.X + MIN_GAP, to.Y));
+							} else {
+								segments.Add(NewLine(from.X - MIN_GAP, from.Y));
+								segments.Add(NewLine(from.X - MIN_GAP, mid));
+								segments.Add(NewLine(to.X + MIN_GAP, mid));
+								segments.Add(NewLine(to.X + MIN_GAP, to.Y));
+							}
+						}
+					} else {
+						double joint = from.X + (to.X - from.X) * ExtendLengthPercentage / 100;
+						segments.Add(NewLine(joint, from.Y));
+						segments.Add(NewLine(joint, to.Y));
+					}
+				} else if(to.Direction == Direction.Left) {
+					double topEdge = to.Y - to.Height / 2 - MIN_GAP;
+					double botEdge = to.Y + to.Height / 2 + MIN_GAP;
+					if(topEdge < from.Y && from.Y < botEdge) {
+						double joint;
+						double edge;
+						if(from.X > to.X) {
+							joint = Math.Min(to.X, from.X) - MIN_GAP;
+							if(from.Y > to.Y) {
+								edge = to.Y + to.Height / 2 + MIN_GAP;
+							} else {
+								edge = to.Y - to.Height / 2 - MIN_GAP;
+							}
+						} else {
+							joint = to.X - MIN_GAP;
+							if(from.Y < to.Y) {
+								edge = from.Y + from.Height / 2 + MIN_GAP;
+							} else {
+								edge = from.Y - from.Height / 2 - MIN_GAP;
+							}
+						}
+						segments.Add(NewLine(from.X - MIN_GAP, from.Y));
+						segments.Add(NewLine(from.X - MIN_GAP, edge));
+						segments.Add(NewLine(joint, edge));
+						segments.Add(NewLine(joint, to.Y));
+					} else {
+						double joint = Math.Min(to.X, from.X) - MIN_GAP;
+						segments.Add(NewLine(joint, from.Y));
+						segments.Add(NewLine(joint, to.Y));
+					}
+				} else if(to.Direction == Direction.Top) {
+					if(to.Y - MIN_GAP < from.Y) {
+						segments.Add(NewLine(from.X - MIN_GAP, from.Y));
+						segments.Add(NewLine(from.X - MIN_GAP, to.Y - MIN_GAP));
+						segments.Add(NewLine(to.X, to.Y - MIN_GAP));
+					} else if(from.X - MIN_GAP < to.X) {
+						segments.Add(NewLine(from.X - MIN_GAP, from.Y));
+						segments.Add(NewLine(from.X - MIN_GAP, to.Y - MIN_GAP));
+						segments.Add(NewLine(to.X, to.Y - MIN_GAP));
+					} else {
+						segments.Add(NewLine(to.X, from.Y));
+					}
+				} else if(to.Direction == Direction.Bottom) {
+					if(to.Y + MIN_GAP > from.Y) {
+						segments.Add(NewLine(from.X - MIN_GAP, from.Y));
+						segments.Add(NewLine(from.X - MIN_GAP, to.Y + MIN_GAP));
+						segments.Add(NewLine(to.X, to.Y + MIN_GAP));
+					} else if(from.X - MIN_GAP < to.X) {
+						segments.Add(NewLine(from.X - MIN_GAP, from.Y));
+						segments.Add(NewLine(from.X - MIN_GAP, to.Y + MIN_GAP));
+						segments.Add(NewLine(to.X, to.Y + MIN_GAP));
+					} else {
+						segments.Add(NewLine(to.X, from.Y));
+					}
+				} else {
+					throw new Exception($"Direction ({to.Direction}) Not Found");
+				}
+			} else if(from.Direction == Direction.Right) {
+				if(!to.IsExisted || to.Direction == Direction.Left) {
+
+				} else if(to.Direction == Direction.Right) {
+
+				} else if(to.Direction == Direction.Top) {
+
+				} else if(to.Direction == Direction.Bottom) {
+
+				} else {
+					throw new Exception($"Direction ({to.Direction}) Not Found");
+				}
+			} else if(from.Direction == Direction.Top) {
+				if(to.Direction == Direction.Left) {
+
+				} else if(to.Direction == Direction.Right) {
+
+				} else if(to.Direction == Direction.Top) {
+
+				} else if(to.Direction == Direction.Bottom) {
+
+				} else {
+					throw new Exception($"Direction ({to.Direction}) Not Found");
+				}
+			} else if(from.Direction == Direction.Bottom) {
+				if(to.Direction == Direction.Left) {
+
+				} else if(to.Direction == Direction.Right) {
+
+				} else if(to.Direction == Direction.Top) {
+
+				} else if(to.Direction == Direction.Bottom) {
+
+				} else {
+					throw new Exception($"Direction ({to.Direction}) Not Found");
+				}
+			} else {
+				throw new Exception($"Direction ({from.Direction}) Not Found");
+			}
+
+			List<PathSegment> paths = new();
+			paths.AddRange(segments);
+			paths.Add(new LineSegment(to.Position.ToPoint(), true));
+			PathFigure lines = new PathFigure(from.Position.ToPoint(), paths, false);
+			lines.IsFilled = false;
+			//PathFigure pointer = new PathFigure(to.Position.ToPoint(), new PathSegment[] {
+
+			//}, false);
+			return new PathGeometry(new PathFigure[] {
+				lines
+			});
+		}
+
+		public class ConnectionDotInfo {
+			public Vector2 Position { get; set; }
+			public double X => Position.X;
+			public double Y => Position.Y;
+			public bool IsExisted { get; set; }
+			public Vector2 Size { get; set; }
+			public double Width => Size.X;
+			public double Height => Size.Y;
+			public Direction Direction { get; set; }
+
+			public ConnectionDotInfo(Vector2 position, Vector2 size, Direction direction) {
+				Position = position;
+				Size = size;
+				Direction = direction;
+				IsExisted = true;
+			}
+
+			public ConnectionDotInfo(ConnectionControl control) {
+				Position = control.GetPosition();
+				Size = control.Parent.GetSize();
+				Direction = control.Direction;
+				IsExisted = true;
+			}
+			public ConnectionDotInfo(Vector2 position) {
+				Position = position;
+				IsExisted = false;
+				Size = default;
+				Direction = default;
+			}
+		}
+	}
+
+	public enum PathType {
+		Linear, RightAngle
 	}
 }

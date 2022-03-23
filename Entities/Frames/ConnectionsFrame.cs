@@ -415,7 +415,7 @@ namespace MindMap.Entities.Frames {
 				_desiredDot = null;
 			}
 			_parent.Cursor = found ? Cursors.Hand : Cursors.Cross;
-			_parent.UpdatePreviewLine(this, e.GetPosition(_mainCanvas));
+			_parent.UpdatePreviewLine(this, e.GetPosition(_mainCanvas), _desiredDot);
 		}
 
 		private void Target_MouseDown(object sender, MouseButtonEventArgs e) {

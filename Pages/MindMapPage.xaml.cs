@@ -266,11 +266,11 @@ namespace MindMap.Pages {
 
 		private ConnectionPath? previewLine;
 
-		public void UpdatePreviewLine(ConnectionControl from, Vector2 to) {
+		public void UpdatePreviewLine(ConnectionControl from, Vector2 to, ConnectionControl? target) {
 			if(previewLine == null) {
 				previewLine = new ConnectionPath(this, from, to);
 			}
-			previewLine.Update(to);
+			previewLine.Update(to, target);
 		}
 
 		public void ClearPreviewLine() {

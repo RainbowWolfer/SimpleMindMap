@@ -202,6 +202,20 @@ namespace MindMap.Entities {
 			return panel;
 		}
 
+		public static StackPanel StackIconsSelector(string title, List<Pair<IconElement, string>> data, int initialIndex, Action<ValueChangedArgs<Pair<IconElement, string>>> onValueChanged) {
+			StackPanel panel = CreateBase(title);
+			var selector = new StackIconsSelector(data, initialIndex) {
+				OnItemClick = (oldV, newV) => {
+					onValueChanged?.Invoke(new ValueChangedArgs<Pair<IconElement, string>>(oldV, newV));
+				},
+			};
+			CreateContextMenu(selector, () => {
+				//selector.Select(initialData);
+			});
+			panel.Children.Add(selector);
+			return panel;
+		}
+
 		public static StackPanel ActionButton(bool showTitle, string title, Action onClickAction, out Button button, string? icon = null, int fontSize = 15, bool leftToRight = true) {
 			StackPanel panel = showTitle ? CreateBase(title) : new();
 			button = new Button();

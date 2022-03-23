@@ -54,4 +54,9 @@ namespace MindMap.Entities {
 			}
 		}
 	}
+
+	public class DirectionNotFoundException: Exception {
+		public DirectionNotFoundException(Direction direction)
+			: base($"Direction ({direction}) Not Found") { }
+	}
 }

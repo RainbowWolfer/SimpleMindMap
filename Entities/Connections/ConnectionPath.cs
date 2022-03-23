@@ -1,5 +1,6 @@
 ﻿using MindMap.Entities.Elements;
 using MindMap.Entities.Frames;
+using MindMap.Entities.Icons;
 using MindMap.Entities.Identifications;
 using MindMap.Entities.Properties;
 using MindMap.Entities.Services;
@@ -216,11 +217,13 @@ namespace MindMap.Entities.Connections {
 		public void SetProperty(IProperty property) {
 			this.property = (Property)property;
 			UpdateStyle();
+			Update();
 		}
 
 		public void SetProperty(string propertyJson) {
 			this.property = (Property)property.Translate(propertyJson);
 			UpdateStyle();
+			Update();
 		}
 
 		public void ClearFromCanvas() {
@@ -286,16 +289,36 @@ namespace MindMap.Entities.Connections {
 					_parent.editHistory.InstantSealLastDelayedChange();
 				}
 			));
-			panel.Children.Add(PropertiesPanel.DuoNumberInputs("Stroke Dash Array", DashStroke, args => IPropertiesContainer.PropertyChangedHandler(this, () => {
-				DashStroke = args.NewValue;
-			}, (oldP, newP) => {
-				_parent.editHistory.SubmitByElementPropertyChanged(TargetType.ConnectionPath, this, oldP, newP, "Stroke Dash");
-			})));
-			panel.Children.Add(PropertiesPanel.SliderInput("Extend Length", ExtendLengthPercentage, 0, 100, args => IPropertiesContainer.PropertyChangedHandler(this, () => {
-				ExtendLengthPercentage = (int)args.NewValue;
-			}, (oldP, newP) => {
-				_parent.editHistory.SubmitByElementPropertyDelayedChanged(TargetType.ConnectionPath, this, oldP, newP, "Extend Length");
-			}), 5, 0));
+			panel.Children.Add(PropertiesPanel.DuoNumberInputs("Stroke Dash Array", DashStroke,
+				args => IPropertiesContainer.PropertyChangedHandler(this, () => {
+					DashStroke = args.NewValue;
+				}, (oldP, newP) => {
+					_parent.editHistory.SubmitByElementPropertyChanged(TargetType.ConnectionPath, this, oldP, newP, "Stroke Dash");
+				})
+			));
+
+			List<Pair<IconElement, string>> pathTypesData = new() {
+				new(new FontIcon("\uE123", 16), PathType.Linear.ToString()),
+				new(new FontIcon("\uE123", 16), PathType.RightAngle.ToString()),
+				new(new FontIcon("\uE123", 16), PathType.Straight.ToString()),
+			};
+			panel.Children.Add(PropertiesPanel.StackIconsSelector("Path Type", pathTypesData, 0,
+				args => IPropertiesContainer.PropertyChangedHandler(this, () => {
+					if(args.NewValue != null) {
+						PathType = (PathType)Enum.Parse(typeof(PathType), args.NewValue.Value);
+					}
+				}, (oldP, newP) => {
+					_parent.editHistory.SubmitByElementPropertyChanged(TargetType.ConnectionPath, this, oldP, newP, "Path Type");
+				})
+			));
+
+			panel.Children.Add(PropertiesPanel.SliderInput("Extend Length", ExtendLengthPercentage, 0, 100,
+				args => IPropertiesContainer.PropertyChangedHandler(this, () => {
+					ExtendLengthPercentage = (int)args.NewValue;
+				}, (oldP, newP) => {
+					_parent.editHistory.SubmitByElementPropertyDelayedChanged(TargetType.ConnectionPath, this, oldP, newP, "Extend Length");
+				})
+			, 5, 0));
 			return panel;
 		}
 
@@ -304,6 +327,7 @@ namespace MindMap.Entities.Connections {
 			Path.StrokeThickness = StrokeThickess;
 			Path.Stroke = new SolidColorBrush(StrokeColor);
 			Path.StrokeDashArray = new DoubleCollection(DashStroke.ToArray());
+			UpdateBackgroundStyle();
 		}
 
 		public void UpdateBackgroundStyle() {
@@ -315,7 +339,7 @@ namespace MindMap.Entities.Connections {
 
 		public void Update(Vector2 to, ConnectionControl? target) {
 			this.Path.Data = CreateGeometry(new ConnectionDotInfo(from), target == null ? new ConnectionDotInfo(to) : new ConnectionDotInfo(target));
-			//this.Path.Data = CreateLinearGeometry(from.GetPosition(), to, from.Direction);
+			UpdateBackgroundStyle();
 		}
 
 		public void Update() {
@@ -323,7 +347,7 @@ namespace MindMap.Entities.Connections {
 				throw new Exception("to is null");
 			}
 			this.Path.Data = CreateGeometry(new ConnectionDotInfo(from), new ConnectionDotInfo(to));
-			//this.Path.Data = CreateLinearGeometry(from.GetPosition(), to.GetPosition(), from.Direction);
+			UpdateBackgroundStyle();
 		}
 
 		public void ClearBackground() {
@@ -348,10 +372,13 @@ namespace MindMap.Entities.Connections {
 			Geometry geometry;
 			switch(PathType) {
 				case PathType.Linear:
-					geometry = CreatePathGeometry(from, to);
+					geometry = CreateLinearGeometry(from, to);
 					break;
 				case PathType.RightAngle:
 					geometry = CreatePathGeometry(from, to);
+					break;
+				case PathType.Straight:
+					geometry = CreateStraightPathGeometry(from, to);
 					break;
 				default:
 					throw new Exception($"PathType ({PathType}) not found");
@@ -382,7 +409,7 @@ namespace MindMap.Entities.Connections {
 			} else if(from.Direction == Direction.Bottom) {
 				startJoint = new Vector2(from.X, from.Y + length);
 			} else {
-				throw new Exception($"Direction ({from.Direction}) Not Found");
+				throw new DirectionNotFoundException(from.Direction);
 			}
 			if(to.IsExisted) {
 				if(to.Direction == Direction.Left) {
@@ -394,7 +421,7 @@ namespace MindMap.Entities.Connections {
 				} else if(to.Direction == Direction.Bottom) {
 					endJoint = new Vector2(to.X, to.Y + length);
 				} else {
-					throw new Exception($"Direction ({to.Direction}) Not Found");
+					throw new DirectionNotFoundException(to.Direction);
 				}
 			} else {
 				if(from.Direction == Direction.Left) {
@@ -406,7 +433,7 @@ namespace MindMap.Entities.Connections {
 				} else if(from.Direction == Direction.Bottom) {
 					endJoint = new Vector2(to.X, to.Y - length);
 				} else {
-					throw new Exception($"Direction ({from.Direction}) Not Found");
+					throw new DirectionNotFoundException(to.Direction);
 				}
 			}
 			return Geometry.Parse(
@@ -564,7 +591,7 @@ namespace MindMap.Entities.Connections {
 						segments.Add(NewLine(to.X, from.Y));
 					}
 				} else {
-					throw new Exception($"Direction ({to.Direction}) Not Found");
+					throw new DirectionNotFoundException(to.Direction);
 				}
 			} else if(from.Direction == Direction.Right) {
 				if(!to.IsExisted || to.Direction == Direction.Left) {// Default & Right -> Left
@@ -707,7 +734,7 @@ namespace MindMap.Entities.Connections {
 						segments.Add(NewLine(to.X, from.Y));
 					}
 				} else {
-					throw new Exception($"Direction ({to.Direction}) Not Found");
+					throw new DirectionNotFoundException(to.Direction);
 				}
 			} else if(from.Direction == Direction.Top) {
 				if(!to.IsExisted || to.Direction == Direction.Bottom) {// Default & Top -> Bottom
@@ -848,7 +875,7 @@ namespace MindMap.Entities.Connections {
 						segments.Add(NewLine(from.X, to.Y));
 					}
 				} else {
-					throw new Exception($"Direction ({to.Direction}) Not Found");
+					throw new DirectionNotFoundException(to.Direction);
 				}
 			} else if(from.Direction == Direction.Bottom) {
 				if(!to.IsExisted || to.Direction == Direction.Top) {// Default & Bottom -> Top
@@ -989,10 +1016,10 @@ namespace MindMap.Entities.Connections {
 						segments.Add(NewLine(from.X, to.Y));
 					}
 				} else {
-					throw new Exception($"Direction ({to.Direction}) Not Found");
+					throw new DirectionNotFoundException(to.Direction);
 				}
 			} else {
-				throw new Exception($"Direction ({from.Direction}) Not Found");
+				throw new DirectionNotFoundException(to.Direction);
 			}
 
 			List<PathSegment> paths = new();
@@ -1041,6 +1068,6 @@ namespace MindMap.Entities.Connections {
 	}
 
 	public enum PathType {
-		Linear, RightAngle
+		Linear, RightAngle, Straight
 	}
 }

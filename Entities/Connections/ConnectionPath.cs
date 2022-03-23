@@ -424,7 +424,7 @@ namespace MindMap.Entities.Connections {
 			const int MIN_GAP = 40;
 			List<LineSegment> segments = new();
 			if(from.Direction == Direction.Left) {
-				if(!to.IsExisted || to.Direction == Direction.Right) {
+				if(!to.IsExisted || to.Direction == Direction.Right) {// Default & Left -> Right
 					if(from.X - MIN_GAP < to.X + MIN_GAP) {
 						double mid = from.Y + (to.Y - from.Y) / 2;
 						if(from.Y > to.Y) {
@@ -469,7 +469,7 @@ namespace MindMap.Entities.Connections {
 						segments.Add(NewLine(joint, from.Y));
 						segments.Add(NewLine(joint, to.Y));
 					}
-				} else if(to.Direction == Direction.Left) {
+				} else if(to.Direction == Direction.Left) {// Left -> Left
 					double topEdge = to.Y - to.Height / 2 - MIN_GAP;
 					double botEdge = to.Y + to.Height / 2 + MIN_GAP;
 					if(topEdge < from.Y && from.Y < botEdge) {
@@ -499,7 +499,7 @@ namespace MindMap.Entities.Connections {
 						segments.Add(NewLine(joint, from.Y));
 						segments.Add(NewLine(joint, to.Y));
 					}
-				} else if(to.Direction == Direction.Top) {
+				} else if(to.Direction == Direction.Top) {// Left -> Top
 					if(to.Y - MIN_GAP < from.Y) {
 						if(from.Y > to.Y + to.Height + MIN_GAP
 							&& from.X - MIN_GAP < to.X + to.Width / 2 + MIN_GAP
@@ -531,7 +531,7 @@ namespace MindMap.Entities.Connections {
 					} else {
 						segments.Add(NewLine(to.X, from.Y));
 					}
-				} else if(to.Direction == Direction.Bottom) {
+				} else if(to.Direction == Direction.Bottom) {// Left -> Bottom
 					if(to.Y + MIN_GAP > from.Y) {
 						if(from.Y < to.Y - to.Height - MIN_GAP
 							&& from.X - MIN_GAP < to.X + to.Width / 2 + MIN_GAP
@@ -567,38 +567,427 @@ namespace MindMap.Entities.Connections {
 					throw new Exception($"Direction ({to.Direction}) Not Found");
 				}
 			} else if(from.Direction == Direction.Right) {
-				if(!to.IsExisted || to.Direction == Direction.Left) {
-
-				} else if(to.Direction == Direction.Right) {
-
-				} else if(to.Direction == Direction.Top) {
-
-				} else if(to.Direction == Direction.Bottom) {
-
+				if(!to.IsExisted || to.Direction == Direction.Left) {// Default & Right -> Left
+					if(from.X + MIN_GAP > to.X - MIN_GAP) {
+						double mid = from.Y + (to.Y - from.Y) / 2;
+						if(from.Y > to.Y) {
+							if(from.Y - from.Height / 2 - MIN_GAP < mid
+								|| to.Y + to.Height / 2 + MIN_GAP > mid) {
+								double toEdge = to.Y + to.Height / 2 + MIN_GAP;
+								double fromEdge = from.Y - from.Height / 2 - MIN_GAP;
+								double mid_X = from.X + (to.X - from.X) / 2;
+								segments.Add(NewLine(from.X + MIN_GAP, from.Y));
+								segments.Add(NewLine(from.X + MIN_GAP, fromEdge));
+								segments.Add(NewLine(mid_X, fromEdge));
+								segments.Add(NewLine(mid_X, toEdge));
+								segments.Add(NewLine(to.X - MIN_GAP, toEdge));
+								segments.Add(NewLine(to.X - MIN_GAP, to.Y));
+							} else {
+								segments.Add(NewLine(from.X + MIN_GAP, from.Y));
+								segments.Add(NewLine(from.X + MIN_GAP, mid));
+								segments.Add(NewLine(to.X - MIN_GAP, mid));
+								segments.Add(NewLine(to.X - MIN_GAP, to.Y));
+							}
+						} else {
+							if(from.Y + from.Height / 2 + MIN_GAP > mid
+								|| to.Y - to.Height / 2 - MIN_GAP < mid) {
+								double toEdge = to.Y - to.Height / 2 - MIN_GAP;
+								double fromEdge = from.Y + from.Height / 2 + MIN_GAP;
+								double mid_X = from.X + (to.X - from.X) / 2;
+								segments.Add(NewLine(from.X + MIN_GAP, from.Y));
+								segments.Add(NewLine(from.X + MIN_GAP, fromEdge));
+								segments.Add(NewLine(mid_X, fromEdge));
+								segments.Add(NewLine(mid_X, toEdge));
+								segments.Add(NewLine(to.X - MIN_GAP, toEdge));
+								segments.Add(NewLine(to.X - MIN_GAP, to.Y));
+							} else {
+								segments.Add(NewLine(from.X + MIN_GAP, from.Y));
+								segments.Add(NewLine(from.X + MIN_GAP, mid));
+								segments.Add(NewLine(to.X - MIN_GAP, mid));
+								segments.Add(NewLine(to.X - MIN_GAP, to.Y));
+							}
+						}
+					} else {
+						double joint = from.X + (to.X - from.X) * ExtendLengthPercentage / 100;
+						segments.Add(NewLine(joint, from.Y));
+						segments.Add(NewLine(joint, to.Y));
+					}
+				} else if(to.Direction == Direction.Right) {// Right -> Right
+					double topEdge = to.Y - to.Height / 2 - MIN_GAP;
+					double botEdge = to.Y + to.Height / 2 + MIN_GAP;
+					if(topEdge < from.Y && from.Y < botEdge) {
+						double joint;
+						double edge;
+						if(from.X < to.X) {
+							joint = Math.Max(to.X, from.X) + MIN_GAP;
+							if(from.Y > to.Y) {
+								edge = to.Y + to.Height / 2 + MIN_GAP;
+							} else {
+								edge = to.Y - to.Height / 2 - MIN_GAP;
+							}
+						} else {
+							joint = to.X + MIN_GAP;
+							if(from.Y < to.Y) {
+								edge = from.Y + from.Height / 2 + MIN_GAP;
+							} else {
+								edge = from.Y - from.Height / 2 - MIN_GAP;
+							}
+						}
+						segments.Add(NewLine(from.X + MIN_GAP, from.Y));
+						segments.Add(NewLine(from.X + MIN_GAP, edge));
+						segments.Add(NewLine(joint, edge));
+						segments.Add(NewLine(joint, to.Y));
+					} else {
+						double joint = Math.Max(to.X, from.X) + MIN_GAP;
+						segments.Add(NewLine(joint, from.Y));
+						segments.Add(NewLine(joint, to.Y));
+					}
+				} else if(to.Direction == Direction.Top) {// Right -> Top
+					if(to.Y - MIN_GAP < from.Y) {
+						if(from.Y > to.Y + to.Height + MIN_GAP
+							&& from.X + MIN_GAP > to.X - to.Width / 2 - MIN_GAP
+							&& from.X + MIN_GAP < to.X + to.Width / 2 + MIN_GAP) {
+							if(from.X + MIN_GAP < to.X) {
+								double joint_height = to.Y + to.Height + MIN_GAP;
+								double joint_width = to.X - to.Width / 2 - MIN_GAP;
+								segments.Add(NewLine(from.X + MIN_GAP, from.Y));
+								segments.Add(NewLine(from.X + MIN_GAP, joint_height));
+								segments.Add(NewLine(joint_width, joint_height));
+								segments.Add(NewLine(joint_width, to.Y - MIN_GAP));
+								segments.Add(NewLine(to.X, to.Y - MIN_GAP));
+							} else {
+								double joint_width = to.X + to.Width / 2 + MIN_GAP;
+								segments.Add(NewLine(from.X - MIN_GAP, from.Y));
+								segments.Add(NewLine(joint_width, from.Y));
+								segments.Add(NewLine(joint_width, to.Y - MIN_GAP));
+								segments.Add(NewLine(to.X, to.Y - MIN_GAP));
+							}
+						} else {
+							segments.Add(NewLine(from.X + MIN_GAP, from.Y));
+							segments.Add(NewLine(from.X + MIN_GAP, to.Y - MIN_GAP));
+							segments.Add(NewLine(to.X, to.Y - MIN_GAP));
+						}
+					} else if(from.X + MIN_GAP > to.X) {
+						segments.Add(NewLine(from.X + MIN_GAP, from.Y));
+						segments.Add(NewLine(from.X + MIN_GAP, to.Y - MIN_GAP));
+						segments.Add(NewLine(to.X, to.Y - MIN_GAP));
+					} else {
+						segments.Add(NewLine(to.X, from.Y));
+					}
+				} else if(to.Direction == Direction.Bottom) {// Right -> Bottom
+					if(to.Y + MIN_GAP > from.Y) {
+						if(from.Y < to.Y - to.Height - MIN_GAP
+							&& from.X + MIN_GAP > to.X - to.Width / 2 - MIN_GAP
+							&& from.X + MIN_GAP < to.X + to.Width / 2 + MIN_GAP) {
+							if(from.X + MIN_GAP < to.X) {
+								double joint_height = to.Y - to.Height - MIN_GAP;
+								double joint_width = to.X - to.Width / 2 - MIN_GAP;
+								segments.Add(NewLine(from.X + MIN_GAP, from.Y));
+								segments.Add(NewLine(from.X + MIN_GAP, joint_height));
+								segments.Add(NewLine(joint_width, joint_height));
+								segments.Add(NewLine(joint_width, to.Y + MIN_GAP));
+								segments.Add(NewLine(to.X, to.Y + MIN_GAP));
+							} else {
+								double joint_width = to.X + to.Width / 2 + MIN_GAP;
+								segments.Add(NewLine(from.X + MIN_GAP, from.Y));
+								segments.Add(NewLine(joint_width, from.Y));
+								segments.Add(NewLine(joint_width, to.Y + MIN_GAP));
+								segments.Add(NewLine(to.X, to.Y + MIN_GAP));
+							}
+						} else {
+							segments.Add(NewLine(from.X + MIN_GAP, from.Y));
+							segments.Add(NewLine(from.X + MIN_GAP, to.Y + MIN_GAP));
+							segments.Add(NewLine(to.X, to.Y + MIN_GAP));
+						}
+					} else if(from.X + MIN_GAP > to.X) {
+						segments.Add(NewLine(from.X + MIN_GAP, from.Y));
+						segments.Add(NewLine(from.X + MIN_GAP, to.Y + MIN_GAP));
+						segments.Add(NewLine(to.X, to.Y + MIN_GAP));
+					} else {
+						segments.Add(NewLine(to.X, from.Y));
+					}
 				} else {
 					throw new Exception($"Direction ({to.Direction}) Not Found");
 				}
 			} else if(from.Direction == Direction.Top) {
-				if(to.Direction == Direction.Left) {
-
-				} else if(to.Direction == Direction.Right) {
-
-				} else if(to.Direction == Direction.Top) {
-
-				} else if(to.Direction == Direction.Bottom) {
-
+				if(!to.IsExisted || to.Direction == Direction.Bottom) {// Default & Top -> Bottom
+					if(from.Y - MIN_GAP < to.Y + MIN_GAP) {
+						double mid = from.X + (to.X - from.X) / 2;
+						if(from.X > to.X) {
+							if(from.X - from.Width / 2 - MIN_GAP < mid
+								|| to.X + to.Width / 2 + MIN_GAP > mid) {
+								double toEdge = to.X + to.Width / 2 + MIN_GAP;
+								double fromEdge = from.X - from.Width / 2 - MIN_GAP;
+								double mid_Y = from.Y + (to.Y - from.Y) / 2;
+								segments.Add(NewLine(from.X, from.Y - MIN_GAP));
+								segments.Add(NewLine(fromEdge, from.Y - MIN_GAP));
+								segments.Add(NewLine(fromEdge, mid_Y));
+								segments.Add(NewLine(toEdge, mid_Y));
+								segments.Add(NewLine(toEdge, to.Y + MIN_GAP));
+								segments.Add(NewLine(to.X, to.Y + MIN_GAP));
+							} else {
+								segments.Add(NewLine(from.X, from.Y - MIN_GAP));
+								segments.Add(NewLine(mid, from.Y - MIN_GAP));
+								segments.Add(NewLine(mid, to.Y + MIN_GAP));
+								segments.Add(NewLine(to.X, to.Y + MIN_GAP));
+							}
+						} else {
+							if(from.X + from.Width / 2 + MIN_GAP > mid
+								|| to.X - to.Width / 2 - MIN_GAP < mid) {
+								double toEdge = to.X - to.Width / 2 - MIN_GAP;
+								double fromEdge = from.X + from.Width / 2 + MIN_GAP;
+								double mid_Y = from.Y + (to.Y - from.Y) / 2;
+								segments.Add(NewLine(from.X, from.Y - MIN_GAP));
+								segments.Add(NewLine(fromEdge, from.Y - MIN_GAP));
+								segments.Add(NewLine(fromEdge, mid_Y));
+								segments.Add(NewLine(toEdge, mid_Y));
+								segments.Add(NewLine(toEdge, to.Y + MIN_GAP));
+								segments.Add(NewLine(to.X, to.Y + MIN_GAP));
+							} else {
+								segments.Add(NewLine(from.X, from.Y - MIN_GAP));
+								segments.Add(NewLine(mid, from.Y - MIN_GAP));
+								segments.Add(NewLine(mid, to.Y + MIN_GAP));
+								segments.Add(NewLine(to.X, to.Y + MIN_GAP));
+							}
+						}
+					} else {
+						double joint = from.Y + (to.Y - from.Y) * ExtendLengthPercentage / 100;
+						segments.Add(NewLine(from.X, joint));
+						segments.Add(NewLine(to.X, joint));
+					}
+				} else if(to.Direction == Direction.Top) {// Top -> Top
+					double leftEdge = to.X - to.Width / 2 - MIN_GAP;
+					double rightEdge = to.X + to.Width / 2 + MIN_GAP;
+					if(leftEdge < from.X && from.X < rightEdge) {
+						double joint;
+						double edge;
+						if(from.Y > to.Y) {
+							joint = Math.Min(to.Y, from.Y) - MIN_GAP;
+							if(from.X > to.X) {
+								edge = to.X + to.Width / 2 + MIN_GAP;
+							} else {
+								edge = to.X - to.Width / 2 - MIN_GAP;
+							}
+						} else {
+							joint = to.Y - MIN_GAP;
+							if(from.X < to.X) {
+								edge = from.X + from.Width / 2 + MIN_GAP;
+							} else {
+								edge = from.X - from.Width / 2 - MIN_GAP;
+							}
+						}
+						segments.Add(NewLine(from.X, from.Y - MIN_GAP));
+						segments.Add(NewLine(edge, from.Y - MIN_GAP));
+						segments.Add(NewLine(edge, joint));
+						segments.Add(NewLine(to.X, joint));
+					} else {
+						double joint = Math.Min(to.Y, from.Y) - MIN_GAP;
+						segments.Add(NewLine(from.X, joint));
+						segments.Add(NewLine(to.X, joint));
+					}
+				} else if(to.Direction == Direction.Left) {// Top -> Left
+					if(to.Y + MIN_GAP > from.Y) {
+						if(to.Y > from.Y - from.Height - MIN_GAP
+							&& to.X - MIN_GAP < from.X + from.Width / 2 + MIN_GAP
+							&& to.X - MIN_GAP > from.X - from.Width / 2 - MIN_GAP) {
+							if(to.X - MIN_GAP > from.X) {
+								double joint_width = from.X + from.Width / 2 + MIN_GAP;
+								double joint_height = from.Y + from.Height + MIN_GAP;
+								segments.Add(NewLine(from.X, from.Y - MIN_GAP));
+								segments.Add(NewLine(joint_width, from.Y - MIN_GAP));
+								segments.Add(NewLine(joint_width, joint_height));
+								segments.Add(NewLine(to.X - MIN_GAP, joint_height));
+								segments.Add(NewLine(to.X - MIN_GAP, to.Y));
+							} else {
+								double joint_width = from.X - from.Width / 2 - MIN_GAP;
+								segments.Add(NewLine(from.X, from.Y - MIN_GAP));
+								segments.Add(NewLine(joint_width, from.Y - MIN_GAP));
+								segments.Add(NewLine(joint_width, to.Y));
+							}
+						} else {
+							segments.Add(NewLine(from.X, from.Y - MIN_GAP));
+							segments.Add(NewLine(to.X - MIN_GAP, from.Y - MIN_GAP));
+							segments.Add(NewLine(to.X - MIN_GAP, to.Y));
+						}
+					} else if(from.X + MIN_GAP > to.X) {
+						segments.Add(NewLine(from.X, from.Y - MIN_GAP));
+						segments.Add(NewLine(to.X - MIN_GAP, from.Y - MIN_GAP));
+						segments.Add(NewLine(to.X - MIN_GAP, to.Y));
+					} else {
+						segments.Add(NewLine(from.X, to.Y));
+					}
+				} else if(to.Direction == Direction.Right) {// Top -> Right
+					if(to.Y + MIN_GAP > from.Y) {
+						if(to.Y > from.Y - from.Height - MIN_GAP
+							&& to.X + MIN_GAP > from.X - from.Width / 2 - MIN_GAP
+							&& to.X + MIN_GAP < from.X + from.Width / 2 + MIN_GAP) {
+							if(to.X < from.X) {
+								double joint_width = from.X - from.Width / 2 - MIN_GAP;
+								double joint_height = from.Y + from.Height + MIN_GAP;
+								segments.Add(NewLine(from.X, from.Y - MIN_GAP));
+								segments.Add(NewLine(joint_width, from.Y - MIN_GAP));
+								segments.Add(NewLine(joint_width, joint_height));
+								segments.Add(NewLine(to.X + MIN_GAP, joint_height));
+								segments.Add(NewLine(to.X + MIN_GAP, to.Y));
+							} else {
+								double joint_width = from.X + from.Width / 2 + MIN_GAP;
+								segments.Add(NewLine(from.X, from.Y - MIN_GAP));
+								segments.Add(NewLine(joint_width, from.Y - MIN_GAP));
+								segments.Add(NewLine(joint_width, to.Y));
+							}
+						} else {
+							segments.Add(NewLine(from.X, from.Y - MIN_GAP));
+							segments.Add(NewLine(to.X + MIN_GAP, from.Y - MIN_GAP));
+							segments.Add(NewLine(to.X + MIN_GAP, to.Y));
+						}
+					} else if(from.X - MIN_GAP < to.X) {
+						segments.Add(NewLine(from.X, from.Y - MIN_GAP));
+						segments.Add(NewLine(to.X + MIN_GAP, from.Y - MIN_GAP));
+						segments.Add(NewLine(to.X + MIN_GAP, to.Y));
+					} else {
+						segments.Add(NewLine(from.X, to.Y));
+					}
 				} else {
 					throw new Exception($"Direction ({to.Direction}) Not Found");
 				}
 			} else if(from.Direction == Direction.Bottom) {
-				if(to.Direction == Direction.Left) {
-
-				} else if(to.Direction == Direction.Right) {
-
-				} else if(to.Direction == Direction.Top) {
-
-				} else if(to.Direction == Direction.Bottom) {
-
+				if(!to.IsExisted || to.Direction == Direction.Top) {// Default & Bottom -> Top
+					if(from.Y + MIN_GAP > to.Y - MIN_GAP) {
+						double mid = from.X + (to.X - from.X) / 2;
+						if(from.X > to.X) {
+							if(from.X - from.Width / 2 - MIN_GAP < mid
+								|| to.X + to.Width / 2 + MIN_GAP > mid) {
+								double toEdge = to.X + to.Width / 2 + MIN_GAP;
+								double fromEdge = from.X - from.Width / 2 - MIN_GAP;
+								double mid_Y = from.Y + (to.Y - from.Y) / 2;
+								segments.Add(NewLine(from.X, from.Y + MIN_GAP));
+								segments.Add(NewLine(fromEdge, from.Y + MIN_GAP));
+								segments.Add(NewLine(fromEdge, mid_Y));
+								segments.Add(NewLine(toEdge, mid_Y));
+								segments.Add(NewLine(toEdge, to.Y - MIN_GAP));
+								segments.Add(NewLine(to.X, to.Y - MIN_GAP));
+							} else {
+								segments.Add(NewLine(from.X, from.Y + MIN_GAP));
+								segments.Add(NewLine(mid, from.Y + MIN_GAP));
+								segments.Add(NewLine(mid, to.Y - MIN_GAP));
+								segments.Add(NewLine(to.X, to.Y - MIN_GAP));
+							}
+						} else {
+							if(from.X + from.Width / 2 + MIN_GAP > mid
+								|| to.X - to.Width / 2 - MIN_GAP < mid) {
+								double toEdge = to.X - to.Width / 2 - MIN_GAP;
+								double fromEdge = from.X + from.Width / 2 + MIN_GAP;
+								double mid_Y = from.Y + (to.Y - from.Y) / 2;
+								segments.Add(NewLine(from.X, from.Y + MIN_GAP));
+								segments.Add(NewLine(fromEdge, from.Y + MIN_GAP));
+								segments.Add(NewLine(fromEdge, mid_Y));
+								segments.Add(NewLine(toEdge, mid_Y));
+								segments.Add(NewLine(toEdge, to.Y - MIN_GAP));
+								segments.Add(NewLine(to.X, to.Y - MIN_GAP));
+							} else {
+								segments.Add(NewLine(from.X, from.Y + MIN_GAP));
+								segments.Add(NewLine(mid, from.Y + MIN_GAP));
+								segments.Add(NewLine(mid, to.Y - MIN_GAP));
+								segments.Add(NewLine(to.X, to.Y - MIN_GAP));
+							}
+						}
+					} else {
+						double joint = from.Y + (to.Y - from.Y) * ExtendLengthPercentage / 100;
+						segments.Add(NewLine(from.X, joint));
+						segments.Add(NewLine(to.X, joint));
+					}
+				} else if(to.Direction == Direction.Bottom) {// Bottom -> Bottom
+					double leftEdge = to.X - to.Width / 2 - MIN_GAP;
+					double rightEdge = to.X + to.Width / 2 + MIN_GAP;
+					if(leftEdge < from.X && from.X < rightEdge) {
+						double joint;
+						double edge;
+						if(from.Y < to.Y) {
+							joint = Math.Max(to.Y, from.Y) + MIN_GAP;
+							if(from.X > to.X) {
+								edge = to.X + to.Width / 2 + MIN_GAP;
+							} else {
+								edge = to.X - to.Width / 2 - MIN_GAP;
+							}
+						} else {
+							joint = to.Y + MIN_GAP;
+							if(from.X < to.X) {
+								edge = from.X + from.Width / 2 + MIN_GAP;
+							} else {
+								edge = from.X - from.Width / 2 - MIN_GAP;
+							}
+						}
+						segments.Add(NewLine(from.X, from.Y + MIN_GAP));
+						segments.Add(NewLine(edge, from.Y + MIN_GAP));
+						segments.Add(NewLine(edge, joint));
+						segments.Add(NewLine(to.X, joint));
+					} else {
+						double joint = Math.Max(to.Y, from.Y) + MIN_GAP;
+						segments.Add(NewLine(from.X, joint));
+						segments.Add(NewLine(to.X, joint));
+					}
+				} else if(to.Direction == Direction.Left) {// Bottom -> Left
+					if(to.Y - MIN_GAP < from.Y) {
+						if(to.Y < from.Y + from.Height + MIN_GAP
+							&& to.X - MIN_GAP < from.X + from.Width / 2 + MIN_GAP
+							&& to.X - MIN_GAP > from.X - from.Width / 2 - MIN_GAP) {
+							if(to.X - MIN_GAP > from.X) {
+								double joint_width = from.X + from.Width / 2 + MIN_GAP;
+								double joint_height = from.Y - from.Height - MIN_GAP;
+								segments.Add(NewLine(from.X, from.Y + MIN_GAP));
+								segments.Add(NewLine(joint_width, from.Y + MIN_GAP));
+								segments.Add(NewLine(joint_width, joint_height));
+								segments.Add(NewLine(to.X - MIN_GAP, joint_height));
+								segments.Add(NewLine(to.X - MIN_GAP, to.Y));
+							} else {
+								double joint_width = from.X - from.Width / 2 - MIN_GAP;
+								segments.Add(NewLine(from.X, from.Y + MIN_GAP));
+								segments.Add(NewLine(joint_width, from.Y + MIN_GAP));
+								segments.Add(NewLine(joint_width, to.Y));
+							}
+						} else {
+							segments.Add(NewLine(from.X, from.Y + MIN_GAP));
+							segments.Add(NewLine(to.X - MIN_GAP, from.Y + MIN_GAP));
+							segments.Add(NewLine(to.X - MIN_GAP, to.Y));
+						}
+					} else if(from.X + MIN_GAP > to.X) {
+						segments.Add(NewLine(from.X, from.Y + MIN_GAP));
+						segments.Add(NewLine(to.X - MIN_GAP, from.Y + MIN_GAP));
+						segments.Add(NewLine(to.X - MIN_GAP, to.Y));
+					} else {
+						segments.Add(NewLine(from.X, to.Y));
+					}
+				} else if(to.Direction == Direction.Right) {// Bottom -> Right
+					if(to.Y - MIN_GAP < from.Y) {
+						if(to.Y < from.Y + from.Height + MIN_GAP
+							&& to.X + MIN_GAP > from.X - from.Width / 2 - MIN_GAP
+							&& to.X + MIN_GAP < from.X + from.Width / 2 + MIN_GAP) {
+							if(to.X + MIN_GAP < from.X) {
+								double joint_width = from.X - from.Width / 2 - MIN_GAP;
+								double joint_height = from.Y - from.Height - MIN_GAP;
+								segments.Add(NewLine(from.X, from.Y + MIN_GAP));
+								segments.Add(NewLine(joint_width, from.Y + MIN_GAP));
+								segments.Add(NewLine(joint_width, joint_height));
+								segments.Add(NewLine(to.X + MIN_GAP, joint_height));
+								segments.Add(NewLine(to.X + MIN_GAP, to.Y));
+							} else {
+								double joint_width = from.X + from.Width / 2 + MIN_GAP;
+								segments.Add(NewLine(from.X, from.Y + MIN_GAP));
+								segments.Add(NewLine(joint_width, from.Y + MIN_GAP));
+								segments.Add(NewLine(joint_width, to.Y));
+							}
+						} else {
+							segments.Add(NewLine(from.X, from.Y + MIN_GAP));
+							segments.Add(NewLine(to.X + MIN_GAP, from.Y + MIN_GAP));
+							segments.Add(NewLine(to.X + MIN_GAP, to.Y));
+						}
+					} else if(from.X - MIN_GAP < to.X) {
+						segments.Add(NewLine(from.X, from.Y + MIN_GAP));
+						segments.Add(NewLine(to.X + MIN_GAP, from.Y + MIN_GAP));
+						segments.Add(NewLine(to.X + MIN_GAP, to.Y));
+					} else {
+						segments.Add(NewLine(from.X, to.Y));
+					}
 				} else {
 					throw new Exception($"Direction ({to.Direction}) Not Found");
 				}

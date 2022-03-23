@@ -18,8 +18,21 @@
 			<RowDefinition Height="auto"/>
 			<RowDefinition Height="*"/>
 		</Grid.RowDefinitions>
-		<TextBlock Text="Map Mind" FontSize="36" HorizontalAlignment="Center"/>
-		<TextBlock Text="By RainbowWolfer" FontSize="18" HorizontalAlignment="Center" Grid.Row="1"/>
-		<TextBlock x:Name="VersionText" FontSize="14" Grid.Row="2" VerticalAlignment="Bottom" HorizontalAlignment="Center"/>
+		<TextBlock Text="Map Mind" FontSize="36" HorizontalAlignment="Center" Margin="5"/>
+		<StackPanel Orientation="Horizontal" Grid.Row="1" HorizontalAlignment="Center" Margin="5">
+			<TextBlock Text="By " FontSize="18"/>
+			<Button x:Name="MyButton" BorderBrush="Transparent" Click="MyButton_Click">
+				<Button.Background>
+					<SolidColorBrush Color="Gray" Opacity="0.2"/>
+				</Button.Background>
+				<Button.Resources>
+					<Style TargetType="{x:Type Border}">
+						<Setter Property="CornerRadius" Value="7"/>
+					</Style>
+				</Button.Resources>
+				<TextBlock Text="RainbowWolfer" FontSize="18" Padding="5,0,5,0"/>
+			</Button>
+		</StackPanel>
+		<TextBlock x:Name="VersionText" d:Text="Version: 1.0.0.0" FontSize="14" Grid.Row="2" VerticalAlignment="Bottom" HorizontalAlignment="Center"/>
 	</Grid>
 </Window>

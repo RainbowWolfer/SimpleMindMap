@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MindMap.SubWindows;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -30,7 +31,7 @@ namespace MindMap.Pages {
 		}
 
 		private void SettingsButton_Click(object sender, RoutedEventArgs e) {
-
+			new SettingsWindow(_mainWindow).ShowDialog();
 		}
 	}
 }

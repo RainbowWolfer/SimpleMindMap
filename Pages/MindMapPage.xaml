@@ -106,7 +106,7 @@
 								<TextBox Text="This is Annotation"/>
 							</Grid>
 						</Grid>-->
-						<Path StrokeThickness="2" Stroke="Red" Fill="{Binding Stroke, RelativeSource={RelativeSource Self}}">
+						<!--<Path StrokeThickness="2" Stroke="Red" Fill="{Binding Stroke, RelativeSource={RelativeSource Self}}">
 							<Path.Data>
 								<PathGeometry>
 									<PathFigure StartPoint="0 0" IsFilled="False">
@@ -120,7 +120,7 @@
 									</PathFigure>
 								</PathGeometry>
 							</Path.Data>
-						</Path>
+						</Path>-->
 					</Canvas>
 					<Canvas.RenderTransform>
 						<TransformGroup>

@@ -41,7 +41,7 @@ namespace MindMap.Entities.Connections {
 			public int minimumGap = 30;
 			public PathType pathType = PathType.Linear;
 
-			public string text = "(Hello World)";
+			public string text = "";
 			public FontFamily fontFamily = new("Microsoft YaHei UI");
 			public FontWeight fontWeight = FontWeights.Normal;
 			public double fontSize = 14;

@@ -134,7 +134,7 @@ namespace MindMap {
 		}
 
 		private void SettingsMenuItem_Click(object sender, RoutedEventArgs e) {
-
+			new SettingsWindow(this).ShowDialog();
 		}
 	}
 }

@@ -359,6 +359,16 @@ namespace MindMap.Entities.Connections {
 			return geometry;
 		}
 
+		private Geometry CreateStraightPathGeometry(ConnectionDotInfo from, ConnectionDotInfo to) {
+			return new PathGeometry(new PathFigure[] {
+				new PathFigure(from.Position.ToPoint(),
+					new List<PathSegment>() {
+						new LineSegment(to.Position.ToPoint(), true)
+					}
+				, false)
+			});
+		}
+
 		private Geometry CreateLinearGeometry(ConnectionDotInfo from, ConnectionDotInfo to) {
 			Vector2 startJoint;
 			Vector2 endJoint;
@@ -406,10 +416,7 @@ namespace MindMap.Entities.Connections {
 				$"	{to.Position.X},{to.Position.Y}");
 		}
 
-		private LineSegment NewLine(Vector2 position) {
-			return new LineSegment(position.ToPoint(), true);
-		}
-		private LineSegment NewLine(double x, double y) {
+		private static LineSegment NewLine(double x, double y) {
 			return new LineSegment(new Point(x, y), true);
 		}
 
@@ -494,9 +501,29 @@ namespace MindMap.Entities.Connections {
 					}
 				} else if(to.Direction == Direction.Top) {
 					if(to.Y - MIN_GAP < from.Y) {
-						segments.Add(NewLine(from.X - MIN_GAP, from.Y));
-						segments.Add(NewLine(from.X - MIN_GAP, to.Y - MIN_GAP));
-						segments.Add(NewLine(to.X, to.Y - MIN_GAP));
+						if(from.Y > to.Y + to.Height + MIN_GAP
+							&& from.X - MIN_GAP < to.X + to.Width / 2 + MIN_GAP
+							&& from.X - MIN_GAP > to.X - to.Width / 2 - MIN_GAP) {
+							if(from.X - MIN_GAP > to.X) {
+								double joint_height = to.Y + to.Height + MIN_GAP;
+								double joint_width = to.X + to.Width / 2 + MIN_GAP;
+								segments.Add(NewLine(from.X - MIN_GAP, from.Y));
+								segments.Add(NewLine(from.X - MIN_GAP, joint_height));
+								segments.Add(NewLine(joint_width, joint_height));
+								segments.Add(NewLine(joint_width, to.Y - MIN_GAP));
+								segments.Add(NewLine(to.X, to.Y - MIN_GAP));
+							} else {
+								double joint_width = to.X - to.Width / 2 - MIN_GAP;
+								segments.Add(NewLine(from.X - MIN_GAP, from.Y));
+								segments.Add(NewLine(joint_width, from.Y));
+								segments.Add(NewLine(joint_width, to.Y - MIN_GAP));
+								segments.Add(NewLine(to.X, to.Y - MIN_GAP));
+							}
+						} else {
+							segments.Add(NewLine(from.X - MIN_GAP, from.Y));
+							segments.Add(NewLine(from.X - MIN_GAP, to.Y - MIN_GAP));
+							segments.Add(NewLine(to.X, to.Y - MIN_GAP));
+						}
 					} else if(from.X - MIN_GAP < to.X) {
 						segments.Add(NewLine(from.X - MIN_GAP, from.Y));
 						segments.Add(NewLine(from.X - MIN_GAP, to.Y - MIN_GAP));
@@ -506,9 +533,29 @@ namespace MindMap.Entities.Connections {
 					}
 				} else if(to.Direction == Direction.Bottom) {
 					if(to.Y + MIN_GAP > from.Y) {
-						segments.Add(NewLine(from.X - MIN_GAP, from.Y));
-						segments.Add(NewLine(from.X - MIN_GAP, to.Y + MIN_GAP));
-						segments.Add(NewLine(to.X, to.Y + MIN_GAP));
+						if(from.Y < to.Y - to.Height - MIN_GAP
+							&& from.X - MIN_GAP < to.X + to.Width / 2 + MIN_GAP
+							&& from.X - MIN_GAP > to.X - to.Width / 2 - MIN_GAP) {
+							if(from.X - MIN_GAP > to.X) {
+								double joint_height = to.Y - to.Height - MIN_GAP;
+								double joint_width = to.X + to.Width / 2 + MIN_GAP;
+								segments.Add(NewLine(from.X - MIN_GAP, from.Y));
+								segments.Add(NewLine(from.X - MIN_GAP, joint_height));
+								segments.Add(NewLine(joint_width, joint_height));
+								segments.Add(NewLine(joint_width, to.Y + MIN_GAP));
+								segments.Add(NewLine(to.X, to.Y + MIN_GAP));
+							} else {
+								double joint_width = to.X - to.Width / 2 - MIN_GAP;
+								segments.Add(NewLine(from.X - MIN_GAP, from.Y));
+								segments.Add(NewLine(joint_width, from.Y));
+								segments.Add(NewLine(joint_width, to.Y + MIN_GAP));
+								segments.Add(NewLine(to.X, to.Y + MIN_GAP));
+							}
+						} else {
+							segments.Add(NewLine(from.X - MIN_GAP, from.Y));
+							segments.Add(NewLine(from.X - MIN_GAP, to.Y + MIN_GAP));
+							segments.Add(NewLine(to.X, to.Y + MIN_GAP));
+						}
 					} else if(from.X - MIN_GAP < to.X) {
 						segments.Add(NewLine(from.X - MIN_GAP, from.Y));
 						segments.Add(NewLine(from.X - MIN_GAP, to.Y + MIN_GAP));

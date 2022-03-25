@@ -19,6 +19,7 @@ namespace MindMap.Entities {
 
 		public static readonly Vector2 Zero = new();
 		public static readonly Vector2 One = new(1, 1);
+		public static readonly Vector2 Max = new(double.MaxValue, double.MaxValue);
 
 		public double Magnitude {
 			get {

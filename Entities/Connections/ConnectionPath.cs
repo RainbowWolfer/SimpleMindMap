@@ -263,6 +263,7 @@ namespace MindMap.Entities.Connections {
 				grid.SizeChanged += (s, e) => UpdateTextGridPosition();
 				UpdateStyle();
 				UpdateBackgroundStyle();//must be after UpdateStyle()
+				SubmitText();
 				ShowText();
 			} else {
 				property.strokeThickess = 3;

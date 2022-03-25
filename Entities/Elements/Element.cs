@@ -28,6 +28,8 @@ namespace MindMap.Entities.Elements {
 		public const long ID_Polygon = 3;
 		public const long ID_Image = 4;
 
+		public const double MIN_SIZE = 30;
+
 		public abstract string ElementTypeName { get; }
 
 		public Identity Identity { get; set; }
@@ -69,6 +71,7 @@ namespace MindMap.Entities.Elements {
 
 		public Vector2 GetSize() => new(Target.Width, Target.Height);
 		public void SetSize(Vector2 size) {
+			size = size.Bound(new Vector2(MIN_SIZE, MIN_SIZE), Vector2.Max);
 			Target.Width = size.X;
 			Target.Height = size.Y;
 		}
@@ -76,6 +79,17 @@ namespace MindMap.Entities.Elements {
 		public void SetPosition(Vector2 position) {
 			Canvas.SetLeft(Target, position.X);
 			Canvas.SetTop(Target, position.Y);
+		}
+
+		public Vector2[] GetBoundPoints() {
+			Vector2 pos = GetPosition();
+			Vector2 size = GetSize();
+			return new Vector2[4]{
+				new(pos.X, pos.Y),
+				new(pos.X + size.X, pos.Y),
+				new(pos.X, pos.Y + size.Y),
+				new(pos.X + size.X, pos.Y + size.Y),
+			};
 		}
 
 		public virtual Vector2 DefaultSize => new(150, 150);

@@ -5,6 +5,7 @@ using MindMap.Entities.Elements.Interfaces;
 using MindMap.Entities.Elements.TextShapes;
 using MindMap.Entities.Frames;
 using MindMap.Entities.Identifications;
+using MindMap.Entities.Interactions;
 using MindMap.Entities.Locals;
 using MindMap.Entities.Properties;
 using MindMap.Entities.Tags;
@@ -32,6 +33,7 @@ namespace MindMap.Pages {
 		public readonly ConnectionsManager connectionsManager;
 		public readonly EditHistory editHistory;
 		public readonly ImagesAssets imagesAssets;
+		public readonly MultiSelectionFrame multiSelectionFrame;
 		public bool holdShift;
 		private string? savePath = null;
 		private string fileName = "(Not Saved)";
@@ -47,6 +49,13 @@ namespace MindMap.Pages {
 
 		public MindMapPage() {
 			InitializeComponent();
+			multiSelectionFrame = new MultiSelectionFrame(this, (s, e) => {
+				BackgroundRectangle_MouseDown(s, e);
+			}, (s, e) => {
+				BackgroundRectangle_MouseMove(s, e);
+			}, (s, e) => {
+				BackgroundRectangle_MouseUp(s, e);
+			});
 			connectionsManager = new ConnectionsManager(this);
 			connectionsManager.OnConnectionPathChanged += args => {
 				RefreshMapElementsListView();
@@ -60,6 +69,20 @@ namespace MindMap.Pages {
 
 			MainCanvas.MouseMove += MainCanvas_MouseMove;
 			MainCanvas.MouseUp += MainCanvas_MouseUp;
+
+			//BackgroundRectangle.MouseLeave += (s, e) => {
+			//	foreach(FrameworkElement item in BackgroundCanvas.Children) {
+			//		if(item.IsMouseOver) {
+			//			return;
+			//		}
+			//	}
+			//	if(multiSelectionFrame.IsMouseOver) {
+			//		return;
+			//	}
+			//	Debug.WriteLine("MouseLeave " + BackgroundCanvas.Children.Count);
+
+			//	multiSelectionFrame.Disappear();
+			//};
 
 			SizeChanged += (s, e) => UpdateBackgroundDot();
 
@@ -87,6 +110,15 @@ namespace MindMap.Pages {
 				() => Redo(),
 				() => { },
 			false, Key.LeftCtrl, Key.Y);
+
+			Loop();
+		}
+
+		private async void Loop() {
+			while(true) {
+				//Debug.WriteLine(MainCanvas.IsMouseOver + " " + BackgroundRectangle.IsMouseOver);
+				await Task.Delay(50);
+			}
 		}
 
 		public void OnClose() {
@@ -250,7 +282,7 @@ namespace MindMap.Pages {
 		}
 
 		public void ClearResizePanel() {
-			Selection?.ClearResizeFrame(MainCanvas);
+			Selection?.ClearResizeFrame();
 			if(previous != null && elements.ContainsKey(previous)) {
 				elements[previous].SetConnectionsFrameVisible(true);
 				elements[previous].UpdateConnectionsFrame();
@@ -258,8 +290,8 @@ namespace MindMap.Pages {
 		}
 
 		public void Deselect(bool includePath = true) {
-			if(Selection != null && elements.ContainsKey(Selection.target)) {
-				elements[Selection.target].Deselect();
+			if(Selection != null) {
+				Selection.elements.ForEach(e => e.Deselect());
 			}
 			if(includePath) {
 				connectionsManager.CurrentSelection?.Deselect();
@@ -483,7 +515,7 @@ namespace MindMap.Pages {
 		private void Element_MouseDown(object sender, MouseButtonEventArgs e, Element element) {
 			FrameworkElement? target = sender as FrameworkElement;
 			current = target;
-			if(current != Selection?.target) {
+			if(Selection?.elements.Select(e => e.Target).Contains(current) ?? false) {
 				ClearResizePanel();
 				Deselect();
 			}
@@ -547,19 +579,21 @@ namespace MindMap.Pages {
 		private bool hasMoved;
 		private MouseType mouseType;
 		private void MainCanvas_MouseMove(object sender, MouseEventArgs e) {
-			if(current == null || e.MouseDevice.LeftButton != MouseButtonState.Pressed) {
-				return;
+			if(current != null && e.MouseDevice.LeftButton == MouseButtonState.Pressed) {
+				hasMoved = true;
+				Vector2 mouse_position = e.GetPosition(MainCanvas);
+
+				Canvas.SetLeft(current, mouse_position.X - offset.X);
+				Canvas.SetTop(current, mouse_position.Y - offset.Y);
+
+				Selection?.UpdateResizeFrame();
+
+				if(current != null && elements.ContainsKey(current)) {
+					elements[current].UpdateConnectionsFrame();
+				}
 			}
-			hasMoved = true;
-			Vector2 mouse_position = e.GetPosition(MainCanvas);
-
-			Canvas.SetLeft(current, mouse_position.X - offset.X);
-			Canvas.SetTop(current, mouse_position.Y - offset.Y);
-
-			Selection?.UpdateResizeFrame();
-
-			if(current != null && elements.ContainsKey(current)) {
-				elements[current].UpdateConnectionsFrame();
+			if(multiSelectionDrag && !HasMouseMoved(e, _multiSelectionStartPos, true)) {
+				multiSelectionFrame.Update(_multiSelectionStartPos, e.GetPosition(MainCanvas));
 			}
 		}
 
@@ -585,7 +619,7 @@ namespace MindMap.Pages {
 				} else {
 					switch(mouseType) {
 						case MouseType.Left:
-							ResizeFrame.Create(this, current, element);
+							ResizeFrame.Create(this, element);
 							element.SetConnectionsFrameVisible(false);
 							Debug.WriteLine("left mouse");
 							clickCount = previous == current && e.Timestamp - lastClickTimeStamp <= 500 ? clickCount + 1 : 0;
@@ -616,35 +650,70 @@ namespace MindMap.Pages {
 			}
 			current = null;
 			Mouse.Capture(null);
-			_drag = false;
+			backgroundMovementDrag = false;
+			if(e.ChangedButton == MouseButton.Left && multiSelectionDrag) {
+				multiSelectionDrag = false;
+				//Debug.WriteLine("MOUSE UP IN CANVAS" + multiSelectionDrag);
+				multiSelectionFrame.Disappear();
+			}
 		}
 
-		private bool _drag;
+		private bool backgroundMovementDrag;
+		private bool multiSelectionDrag;
+		private Vector2 _multiSelectionStartPos;
 		private Vector2 _dragStartPos;
-		private Vector2 _translatStartPos;
+		private Vector2 _translateStartPos;
+		private bool HasMouseMoved(MouseEventArgs e, Vector2 startPos, bool canvasRoot) {
+			return (e.GetPosition(canvasRoot ? MainCanvas : this) - _dragStartPos).Magnitude < 1;
+		}
+
 		private void BackgroundRectangle_MouseDown(object sender, MouseButtonEventArgs e) {
 			_dragStartPos = e.GetPosition(this);
-			_translatStartPos = new Vector2(MainCanvas_TranslateTransform.X, MainCanvas_TranslateTransform.Y);
-			_drag = true;
+			_multiSelectionStartPos = e.GetPosition(MainCanvas);
+			if(e.LeftButton == MouseButtonState.Pressed) {
+				multiSelectionFrame.Appear();
+				multiSelectionDrag = true;
+			} else {
+				_translateStartPos = new Vector2(MainCanvas_TranslateTransform.X, MainCanvas_TranslateTransform.Y);
+				backgroundMovementDrag = true;
+			}
 		}
 
 		private void BackgroundRectangle_MouseMove(object sender, MouseEventArgs e) {
-			if(!_drag) {
-				return;
+			if(e.LeftButton == MouseButtonState.Released && e.RightButton == MouseButtonState.Released) {
+				multiSelectionFrame.Disappear();
 			}
-			Vector2 delta = e.GetPosition(this) - _dragStartPos;
-			MainCanvas_TranslateTransform.X = delta.X + _translatStartPos.X;
-			MainCanvas_TranslateTransform.Y = delta.Y + _translatStartPos.Y;
+			if(e.LeftButton == MouseButtonState.Pressed && multiSelectionDrag && !HasMouseMoved(e, _multiSelectionStartPos, true)) {
+				//Debug.WriteLine("MOVE" + multiSelectionDrag);
+				multiSelectionFrame.Update(_multiSelectionStartPos, e.GetPosition(MainCanvas));
+			} else {
+				if(!backgroundMovementDrag) {
+					return;
+				}
+				Vector2 delta = e.GetPosition(this) - _dragStartPos;
+				MainCanvas_TranslateTransform.X = delta.X + _translateStartPos.X;
+				MainCanvas_TranslateTransform.Y = delta.Y + _translateStartPos.Y;
 
-			UpdateBackgroundDot();
+				UpdateBackgroundDot();
+			}
 		}
 
 		private void BackgroundRectangle_MouseUp(object sender, MouseButtonEventArgs e) {
-			_drag = false;
+			backgroundMovementDrag = false;
 			ClearResizePanel();
 			Deselect();
 			current = null;
 			Mouse.Capture(null);
+			multiSelectionFrame.Disappear();
+			if(e.ChangedButton == MouseButton.Left && multiSelectionDrag && !HasMouseMoved(e, _dragStartPos, true)) {
+				multiSelectionDrag = false;
+				List<Element> selected = multiSelectionFrame.GetSelected(elements.Select(e => e.Value));
+				if(selected.Count == 0) {
+					ClearResizePanel();
+				} else {
+					ResizeFrame.Create(this, selected.ToArray());
+				}
+			}
 		}
 
 		private void MainCanvas_Loaded(object sender, RoutedEventArgs e) {

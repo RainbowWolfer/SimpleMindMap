@@ -129,6 +129,11 @@ namespace MindMap.Entities.Frames {
 			UpdateResizeFrame();
 		}
 
+		public void AddElement(Element element) {
+			this.elements.Add(element);
+			UpdateResizeFrame();
+		}
+
 		public void AddIntoCanvas() {
 			void Add(Shape shape) {
 				if(!_mainCanvas.Children.Contains(shape)) {
@@ -161,7 +166,7 @@ namespace MindMap.Entities.Frames {
 			Remove(this.bot_left);
 			Remove(this.bot_right);
 
-			//elements.Clear();
+			elements.Clear();
 		}
 
 		public void UpdateResizeFrame() {
@@ -367,20 +372,25 @@ namespace MindMap.Entities.Frames {
 				};
 				parent.MainCanvas.MouseUp += (s, e) => {
 					if(_drag) {
-						//Vector2 endSize = new(target.Width, target.Height);
-						//Vector2 endPos = new(Canvas.GetLeft(target), Canvas.GetTop(target));
-						//if(endSize != startSize || endPos != startPos) {
-						//	parent.editHistory.SubmitByElementFrameworkChanged(
-						//		element,
-						//		startSize,
-						//		startPos,
-						//		endSize,
-						//		endPos,
-						//		EditHistory.FrameChangeType.Resize
-						//	);
-						//}
-
-						//This need to be a "Group FrameworkChanged".
+						List<EditHistory.ElementFrameworkChange.FrameworkChangeItem> items = new();
+						foreach(ResizeElementInfo item in infos) {
+							Vector2 endPos = item.Target.GetPosition();
+							Vector2 endSize = item.Target.GetSize();
+							if(item.StartPos == endPos && item.StartSize == endSize) {
+								continue;
+							}
+							items.Add(new EditHistory.ElementFrameworkChange.FrameworkChangeItem() {
+								Identity = item.Target.Identity,
+								FromPosition = item.StartPos,
+								FromSize = item.StartSize,
+								ToPosition = endPos,
+								ToSize = endSize,
+							});
+						}
+						parent.editHistory.SubmitByElementFrameworkChanged(
+							items,
+							EditHistory.FrameChangeType.Resize
+						);
 					}
 					_drag = false;
 					Mouse.Capture(null);

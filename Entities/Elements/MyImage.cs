@@ -24,6 +24,7 @@ namespace MindMap.Entities.Elements {
 		public override long TypeID => ID_Image;
 
 		public override string ElementTypeName => "Image";
+		public override (string icon, string fontFamily) Icon => ("\uE91B", "Segoe Fluent Icons");
 
 		protected class Property: TextRelatedProperty {
 			public Direction direction = Direction.Bottom;

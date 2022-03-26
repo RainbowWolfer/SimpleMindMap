@@ -16,10 +16,12 @@ namespace MindMap.Entities.Elements {
 		public override long TypeID => throw new NotImplementedException();
 
 		public override string ElementTypeName => throw new NotImplementedException();
+		public override (string icon, string fontFamily) Icon => throw new NotImplementedException();
 
 		public override FrameworkElement Target => throw new NotImplementedException();
 
 		public override IProperty Properties => throw new NotImplementedException();
+
 
 		public ElementGroup(MindMapPage parent, Identity? identity = null) : base(parent, identity) {
 		}

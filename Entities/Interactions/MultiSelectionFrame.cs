@@ -147,21 +147,22 @@ namespace MindMap.Entities.Interactions {
 			if((Start - End).Magnitude < 1) {
 				return new();
 			}
+			CalculateBound(out Vector2 topLeft, out Vector2 botRight);
+			//_parent.SetTestPoints(true, topLeft, botRight);
 			List<Element> result = new();
 			foreach(Element item in sources) {
-				if(IsInBound(item)) {
+				if(IsInBound(item, topLeft, botRight)) {
 					result.Add(item);
 				}
 			}
 			return result;
 		}
 
-		private bool IsInBound(Element element) {
-			CalculateBound(out Vector2 topLeft, out Vector2 botRight);
-
+		private bool IsInBound(Element element, Vector2 topLeft, Vector2 botRight) {
+			//_parent.SetTestPoints(false, element.GetBoundPoints());
 			foreach(Vector2 point in element.GetBoundPoints()) {
 				if(point.X < topLeft.X || point.X > botRight.X
-					|| point.Y < topLeft.Y || point.Y > botRight.X) {
+					|| point.Y < topLeft.Y || point.Y > botRight.Y) {
 					return false;
 				}
 			}

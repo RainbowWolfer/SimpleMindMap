@@ -117,6 +117,7 @@ namespace MindMap.Pages {
 		private async void Loop() {
 			while(true) {
 				//Debug.WriteLine(MainCanvas.IsMouseOver + " " + BackgroundRectangle.IsMouseOver);
+				//Debug.WriteLine(ResizeFrame.Current?.elements.Count.ToString() ?? "null");
 				await Task.Delay(50);
 			}
 		}
@@ -132,16 +133,18 @@ namespace MindMap.Pages {
 			MainWindow.Instance?.SetUndoMenuItemActive(editHistory.GetPreviousHistories().Count > 0);
 			MainWindow.Instance?.SetRedoMenuItemActive(true);
 			UpdateHistoryListView();
-			Deselect();
-			//ClearResizePanel();
+			if(ResizeFrame.Current?.elements.Count == 1) {
+				ShowElementProperties(ResizeFrame.Current.elements[0]);
+			}
 		}
 
 		private void EditHistory_OnRedo(EditHistory.IChange obj) {
 			MainWindow.Instance?.SetRedoMenuItemActive(editHistory.GetFuturesHistories().Count > 0);
 			MainWindow.Instance?.SetUndoMenuItemActive(true);
 			UpdateHistoryListView();
-			Deselect();
-			//ClearResizePanel();
+			if(ResizeFrame.Current?.elements.Count == 1) {
+				ShowElementProperties(ResizeFrame.Current.elements[0]);
+			}
 		}
 
 		private void EditHistory_OnHistoryChanged(List<EditHistory.IChange> history) {
@@ -168,6 +171,7 @@ namespace MindMap.Pages {
 					Margin = new Thickness(10, 0, 0, 0),
 					TextWrapping = TextWrapping.Wrap,
 					HorizontalAlignment = HorizontalAlignment.Stretch,
+					VerticalAlignment = VerticalAlignment.Center,
 					Width = 210,
 				};
 				Grid.SetColumn(text, 1);
@@ -271,7 +275,7 @@ namespace MindMap.Pages {
 			connectionsManager.DebugConnections();
 		}
 
-		private static ResizeFrame? Selection => ResizeFrame.Current;
+		//private static ResizeFrame? Selection => ResizeFrame.Current;
 
 		public bool HasChanged {
 			get => hasChanged;
@@ -282,16 +286,17 @@ namespace MindMap.Pages {
 		}
 
 		public void ClearResizePanel() {
-			Selection?.ClearResizeFrame();
 			if(previous != null && elements.ContainsKey(previous)) {
 				elements[previous].SetConnectionsFrameVisible(true);
 				elements[previous].UpdateConnectionsFrame();
 			}
+			ResizeFrame.Current?.ClearResizeFrame();
+			ResizeFrame.Current = null;
 		}
 
 		public void Deselect(bool includePath = true) {
-			if(Selection != null) {
-				Selection.elements.ForEach(e => e.Deselect());
+			if(ResizeFrame.Current != null) {
+				ResizeFrame.Current.elements.ForEach(e => e.Deselect());
 			}
 			if(includePath) {
 				connectionsManager.CurrentSelection?.Deselect();
@@ -343,13 +348,13 @@ namespace MindMap.Pages {
 
 		public readonly Dictionary<FrameworkElement, Element> elements = new();
 
-		public void ShowElementProperties() {
-			Element? found = elements.FirstOrDefault(p => p.Key == current).Value;
-			if(found == null) {
-				return;
-			}
-			ShowElementProperties(found);
-		}
+		//public void ShowElementProperties() {
+		//	Element? found = elements.FirstOrDefault(p => p.Key == current).Value;
+		//	if(found == null) {
+		//		return;
+		//	}
+		//	ShowElementProperties(found);
+		//}
 
 		public void ShowElementProperties(Element element, bool showPropertiesTabItem = false) {
 			ElementPropertiesPanel.Children.Clear();
@@ -512,29 +517,6 @@ namespace MindMap.Pages {
 
 		}
 
-		private void Element_MouseDown(object sender, MouseButtonEventArgs e, Element element) {
-			FrameworkElement? target = sender as FrameworkElement;
-			current = target;
-			if(Selection?.elements.Select(e => e.Target).Contains(current) ?? false) {
-				ClearResizePanel();
-				Deselect();
-			}
-			startPos = e.GetPosition(MainCanvas);
-			offset = startPos - new Vector2(Canvas.GetLeft(target), Canvas.GetTop(target));
-			elementStartPos = new Vector2(Canvas.GetLeft(target), Canvas.GetTop(target));
-			Mouse.Capture(sender as UIElement);
-			hasMoved = false;
-			PutElementOnTop(element);
-			if(e.MouseDevice.LeftButton == MouseButtonState.Pressed) {
-				mouseType = MouseType.Left;
-			} else if(e.MouseDevice.RightButton == MouseButtonState.Pressed) {
-				mouseType = MouseType.Right;
-			} else if(e.MouseDevice.MiddleButton == MouseButtonState.Pressed) {
-				mouseType = MouseType.Middle;
-			}
-
-		}
-
 		private void AddElementByClick(long id) {
 			Element element = AddElement(id);
 			Reposition(element);
@@ -572,25 +554,85 @@ namespace MindMap.Pages {
 			element.UpdateConnectionsFrame();
 		}
 
-		private Vector2 offset;
-		private Vector2 startPos;//check for click
-		private Vector2 elementStartPos;
-		private FrameworkElement? current;
+		private Vector2 clickStartPos;
+		private List<ElementReframeworkInfo> current = new();
+		private bool MultiSelectionClicking => holdShift;
 		private bool hasMoved;
 		private MouseType mouseType;
+		private void Element_MouseDown(object sender, MouseButtonEventArgs e, Element element) {
+			FrameworkElement framework = (FrameworkElement)sender;
+			if(elements.ContainsKey(framework)) {
+				if(elements[framework].IsLocked) {
+					return;
+				}
+			}
+			current.Clear();
+			clickStartPos = e.GetPosition(MainCanvas);
+			if(ResizeFrame.Current != null) {
+				if(ResizeFrame.Current.elements.Count != 0) {
+					foreach(Element item in ResizeFrame.Current.elements) {
+						current.Add(new ElementReframeworkInfo(
+							target: item,
+							elementStartPos: item.GetPosition(),
+							offset: clickStartPos - item.GetPosition(),
+							isPrimary: false
+						));
+					}
+				}
+			}
+			if(elements.ContainsKey(framework)) {
+				Element clicked = elements[framework];
+				if(!current.Select(c => c.Target).Contains(clicked)) {
+					if(!MultiSelectionClicking) {
+						current.Clear();
+						Deselect();
+						ClearResizePanel();
+					}
+					current.Add(new ElementReframeworkInfo(
+						target: clicked,
+						elementStartPos: clicked.GetPosition(),
+						offset: clickStartPos - clicked.GetPosition(),
+						isPrimary: true
+					));
+				} else {
+					ElementReframeworkInfo? found = current.Find(c => c.Target == clicked);
+					if(found != null) {
+						found.IsPrimary = true;
+					} else {
+						Debug.WriteLine("move new stuff");
+					}
+				}
+			}
+
+			Mouse.Capture(sender as UIElement);
+			hasMoved = false;
+			PutElementOnTop(element);
+			if(e.MouseDevice.LeftButton == MouseButtonState.Pressed) {
+				mouseType = MouseType.Left;
+			} else if(e.MouseDevice.RightButton == MouseButtonState.Pressed) {
+				mouseType = MouseType.Right;
+			} else if(e.MouseDevice.MiddleButton == MouseButtonState.Pressed) {
+				mouseType = MouseType.Middle;
+			}
+
+		}
+
 		private void MainCanvas_MouseMove(object sender, MouseEventArgs e) {
-			if(current != null && e.MouseDevice.LeftButton == MouseButtonState.Pressed) {
+			FrameworkElement framework = (FrameworkElement)sender;
+			if(elements.ContainsKey(framework)) {
+				if(elements[framework].IsLocked) {
+					return;
+				}
+			}
+			if(e.MouseDevice.LeftButton == MouseButtonState.Pressed) {
 				hasMoved = true;
 				Vector2 mouse_position = e.GetPosition(MainCanvas);
 
-				Canvas.SetLeft(current, mouse_position.X - offset.X);
-				Canvas.SetTop(current, mouse_position.Y - offset.Y);
-
-				Selection?.UpdateResizeFrame();
-
-				if(current != null && elements.ContainsKey(current)) {
-					elements[current].UpdateConnectionsFrame();
+				foreach(ElementReframeworkInfo item in current) {
+					item.Target.SetPosition(mouse_position - item.Offset);
+					item.Target.UpdateConnectionsFrame();
 				}
+				ResizeFrame.Current?.UpdateResizeFrame();
 			}
 			if(multiSelectionDrag && !HasMouseMoved(e, _multiSelectionStartPos, true)) {
 				multiSelectionFrame.Update(_multiSelectionStartPos, e.GetPosition(MainCanvas));
@@ -601,32 +643,51 @@ namespace MindMap.Pages {
 		private int clickCount = 0;
 		private int lastClickTimeStamp;
 		private void MainCanvas_MouseUp(object sender, MouseButtonEventArgs e) {
-			if(current != null) {
-				Element? element = elements.ContainsKey(current) ? elements[current] : null;
+			FrameworkElement framework = (FrameworkElement)sender;
+			if(elements.ContainsKey(framework)) {
+				Element element = elements[framework];
+				if(element.IsLocked) {
+					ShowElementProperties(element);
+					return;
+				}
+			}
+			if(current.Count != 0) {
+				Element? element = current.Find(c => c.IsPrimary)?.Target;
 				if(element == null) {
 					throw new Exception("it should not be null. check elements assignments");
 				}
-				if(startPos != e.GetPosition(MainCanvas) && hasMoved) {
-					//Debug.WriteLine($"{elementStartPos.ToString(2)} - {element.GetPosition().ToString(2)}");
+				if(clickStartPos != e.GetPosition(MainCanvas) && hasMoved) {
 					editHistory.SubmitByElementFrameworkChanged(
-						element,
-						element.GetSize(),
-						elementStartPos,
-						element.GetSize(),
-						element.GetPosition(),
+						current.Select(i => new EditHistory.ElementFrameworkChange.FrameworkChangeItem() {
+							Identity = i.Target.Identity,
+							FromSize = i.Target.GetSize(),
+							FromPosition = i.ElementStartPos,
+							ToSize = i.Target.GetSize(),
+							ToPosition = i.Target.GetPosition(),
+						}).ToList(),
 						EditHistory.FrameChangeType.Move
 					);
+				} else if(MultiSelectionClicking) {
+					if(mouseType == MouseType.Left) {
+						if(ResizeFrame.Current == null) {
+							ResizeFrame.Create(this, element);
+							element.SetConnectionsFrameVisible(false);
+						} else {
+							ResizeFrame.Current.AddElement(element);
+						}
+					}
 				} else {
+					FrameworkElement? currentFramework = current.Find(c => c.IsPrimary)?.Framework;
 					switch(mouseType) {
 						case MouseType.Left:
 							ResizeFrame.Create(this, element);
 							element.SetConnectionsFrameVisible(false);
-							Debug.WriteLine("left mouse");
-							clickCount = previous == current && e.Timestamp - lastClickTimeStamp <= 500 ? clickCount + 1 : 0;
+							//Debug.WriteLine("left mouse");
+							clickCount = previous == currentFramework && e.Timestamp - lastClickTimeStamp <= 500 ? clickCount + 1 : 0;
 							lastClickTimeStamp = e.Timestamp;
-							Debug.WriteLine(clickCount);
+							//Debug.WriteLine(clickCount);
 							if(clickCount == 1) {
-								Debug.WriteLine("This is double click");
+								//Debug.WriteLine("This is double click");
 								element.DoubleClick();
 								ShowElementProperties(element, true);
 							} else {
@@ -635,26 +696,41 @@ namespace MindMap.Pages {
 							}
 							break;
 						case MouseType.Middle:
-							Debug.WriteLine("middle mouse");
+							//Debug.WriteLine("middle mouse");
 							element.MiddleClick();
 							break;
 						case MouseType.Right:
-							Debug.WriteLine("flyout menu");
+							//Debug.WriteLine("flyout menu");
 							element.RightClick();
 							break;
 						default:
 							throw new Exception($"Mouse Type Error {mouseType}");
 					}
-					previous = current;
+					previous = currentFramework;
 				}
 			}
-			current = null;
+			current.Clear();
 			Mouse.Capture(null);
 			backgroundMovementDrag = false;
 			if(e.ChangedButton == MouseButton.Left && multiSelectionDrag) {
 				multiSelectionDrag = false;
 				//Debug.WriteLine("MOUSE UP IN CANVAS" + multiSelectionDrag);
 				multiSelectionFrame.Disappear();
+			}
+		}
+
+		private class ElementReframeworkInfo {
+			public Element Target { get; set; }
+			public FrameworkElement Framework => Target.Target;
+			public Vector2 ElementStartPos { get; set; }
+			public Vector2 Offset { get; set; }
+			public bool IsPrimary { get; set; }
+
+			public ElementReframeworkInfo(Element target, Vector2 elementStartPos, Vector2 offset, bool isPrimary = false) {
+				Target = target;
+				ElementStartPos = elementStartPos;
+				Offset = offset;
+				IsPrimary = isPrimary;
 			}
 		}
 
@@ -702,12 +778,12 @@ namespace MindMap.Pages {
 			backgroundMovementDrag = false;
 			ClearResizePanel();
 			Deselect();
-			current = null;
+			current.Clear();
 			Mouse.Capture(null);
 			multiSelectionFrame.Disappear();
 			if(e.ChangedButton == MouseButton.Left && multiSelectionDrag && !HasMouseMoved(e, _dragStartPos, true)) {
 				multiSelectionDrag = false;
-				List<Element> selected = multiSelectionFrame.GetSelected(elements.Select(e => e.Value));
+				List<Element> selected = multiSelectionFrame.GetSelected(elements.Select(e => e.Value).Where(e => !e.IsLocked));
 				if(selected.Count == 0) {
 					ClearResizePanel();
 				} else {
@@ -739,14 +815,45 @@ namespace MindMap.Pages {
 		}
 
 		private void RefreshMapElementsListView() {
-			MapElementsListView.Items.Clear();
-			foreach(object item in MainCanvas.Children) {
-				MapElementsListView.Items.Add(item.ToString());
+			//foreach(object item in MainCanvas.Children) {
+			//	MapElementsListView.Items.Add(item.ToString());
+			//}
+			List<ElementListViewItem> items = new();
+			foreach(Element item in elements.Values) {
+				items.Add(new ElementListViewItem(item.Icon.icon, item.Icon.fontFamily, item.Identity.Name));
+			}
+			MapElementsListView.ItemsSource = items;
+		}
+
+		public void SetTestPoints(bool clear, params Vector2[] points) {
+			if(clear) {
+				TestCanvas.Children.Clear();
+			}
+			foreach(Vector2 point in points) {
+				Ellipse ellipse = new() {
+					Fill = Brushes.Salmon,
+					Height = 10,
+					Width = 10,
+				};
+				Canvas.SetLeft(ellipse, point.X - 5);
+				Canvas.SetTop(ellipse, point.Y - 5);
+				TestCanvas.Children.Add(ellipse);
 			}
 		}
 
 		private enum MouseType {
 			Left, Middle, Right
+		}
+	}
+
+	public class ElementListViewItem {
+		public string Icon { get; set; }
+		public string FontFamily { get; set; }
+		public string Title { get; set; }
+		public ElementListViewItem(string icon, string fontFamily, string title) {
+			Icon = icon;
+			FontFamily = fontFamily;
+			Title = title;
 		}
 	}
 }

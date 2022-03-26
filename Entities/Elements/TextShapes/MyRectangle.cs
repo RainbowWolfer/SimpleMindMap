@@ -16,6 +16,7 @@ namespace MindMap.Entities.Elements.TextShapes {
 	public class MyRectangle: TextShape {
 		public override long TypeID => ID_Rectangle;
 		public override string ElementTypeName => "Rectangle";
+		public override (string icon, string fontFamily) Icon => ("\uE002", "Segoe Fluent Icons");
 		private class Property: TextShapeProperty {
 			public CornerRadius cornerRadius = new(0);
 

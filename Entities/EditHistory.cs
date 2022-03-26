@@ -86,6 +86,7 @@ namespace MindMap.Entities {
 					PropertyDelayedChange.JSONCONVERTID => JsonConvert.DeserializeObject<PropertyDelayedChange>(item.Value),
 					PropertyChange.JSONCONVERTID => JsonConvert.DeserializeObject<PropertyChange>(item.Value),
 					ElementFrameworkChange.JSONCONVERTID => JsonConvert.DeserializeObject<ElementFrameworkChange>(item.Value),
+					ElementLockStateChange.JSONCONVERTID => JsonConvert.DeserializeObject<ElementLockStateChange>(item.Value),
 					_ => null,
 				};
 				if(change == null) {
@@ -119,6 +120,9 @@ namespace MindMap.Entities {
 				} else if(change is ElementConnectionFrameControlsChange ecfcc) {
 					id = ElementConnectionFrameControlsChange.JSONCONVERTID;
 					json = JsonConvert.SerializeObject(ecfcc);
+				} else if(change is ElementLockStateChange elsc) {
+					id = ElementLockStateChange.JSONCONVERTID;
+					json = JsonConvert.SerializeObject(elsc);
 				} else {
 					throw new Exception();
 				}
@@ -226,13 +230,25 @@ namespace MindMap.Entities {
 		public void SubmitByElementFrameworkChanged(Element target, Vector2 fromSize, Vector2 fromPosition, Vector2 toSize, Vector2 toPosition, FrameChangeType frameChangeType) {
 			InstantSealLastDelayedChange();
 			previous.Add(new ElementFrameworkChange(
-				target.Identity,
-				fromSize,
-				fromPosition,
-				toSize,
-				toPosition,
+				new List<ElementFrameworkChange.FrameworkChangeItem>() {
+					new ElementFrameworkChange.FrameworkChangeItem() {
+						Identity = target.Identity,
+						FromSize = fromSize,
+						FromPosition = fromPosition,
+						ToSize = toSize,
+						ToPosition = toPosition,
+					}
+				},
 				frameChangeType
 			));
+			OnHistoryChanged?.Invoke(GetPreviousHistories());
+		}
+		public void SubmitByElementFrameworkChanged(List<ElementFrameworkChange.FrameworkChangeItem> items, FrameChangeType frameChangeType) {
+			if(items.Count == 0) {
+				return;
+			}
+			InstantSealLastDelayedChange();
+			previous.Add(new ElementFrameworkChange(items, frameChangeType));
 			OnHistoryChanged?.Invoke(GetPreviousHistories());
 		}
 
@@ -273,6 +289,12 @@ namespace MindMap.Entities {
 				path.to.Identity,
 				JsonConvert.SerializeObject(path.Properties)
 			));
+			OnHistoryChanged?.Invoke(GetPreviousHistories());
+		}
+
+		public void SubmitByElementLockStateChange(Element element, bool from, bool to) {
+			InstantSealLastDelayedChange();
+			previous.Add(new ElementLockStateChange(element.Identity, from, to));
 			OnHistoryChanged?.Invoke(GetPreviousHistories());
 		}
 
@@ -324,14 +346,16 @@ namespace MindMap.Entities {
 					container.SetProperty(pc.OldPropertyJson);
 				}
 			} else if(last is ElementFrameworkChange fc) {
-				Element? element = _parent.FindElementByIdentity(fc.Identity);
-				if(element != null) {
-					element.SetPosition(fc.FromPosition);
-					element.SetSize(fc.FromSize);
-					element.UpdateConnectionsFrame();
-					ResizeFrame.Current?.UpdateResizeFrame();
-					if(element is IUpdate update) {
-						update.Update();
+				foreach(var item in fc.Targets) {
+					Element? element = _parent.FindElementByIdentity(item.Identity);
+					if(element != null) {
+						element.SetPosition(item.FromPosition);
+						element.SetSize(item.FromSize);
+						element.UpdateConnectionsFrame();
+						ResizeFrame.Current?.UpdateResizeFrame();
+						if(element is IUpdate update) {
+							update.Update();
+						}
 					}
 				}
 			} else if(last is ConnectionCreateOrDelete ccd) {
@@ -357,6 +381,11 @@ namespace MindMap.Entities {
 				Element? element = _parent.FindElementByIdentity(ecfcc.Identity);
 				if(element != null && element.ConnectionsFrame != null) {
 					element.ConnectionsFrame.SetControls(ecfcc.From, false);
+				}
+			} else if(last is ElementLockStateChange elsc) {
+				Element? element = _parent.FindElementByIdentity(elsc.Identity);
+				if(element != null && element.ConnectionsFrame != null) {
+					element.SetLocked(elsc.From, false);
 				}
 			} else {
 				throw new Exception($"Type({last.GetType()}) is not implemented");
@@ -399,14 +428,16 @@ namespace MindMap.Entities {
 					container.SetProperty(pc.NewPropertyJson);
 				}
 			} else if(first is ElementFrameworkChange fc) {
-				Element? element = _parent.FindElementByIdentity(fc.Identity);
-				if(element != null) {
-					element.SetPosition(fc.ToPosition);
-					element.SetSize(fc.ToSize);
-					element.UpdateConnectionsFrame();
-					ResizeFrame.Current?.UpdateResizeFrame();
-					if(element is IUpdate update) {
-						update.Update();
+				foreach(var item in fc.Targets) {
+					Element? element = _parent.FindElementByIdentity(item.Identity);
+					if(element != null) {
+						element.SetPosition(item.ToPosition);
+						element.SetSize(item.ToSize);
+						element.UpdateConnectionsFrame();
+						ResizeFrame.Current?.UpdateResizeFrame();
+						if(element is IUpdate update) {
+							update.Update();
+						}
 					}
 				}
 			} else if(first is ConnectionCreateOrDelete ccd) {
@@ -433,6 +464,11 @@ namespace MindMap.Entities {
 				if(element != null && element.ConnectionsFrame != null) {
 					element.ConnectionsFrame.SetControls(ecfcc.To, false);
 				}
+			} else if(first is ElementLockStateChange elsc) {
+				Element? element = _parent.FindElementByIdentity(elsc.Identity);
+				if(element != null && element.ConnectionsFrame != null) {
+					element.SetLocked(elsc.To, false);
+				}
 			} else {
 				throw new Exception($"Type({first.GetType()}) is not implemented");
 			}
@@ -444,7 +480,7 @@ namespace MindMap.Entities {
 		// --------------------------------------------------
 
 		public interface IChange {
-			Identity Identity { get; set; }
+			//Identity Identity { get; set; }
 			DateTime Date { get; set; }
 			IconElement GetIcon();
 			string GetPreviousDetail();
@@ -601,7 +637,6 @@ namespace MindMap.Entities {
 		public class ElementFrameworkChange: IChange {
 			public const int JSONCONVERTID = 5;
 			public DateTime Date { get; set; }
-			public Identity Identity { get; set; }
 			public IconElement GetIcon() => Type switch {
 				FrameChangeType.Move => new FontIcon("\uE7C2", 18) {
 					Margin = new Thickness(2, 2, 0, 2)
@@ -614,17 +649,10 @@ namespace MindMap.Entities {
 
 			public FrameChangeType Type { get; protected set; }
 
-			public Vector2 FromSize { get; protected set; }
-			public Vector2 FromPosition { get; protected set; }
-			public Vector2 ToSize { get; protected set; }
-			public Vector2 ToPosition { get; protected set; }
+			public List<FrameworkChangeItem> Targets;
 
-			public ElementFrameworkChange(Identity target, Vector2 fromSize, Vector2 fromPosition, Vector2 toSize, Vector2 toPosition, FrameChangeType type) {
-				Identity = target;
-				FromPosition = fromPosition;
-				FromSize = fromSize;
-				ToSize = toSize;
-				ToPosition = toPosition;
+			public ElementFrameworkChange(List<FrameworkChangeItem> items, FrameChangeType type) {
+				Targets = items;
 				Date = DateTime.Now;
 				Type = type;
 			}
@@ -635,7 +663,7 @@ namespace MindMap.Entities {
 					FrameChangeType.Resize => "Resized",
 					_ => "Frame Changed",
 				};
-				return $"{Identity.Name} - {hint}";
+				return $"{FrameworkChangeItem.GetNames(Targets)} - {hint}";
 			}
 
 			public string GetPreviousDetail() {
@@ -644,6 +672,19 @@ namespace MindMap.Entities {
 
 			public string GetAfterDetail() {
 				return "";
+			}
+
+			public struct FrameworkChangeItem {
+				public Identity Identity { get; set; }
+				public Vector2 FromSize { get; set; }
+				public Vector2 FromPosition { get; set; }
+				public Vector2 ToSize { get; set; }
+				public Vector2 ToPosition { get; set; }
+				public static string GetNames(IEnumerable<FrameworkChangeItem> items) {
+					string result = "(";
+					result += string.Join(", ", items.Select(i => i.Identity.Name));
+					return result + ")";
+				}
 			}
 		}
 
@@ -674,6 +715,35 @@ namespace MindMap.Entities {
 			public string GetAfterDetail() {
 				return "";
 			}
+		}
+
+		public class ElementLockStateChange: IChange {
+			public const int JSONCONVERTID = 7;
+			public Identity Identity { get; set; }
+			public DateTime Date { get; set; }
+			public bool From { get; set; }
+			public bool To { get; set; }
+
+			public ElementLockStateChange(Identity identity, bool fromState, bool toState) {
+				Identity = identity;
+				From = fromState;
+				To = toState;
+				Date = DateTime.Now;
+			}
+
+			public IconElement GetIcon() => new FontIcon("\uE72E", 18) {
+				Margin = new Thickness(2, 2, 0, 2)
+			};
+			public override string ToString() {
+				return $"{Identity.Name} Lock State Changed";
+			}
+			public string GetPreviousDetail() {
+				return "";
+			}
+			public string GetAfterDetail() {
+				return "";
+			}
+
 		}
 
 		public enum CreateOrDelete {

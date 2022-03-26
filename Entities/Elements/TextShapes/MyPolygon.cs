@@ -18,7 +18,7 @@ namespace MindMap.Entities.Elements.TextShapes {
 	public class MyPolygon: TextShape, IUpdate {
 		public override long TypeID => ID_Polygon;
 		public override string ElementTypeName => "Polygon";
-
+		public override (string icon, string fontFamily) Icon => ("\u2B22", "Segoe UI Symbol");
 		private class Property: TextShapeProperty {
 			public int pointCount = 6;
 

@@ -122,6 +122,9 @@
 							</Path.Data>
 						</Path>-->
 					</Canvas>
+					<Canvas x:Name="TestCanvas">
+
+					</Canvas>
 					<Canvas.RenderTransform>
 						<TransformGroup>
 							<TranslateTransform x:Name="MainCanvas_TranslateTransform" X="0" Y="0"/>
@@ -163,7 +166,18 @@
 					</TabItem.Header>
 					<Grid>
 						<ListView x:Name="MapElementsListView" SelectionChanged="MapElementsListView_SelectionChanged" d:ItemsSource="{d:SampleData ItemCount=7}">
-
+							<ListView.ItemTemplate>
+								<DataTemplate>
+									<Grid>
+										<Grid.ColumnDefinitions>
+											<ColumnDefinition Width="auto"/>
+											<ColumnDefinition Width="*"/>
+										</Grid.ColumnDefinitions>
+										<TextBlock FontSize="16" Width="17" Height="17" Margin="5" Text="{Binding Icon}" FontFamily="{Binding FontFamily}" VerticalAlignment="Center"/>
+										<TextBlock Grid.Column="1" Text="{Binding Title}" VerticalAlignment="Center"/>
+									</Grid>
+								</DataTemplate>
+							</ListView.ItemTemplate>
 						</ListView>
 					</Grid>
 				</TabItem>

@@ -19,6 +19,7 @@ using MindMap.Entities.Services;
 using MindMap.Entities.Tags;
 using MindMap.Entities.Interactions;
 using System.Windows.Input;
+using MindMap.Entities.Icons;
 
 namespace MindMap.Entities.Elements {
 	public abstract class Element: IPropertiesContainer, IIdentityContainer, IInteractive {
@@ -31,10 +32,12 @@ namespace MindMap.Entities.Elements {
 		public const double MIN_SIZE = 30;
 
 		public abstract string ElementTypeName { get; }
+		public abstract (string icon, string fontFamily) Icon { get; }
 
 		public Identity Identity { get; set; }
 
 		protected MindMapPage parent;
+		private bool isLocked = false;
 
 		public ConnectionsFrame? ConnectionsFrame { get; protected set; }
 		protected Canvas MainCanvas => parent.MainCanvas;
@@ -42,7 +45,28 @@ namespace MindMap.Entities.Elements {
 		public abstract FrameworkElement Target { get; }
 		public abstract IProperty Properties { get; }
 
-		//public bool Handled { get; set; } = false;
+		private readonly MenuItem menuItem_lock;
+
+		public bool IsLocked {
+			get => isLocked;
+		}
+
+		public void SetLocked(bool value, bool submitHistory = true) {
+			if(submitHistory) {
+				parent.editHistory.SubmitByElementLockStateChange(this, IsLocked, value);
+			}
+			isLocked = value;
+			if(value) {
+				menuItem_lock.Header = "Unlock";
+				menuItem_lock.Icon = new FontIcon("\uE785", 14).Generate();
+				Deselect();
+				parent.Deselect();
+				parent.ClearResizePanel();
+			} else {
+				menuItem_lock.Header = "Lock";
+				menuItem_lock.Icon = new FontIcon("\uE72E", 14).Generate();
+			}
+		}
 
 		public Element(MindMapPage parent, Identity? identity = null) {
 			this.parent = parent;
@@ -50,6 +74,14 @@ namespace MindMap.Entities.Elements {
 			Identity.OnNameChanged += (n, o) => parent.UpdateHistoryListView();
 			Target.Tag = new ElementFrameworkTag(this);
 			Debug();
+
+			menuItem_lock = new() {
+				Header = "Lock",
+				Icon = new FontIcon("\uE72E", 14).Generate(),
+			};
+			menuItem_lock.Click += (s, e) => {
+				SetLocked(!IsLocked);
+			};
 		}
 
 		private async void Debug() {
@@ -64,7 +96,7 @@ namespace MindMap.Entities.Elements {
 		}
 
 		private string InitializeDefaultName() {
-			return $"{ElementTypeName} ({new Random().Next()})";
+			return $"{ElementTypeName} ({new Random().Next(1, 100)})";
 		}
 
 		public Identity GetIdentity() => Identity;
@@ -124,7 +156,10 @@ namespace MindMap.Entities.Elements {
 			ConnectionsFrame?.UpdateConnections();
 		}
 
-		public void SetConnectionsFrameVisible(bool visible) => ConnectionsFrame?.SetVisible(visible);
+		public void SetConnectionsFrameVisible(bool visible) {
+			return;
+			//ConnectionsFrame?.SetVisible(visible);
+		}
 
 		public List<ConnectionControl> GetAllConnectionDots() {
 			return ConnectionsFrame == null ? new List<ConnectionControl>() : ConnectionsFrame.AllDots;
@@ -132,6 +167,7 @@ namespace MindMap.Entities.Elements {
 
 		public virtual void CreateFlyoutMenu() {
 			FlyoutMenu.CreateBase(Target, (s, e) => Delete());
+			Target.ContextMenu.Items.Add(menuItem_lock);
 		}
 
 		public static List<Panel> CreatePropertiesList(IPropertiesContainer container, EditHistory editHistory) {

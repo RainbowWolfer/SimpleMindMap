@@ -74,7 +74,7 @@ namespace MindMap.Entities.Locals {
 				editHistory.GetHistoryInfo(),
 				imagesAssets.GetAssets()
 			);
-			string json = JsonConvert.SerializeObject(info);
+			string json = JsonConvert.SerializeObject(info, Formatting.Indented);
 			//string converted = StringToBinary(json);
 			await File.WriteAllTextAsync(filePath, json);
 			return filePath;
@@ -195,7 +195,7 @@ namespace MindMap.Entities.Locals {
 			this.identity = element.Identity;
 			this.position = element.GetPosition();
 			this.size = element.GetSize();
-			this.propertyJson = JsonConvert.SerializeObject(element.Properties);
+			this.propertyJson = JsonConvert.SerializeObject(element.Properties, Formatting.Indented);
 			this.connectionControls = element.ConnectionsFrame?.GetControlsInfo() ?? new();
 		}
 	}

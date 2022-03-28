@@ -61,7 +61,7 @@ namespace MindMap.Entities {
 
 		public HistoryInfo GetHistoryInfo() {
 			var list = previous.Concat(future);
-			string json = JsonConvert.SerializeObject(ConvertHistoriesJsonPair(list));
+			string json = JsonConvert.SerializeObject(ConvertHistoriesJsonPair(list), Formatting.Indented);
 			int index = previous.Count;
 			Debug.WriteLine($"{previous.Count} - {future.Count}");
 			Debug.WriteLine($"{index}");
@@ -104,25 +104,25 @@ namespace MindMap.Entities {
 				string json;
 				if(change is ConnectionCreateOrDelete ccod) {
 					id = ConnectionCreateOrDelete.JSONCONVERTID;
-					json = JsonConvert.SerializeObject(ccod);
+					json = JsonConvert.SerializeObject(ccod, Formatting.Indented);
 				} else if(change is ElementCreatedOrDeleted ecod) {
 					id = ElementCreatedOrDeleted.JSONCONVERTID;
-					json = JsonConvert.SerializeObject(ecod);
+					json = JsonConvert.SerializeObject(ecod, Formatting.Indented);
 				} else if(change is PropertyDelayedChange pdc) {
 					id = PropertyDelayedChange.JSONCONVERTID;
-					json = JsonConvert.SerializeObject(pdc);
+					json = JsonConvert.SerializeObject(pdc, Formatting.Indented);
 				} else if(change is PropertyChange pc) {
 					id = PropertyChange.JSONCONVERTID;
-					json = JsonConvert.SerializeObject(pc);
+					json = JsonConvert.SerializeObject(pc, Formatting.Indented);
 				} else if(change is ElementFrameworkChange efc) {
 					id = ElementFrameworkChange.JSONCONVERTID;
-					json = JsonConvert.SerializeObject(efc);
+					json = JsonConvert.SerializeObject(efc, Formatting.Indented);
 				} else if(change is ElementConnectionFrameControlsChange ecfcc) {
 					id = ElementConnectionFrameControlsChange.JSONCONVERTID;
-					json = JsonConvert.SerializeObject(ecfcc);
+					json = JsonConvert.SerializeObject(ecfcc, Formatting.Indented);
 				} else if(change is ElementLockStateChange elsc) {
 					id = ElementLockStateChange.JSONCONVERTID;
-					json = JsonConvert.SerializeObject(elsc);
+					json = JsonConvert.SerializeObject(elsc, Formatting.Indented);
 				} else {
 					throw new Exception();
 				}
@@ -137,7 +137,7 @@ namespace MindMap.Entities {
 				CreateOrDelete.Create,
 				target.TypeID,
 				target.Identity,
-				JsonConvert.SerializeObject(target.Properties),
+				JsonConvert.SerializeObject(target.Properties, Formatting.Indented),
 				target.GetPosition(),
 				target.GetSize(),
 				target.ConnectionsFrame?.GetControlsInfo()
@@ -158,14 +158,14 @@ namespace MindMap.Entities {
 					item.from.Identity,
 					item.to.Parent.Identity,
 					item.to.Identity,
-					JsonConvert.SerializeObject(item.Properties)
+					JsonConvert.SerializeObject(item.Properties, Formatting.Indented)
 				));
 			}
 			previous.Add(new ElementCreatedOrDeleted(
 				CreateOrDelete.Delete,
 				target.TypeID,
 				target.Identity,
-				JsonConvert.SerializeObject(target.Properties),
+				JsonConvert.SerializeObject(target.Properties, Formatting.Indented),
 				target.GetPosition(),
 				target.GetSize(),
 				connections ?? target.ConnectionsFrame?.GetControlsInfo(),
@@ -179,8 +179,8 @@ namespace MindMap.Entities {
 			previous.Add(new PropertyChange(
 				targetType,
 				target.GetIdentity(),
-				JsonConvert.SerializeObject(oldProperty),
-				JsonConvert.SerializeObject(newProperty),
+				JsonConvert.SerializeObject(oldProperty, Formatting.Indented),
+				JsonConvert.SerializeObject(newProperty, Formatting.Indented),
 				propertyTargetHint));
 			OnHistoryChanged?.Invoke(GetPreviousHistories());
 		}
@@ -188,8 +188,8 @@ namespace MindMap.Entities {
 		public async void SubmitByElementPropertyDelayedChanged(TargetType targetType, IPropertiesContainer target, IProperty oldProperty, IProperty newProperty, string? propertyTargetHint = null) {
 			Debug.WriteLine("!");
 			const int DELAY = 500;
-			string oldJson = JsonConvert.SerializeObject(oldProperty);
-			string newJson = JsonConvert.SerializeObject(newProperty);
+			string oldJson = JsonConvert.SerializeObject(oldProperty, Formatting.Indented);
+			string newJson = JsonConvert.SerializeObject(newProperty, Formatting.Indented);
 
 			PropertyDelayedChange? change = null;
 			if(previous.LastOrDefault() is PropertyDelayedChange last && !last.IsSealed) {
@@ -270,7 +270,7 @@ namespace MindMap.Entities {
 				path.from.Identity,
 				path.to.Parent.Identity,
 				path.to.Identity,
-				JsonConvert.SerializeObject(path.Properties)
+				JsonConvert.SerializeObject(path.Properties, Formatting.Indented)
 			));
 			OnHistoryChanged?.Invoke(GetPreviousHistories());
 		}
@@ -287,7 +287,7 @@ namespace MindMap.Entities {
 				path.from.Identity,
 				path.to.Parent.Identity,
 				path.to.Identity,
-				JsonConvert.SerializeObject(path.Properties)
+				JsonConvert.SerializeObject(path.Properties, Formatting.Indented)
 			));
 			OnHistoryChanged?.Invoke(GetPreviousHistories());
 		}

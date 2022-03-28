@@ -11,10 +11,7 @@ using MindMap.Pages;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -1290,13 +1287,11 @@ namespace MindMap.Entities.Connections {
 
 			var clone = paths.ToList();
 			clone.Insert(0, new LineSegment(from.Position.ToPoint(), true));
-			Debug.WriteLine(clone.Count);
 			if(clone.Count % 2 == 0) {
 				LineSegment first = clone[clone.Count / 2 - 1];
 				LineSegment second = clone[clone.Count / 2];
 				PathCenterPoint = (new Vector2(first.Point) + new Vector2(second.Point)) / 2;
 			} else {
-				//use distance
 				List<(Vector2 dot1, Vector2 dot2, double distance)> list = new();
 				for(int i = 0; i < clone.Count - 1; i++) {
 					Vector2 dot1 = clone[i].Point;

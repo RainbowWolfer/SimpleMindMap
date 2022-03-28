@@ -7,26 +7,17 @@ using MindMap.Entities.Frames;
 using MindMap.Entities.Identifications;
 using MindMap.Entities.Interactions;
 using MindMap.Entities.Locals;
-using MindMap.Entities.Properties;
 using MindMap.Entities.Tags;
 using MindMap.Pages.Interfaces;
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
 using System.Windows.Shapes;
-using Xceed.Wpf.Toolkit.PropertyGrid.Attributes;
 
 namespace MindMap.Pages {
 	public partial class MindMapPage: Page, IPage {//Editor Page
@@ -113,16 +104,6 @@ namespace MindMap.Pages {
 				() => Redo(),
 				() => { },
 			false, Key.LeftCtrl, Key.Y);
-
-			Loop();
-		}
-
-		private async void Loop() {
-			while(true) {
-				//Debug.WriteLine(MainCanvas.IsMouseOver + " " + BackgroundRectangle.IsMouseOver);
-				//Debug.WriteLine(ResizeFrame.Current?.elements.Count.ToString() ?? "null");
-				await Task.Delay(50);
-			}
 		}
 
 		public void OnClose() {
@@ -273,12 +254,6 @@ namespace MindMap.Pages {
 		public void Redo() => editHistory.Redo();
 
 		public void Undo() => editHistory.Undo();
-
-		private void DebugButton_Click(object sender, RoutedEventArgs e) {
-			connectionsManager.DebugConnections();
-		}
-
-		//private static ResizeFrame? Selection => ResizeFrame.Current;
 
 		public bool HasChanged {
 			get => hasChanged;
@@ -666,9 +641,6 @@ namespace MindMap.Pages {
 			} else {
 				defaultPosition = AppSettings.Current.ElementDefaultPosition;
 			}
-			//if(element.GetPosition() != defaultPosition) {
-			//	return;
-			//}
 			const int GAP = 20;
 			int count = 0;
 			foreach(Element item in elements.Select(e => e.Value).Where(e => e != element)) {
@@ -725,8 +697,6 @@ namespace MindMap.Pages {
 					ElementReframeworkInfo? found = current.Find(c => c.Target == clicked);
 					if(found != null) {
 						found.IsPrimary = true;
-					} else {
-						Debug.WriteLine("move new stuff");
 					}
 				}
 			}

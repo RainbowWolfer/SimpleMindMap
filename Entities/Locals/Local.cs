@@ -3,22 +3,13 @@ using MindMap.Entities.Connections;
 using MindMap.Entities.Elements;
 using MindMap.Entities.Frames;
 using MindMap.Entities.Identifications;
-using MindMap.Entities.Properties;
 using MindMap.Entities.Services;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Runtime.Serialization.Formatters.Binary;
-using System.Text;
 using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Media;
-using Xceed.Wpf.Toolkit;
-using static MindMap.Entities.EditHistory;
 
 namespace MindMap.Entities.Locals {
 	public static class Local {
@@ -48,16 +39,6 @@ namespace MindMap.Entities.Locals {
 			AppSettings.Load(text);
 		}
 
-		public static async void SaveTmpFile(string fileName, string content) {
-			try {
-				await File.WriteAllTextAsync($"D:\\{fileName}", content);
-			} catch(DirectoryNotFoundException e) {
-				Debug.WriteLine("DirectoryNotFoundException: " + e.Message);
-			} catch(IOException e) {
-				Debug.WriteLine("IOException: " + e.Message);
-			}
-		}
-
 		public static async Task<string?> Save(List<Element> elements, ConnectionsManager connectionsManager, EditHistory editHistory, ImagesAssets imagesAssets, string? filePath = null) {
 			if(string.IsNullOrWhiteSpace(filePath)) {
 				SaveResult result = WindowsService.CreateSaveFileDialog(FILTER);
@@ -80,29 +61,12 @@ namespace MindMap.Entities.Locals {
 			return filePath;
 		}
 
-		//public static string StringToBinary(string data) {
-		//	string result = "";
-		//	foreach(char c in data.ToCharArray()) {
-		//		result += Convert.ToString(c, 2).PadLeft(8, '0');
-		//	}
-		//	return result;
-		//}
-
-		//public static string BinaryToString(string data) {
-		//	List<byte> byteList = new();
-		//	for(int i = 0; i < data.Length; i += 8) {
-		//		byteList.Add(Convert.ToByte(data.Substring(i, 8), 2));
-		//	}
-		//	return Encoding.ASCII.GetString(byteList.ToArray());
-		//}
-
 		public static async Task<LocalInfo?> Load() {
 			OpenFileDialog openFileDialog = new() {
 				Filter = FILTER,
 				InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
 			};
 			if(openFileDialog.ShowDialog() == true) {
-				Debug.WriteLine(openFileDialog.FileName);
 				string json = await File.ReadAllTextAsync(openFileDialog.FileName);
 				//string converted = BinaryToString(json);
 				LocalInfo info = new(

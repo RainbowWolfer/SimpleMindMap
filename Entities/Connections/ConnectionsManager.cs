@@ -6,11 +6,7 @@ using MindMap.Pages;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Controls;
 
 namespace MindMap.Entities.Connections {
 	public class ConnectionsManager {
@@ -158,14 +154,6 @@ namespace MindMap.Entities.Connections {
 				}
 			}
 			return result;
-		}
-
-		public void DebugConnections() {
-			Debug.WriteLine("START");
-			foreach(Connection c in Connections) {
-				Debug.WriteLine($"{c.Path} | {c.From.Identity} | {c.To.Identity}");
-			}
-			Debug.WriteLine("END");
 		}
 
 		public ConnectionInfo[] ConvertInfo() {

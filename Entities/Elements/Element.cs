@@ -1,27 +1,22 @@
-﻿using MindMap.Entities.Elements.Interfaces;
+﻿using MindMap.Entities.Connections;
+using MindMap.Entities.Elements.Interfaces;
 using MindMap.Entities.Frames;
+using MindMap.Entities.Icons;
+using MindMap.Entities.Identifications;
+using MindMap.Entities.Interactions;
+using MindMap.Entities.Locals;
+using MindMap.Entities.Properties;
+using MindMap.Entities.Services;
+using MindMap.Entities.Tags;
 using MindMap.Pages;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Media;
-using System.Windows.Shapes;
-using Newtonsoft.Json;
-using MindMap.Entities.Properties;
-using MindMap.Entities.Connections;
-using MindMap.Entities.Identifications;
-using MindMap.Entities.Services;
-using MindMap.Entities.Tags;
-using MindMap.Entities.Interactions;
 using System.Windows.Input;
-using MindMap.Entities.Icons;
-using System.Windows.Media.Effects;
-using MindMap.Entities.Locals;
+using System.Windows.Media;
 
 namespace MindMap.Entities.Elements {
 	public abstract class Element: IPropertiesContainer, IIdentityContainer, IInteractive {

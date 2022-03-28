@@ -1,13 +1,4 @@
-﻿using MindMap.Entities.Properties;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Controls;
-using System.Windows.Media;
-using Xceed.Wpf.Toolkit;
+﻿using System;
 
 namespace MindMap.Entities.Properties {
 	public interface IProperty: ICloneable {

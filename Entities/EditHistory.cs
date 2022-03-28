@@ -10,7 +10,6 @@ using MindMap.Pages;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -30,9 +29,6 @@ namespace MindMap.Entities {
 			_parent = parent;
 			OnHistoryChanged += list => {
 				future.Clear();
-				//string content = JsonConvert.SerializeObject(ConvertHistoriesJsonPair(list));
-				//Local.SaveTmpFile("tmp.json", content);
-
 				IChange? last = previous.LastOrDefault();
 				if(last != null) {
 					_parent.imagesAssets.RemoveByDateTime(last.Date);
@@ -52,9 +48,6 @@ namespace MindMap.Entities {
 			List<IChange> converted = ConvertBack(info.HistoryJson);
 			var previous = converted.Take(info.Index);
 			var future = converted.TakeLast(converted.Count - info.Index);
-			Debug.WriteLine(previous.Count());
-			Debug.WriteLine(future.Count());
-
 			this.previous = previous.ToList();
 			this.future = future.ToList();
 		}
@@ -63,8 +56,6 @@ namespace MindMap.Entities {
 			var list = previous.Concat(future);
 			string json = JsonConvert.SerializeObject(ConvertHistoriesJsonPair(list), Formatting.Indented);
 			int index = previous.Count;
-			Debug.WriteLine($"{previous.Count} - {future.Count}");
-			Debug.WriteLine($"{index}");
 			return new HistoryInfo(json, index);
 		}
 
@@ -186,7 +177,6 @@ namespace MindMap.Entities {
 		}
 
 		public async void SubmitByElementPropertyDelayedChanged(TargetType targetType, IPropertiesContainer target, IProperty oldProperty, IProperty newProperty, string? propertyTargetHint = null) {
-			Debug.WriteLine("!");
 			const int DELAY = 500;
 			string oldJson = JsonConvert.SerializeObject(oldProperty, Formatting.Indented);
 			string newJson = JsonConvert.SerializeObject(newProperty, Formatting.Indented);

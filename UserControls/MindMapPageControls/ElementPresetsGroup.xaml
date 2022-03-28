@@ -1,0 +1,34 @@
+﻿<UserControl x:Class="MindMap.UserControls.MindMapPageControls.ElementPresetsGroup"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:MindMap.UserControls.MindMapPageControls"
+             mc:Ignorable="d" 
+			 d:Background="White"
+             d:DesignHeight="200" d:DesignWidth="180">
+	<Grid>
+		<Expander IsExpanded="True">
+			<Expander.Header>
+				<Grid Width="150">
+					<Grid Width="110" HorizontalAlignment="Left">
+						<Rectangle Fill="Transparent"/>
+						<TextBlock x:Name="GroupTextBlock" Text="Group Name"/>
+						<TextBox x:Name="GroupTextBox" Text="Group Name" MaxLength="15" Visibility="Collapsed"/>
+					</Grid>
+					<Button x:Name="DeleteButton" HorizontalAlignment="Right" BorderThickness="0" Padding="2" Background="#11111111" Click="DeleteButton_Click">
+						<Button.Resources>
+							<Style TargetType="{x:Type Border}">
+								<Setter Property="CornerRadius" Value="4"/>
+							</Style>
+						</Button.Resources>
+						<TextBlock Text="&#xE107;" FontFamily="Segoe MDL2 Assets"/>
+					</Button>
+				</Grid>
+			</Expander.Header>
+			<WrapPanel Name="PresetsPanel" HorizontalAlignment="Center">
+				
+			</WrapPanel>
+		</Expander>
+	</Grid>
+</UserControl>

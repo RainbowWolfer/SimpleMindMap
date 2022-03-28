@@ -7,7 +7,7 @@ using System.Windows.Controls;
 
 namespace MindMap.Entities.Elements.TextShapes {
 	public class MyRectangle: TextShape {
-		public override long TypeID => ID_Rectangle;
+		public override long TypeID => ElementGenerator.ID_Rectangle;
 		public override string ElementTypeName => "Rectangle";
 		public override (string icon, string fontFamily) Icon => ("\uE002", "Segoe Fluent Icons");
 		private class Property: TextShapeProperty {

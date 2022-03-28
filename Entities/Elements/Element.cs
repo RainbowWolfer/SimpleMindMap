@@ -21,10 +21,6 @@ using System.Windows.Media;
 namespace MindMap.Entities.Elements {
 	public abstract class Element: IPropertiesContainer, IIdentityContainer, IInteractive {
 		public abstract long TypeID { get; }
-		public const long ID_Rectangle = 1;
-		public const long ID_Ellipse = 2;
-		public const long ID_Polygon = 3;
-		public const long ID_Image = 4;
 
 		public const double MIN_SIZE = 30;
 

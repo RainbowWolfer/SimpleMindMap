@@ -1,4 +1,6 @@
-﻿using Newtonsoft.Json;
+﻿using MindMap.Entities.Presets;
+using Newtonsoft.Json;
+using System.Collections.Generic;
 
 namespace MindMap.Entities.Locals {
 	public class AppSettings {
@@ -13,6 +15,8 @@ namespace MindMap.Entities.Locals {
 		public double BackgroundShapeGap { get; set; } = -1;
 		public bool EnableCanvasRule { get; set; } = true;
 		public double CanvasRuleGap { get; set; } = 100;
+
+		public List<ElementPresetsGroup> ElementPresetsGroups { get; set; } = new();
 
 		public string ToJson() {
 			return JsonConvert.SerializeObject(this, Formatting.Indented);
@@ -32,6 +36,7 @@ namespace MindMap.Entities.Locals {
 				BackgroundShapeGap = 20,
 				EnableCanvasRule = true,
 				CanvasRuleGap = 100,
+				ElementPresetsGroups = ElementPresetsGroup.GetDefaultList(),
 			};
 		}
 

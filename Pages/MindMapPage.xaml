@@ -67,7 +67,7 @@
 									<Button Content="Annotation Image" Click="AddImageButton_Click" Style="{StaticResource MenuButton}"/>
 								</StackPanel>
 							</Expander>
-							<Expander Header="Clipboard" IsExpanded="True">
+							<Expander Header="Clipboard" IsExpanded="True" Visibility="Collapsed">
 
 							</Expander>
 						</StackPanel>

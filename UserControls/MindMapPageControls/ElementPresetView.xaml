@@ -1,0 +1,65 @@
+﻿<UserControl x:Class="MindMap.UserControls.MindMapPageControls.ElementPresetView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:MindMap.UserControls.MindMapPageControls"
+             mc:Ignorable="d" 
+			 d:Background="White"
+             d:DesignHeight="100" d:DesignWidth="86">
+	<Grid Height="100" Width="86">
+		<Grid.ContextMenu>
+			<ContextMenu>
+				<MenuItem x:Name="RenameMenuItem" Header="Rename" Click="RenameMenuItem_Click">
+					<MenuItem.Icon>
+						<TextBlock Text="&#xE13E;" FontFamily="Segoe MDL2 Assets"/>
+					</MenuItem.Icon>
+				</MenuItem>
+				<MenuItem Header="Arrange">
+					<MenuItem.Icon>
+						<TextBlock Text="&#xE8A9;" FontFamily="Segoe Fluent Icons"/>
+					</MenuItem.Icon>
+					<MenuItem x:Name="TopMenuItem" Header="Top" Click="TopMenuItem_Click">
+						<MenuItem.Icon>
+							<TextBlock Text="&#xE5B0;" FontFamily="Segoe Fluent Icons"/>
+						</MenuItem.Icon>
+					</MenuItem>
+					<MenuItem x:Name="PreviousMenuItem" Header="Previous" Click="PreviousMenuItem_Click">
+						<MenuItem.Icon>
+							<TextBlock Text="&#xE652;" FontFamily="Segoe Fluent Icons"/>
+						</MenuItem.Icon>
+					</MenuItem>
+					<MenuItem x:Name="NextMenuItem" Header="Next" Click="NextMenuItem_Click">
+						<MenuItem.Icon>
+							<TextBlock Text="&#xE651;" FontFamily="Segoe Fluent Icons"/>
+						</MenuItem.Icon>
+					</MenuItem>
+				</MenuItem>
+				<MenuItem x:Name="DeleteMenuItem" Header="Delete" Click="DeleteMenuItem_Click">
+					<MenuItem.Icon>
+						<TextBlock Text="&#xE107;" FontFamily="Segoe MDL2 Assets"/>
+					</MenuItem.Icon>
+				</MenuItem>
+			</ContextMenu>
+		</Grid.ContextMenu>
+		<Grid.RowDefinitions>
+			<RowDefinition Height="*"/>
+			<RowDefinition Height="auto"/>
+		</Grid.RowDefinitions>
+		<Button x:Name="MainButton" Margin="3" Height="80" Width="80" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" Click="MainButton_Click">
+			<Grid x:Name="PresetElementDisplayGrid">
+				<Grid Height="60" Width="60">
+					<Grid.Effect>
+						<DropShadowEffect/>
+					</Grid.Effect>
+					<Border Background="Aquamarine" CornerRadius="5" BorderThickness="2" BorderBrush="LightCoral"/>
+				</Grid>
+			</Grid>
+		</Button>
+		<Grid Grid.Row="1" MouseEnter="Grid_MouseEnter" MouseLeave="Grid_MouseLeave" LostMouseCapture="Grid_LostMouseCapture" MouseDown="Grid_MouseDown">
+			<Rectangle Fill="Transparent"/>
+			<TextBlock x:Name="NameBlock" Text="Hello World" TextAlignment="Center" Height="13" FontSize="10" VerticalAlignment="Center"/>
+			<TextBox x:Name="NameBox" Text="Hello World" MaxLength="20" TextAlignment="Center" VerticalAlignment="Center" FontSize="10" PreviewKeyDown="NameBox_PreviewKeyDown" LostFocus="NameBox_LostFocus"/>
+		</Grid>
+	</Grid>
+</UserControl>

@@ -511,13 +511,7 @@ namespace MindMap.Pages {
 		}
 
 		public Element AddElement(long type_id, Identity? identity = null, Vector2 position = default, Vector2 size = default, ControlsInfo? initialControls = null, bool submitEditHistory = true) {
-			Element element = type_id switch {
-				Element.ID_Rectangle => new MyRectangle(this, identity),
-				Element.ID_Ellipse => new MyEllipse(this, identity),
-				Element.ID_Polygon => new MyPolygon(this, identity),
-				Element.ID_Image => new MyImage(this, identity),
-				_ => throw new Exception($"ID({type_id}) Not Found"),
-			};
+			Element element = ElementGenerator.GetElement(this, type_id, identity);
 			element.SetFramework();
 			element.SetPosition(position);
 			element.SetSize(size == default ? element.DefaultSize : size);
@@ -617,19 +611,19 @@ namespace MindMap.Pages {
 		}
 
 		private void AddRectableButton_Click(object sender, RoutedEventArgs e) {
-			AddElementByClick(Element.ID_Rectangle);
+			AddElementByClick(ElementGenerator.ID_Rectangle);
 		}
 
 		private void AddEllipseButton_Click(object sender, RoutedEventArgs e) {
-			AddElementByClick(Element.ID_Ellipse);
+			AddElementByClick(ElementGenerator.ID_Ellipse);
 		}
 
 		private void AddPolygonButton_Click(object sender, RoutedEventArgs e) {
-			AddElementByClick(Element.ID_Polygon);
+			AddElementByClick(ElementGenerator.ID_Polygon);
 		}
 
 		private void AddImageButton_Click(object sender, RoutedEventArgs e) {
-			AddElementByClick(Element.ID_Image);
+			AddElementByClick(ElementGenerator.ID_Image);
 		}
 
 		private void Reposition(Element element) {

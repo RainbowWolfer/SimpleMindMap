@@ -8,7 +8,7 @@ using System.Windows.Shapes;
 
 namespace MindMap.Entities.Elements.TextShapes {
 	public class MyEllipse: TextShape {
-		public override long TypeID => ID_Ellipse;
+		public override long TypeID => ElementGenerator.ID_Ellipse;
 		public override string ElementTypeName => "Ellipse";
 		public override (string icon, string fontFamily) Icon => ("\uE91F", "Segoe Fluent Icons");
 		private class Property: TextShapeProperty {

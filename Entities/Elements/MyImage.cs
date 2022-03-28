@@ -17,7 +17,7 @@ using System.Windows.Shapes;
 
 namespace MindMap.Entities.Elements {
 	public class MyImage: TextRelated, IAnnotation, IBorderBasedStyle {
-		public override long TypeID => ID_Image;
+		public override long TypeID => ElementGenerator.ID_Image;
 
 		public override string ElementTypeName => "Image";
 		public override (string icon, string fontFamily) Icon => ("\uE91B", "Segoe Fluent Icons");

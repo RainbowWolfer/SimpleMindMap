@@ -12,7 +12,7 @@
 			<RowDefinition Height="auto"/>
 			<RowDefinition Height="*"/>
 		</Grid.RowDefinitions>
-		<Menu>
+		<Menu x:Name="MainMenu" IsEnabled="False">
 			<MenuItem Header="Files">
 				<MenuItem x:Name="NewFileMenuItem" Header="New Item" Click="NewFileMenuItem_Click"/>
 				<MenuItem x:Name="OpenFileMenuItem" Header="Open File" Click="OpenFileMenuItem_Click"/>

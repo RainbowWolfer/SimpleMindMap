@@ -20,6 +20,8 @@ using MindMap.Entities.Tags;
 using MindMap.Entities.Interactions;
 using System.Windows.Input;
 using MindMap.Entities.Icons;
+using System.Windows.Media.Effects;
+using MindMap.Entities.Locals;
 
 namespace MindMap.Entities.Elements {
 	public abstract class Element: IPropertiesContainer, IIdentityContainer, IInteractive {
@@ -43,6 +45,7 @@ namespace MindMap.Entities.Elements {
 		protected Canvas MainCanvas => parent.MainCanvas;
 
 		public abstract FrameworkElement Target { get; }
+
 		public abstract IProperty Properties { get; }
 
 		private readonly MenuItem menuItem_lock;
@@ -124,7 +127,15 @@ namespace MindMap.Entities.Elements {
 			};
 		}
 
-		public virtual Vector2 DefaultSize => new(150, 150);
+		public virtual Vector2 DefaultSize {
+			get {
+				if(AppSettings.Current == null) {
+					return new Vector2(150, 150);
+				} else {
+					return new Vector2(AppSettings.Current.ElementDefaultHeight);
+				}
+			}
+		}
 
 		public abstract void SetProperty(IProperty property);
 		public abstract void SetProperty(string propertyJson);
@@ -179,14 +190,18 @@ namespace MindMap.Entities.Elements {
 						border.Background = new SolidColorBrush(args.NewValue);
 					}, (oldP, newP) => {
 						editHistory.SubmitByElementPropertyDelayedChanged(TargetType.Element, container, oldP, newP, "Background Color");
-					})
+					}), () => {
+						editHistory.InstantSealLastDelayedChange();
+					}
 				);
 				var pro2 = PropertiesPanel.ColorInput("Border Color", border.BorderColor,
 					args => IPropertiesContainer.PropertyChangedHandler(container, () => {
 						border.BorderColor = new SolidColorBrush(args.NewValue);
 					}, (oldP, newP) => {
 						editHistory.SubmitByElementPropertyDelayedChanged(TargetType.Element, container, oldP, newP, "Border Color");
-					})
+					}), () => {
+						editHistory.InstantSealLastDelayedChange();
+					}
 				);
 				var pro3 = PropertiesPanel.SliderInput("Border Thickness", border.BorderThickness.Left, 0, 5,
 					args => IPropertiesContainer.PropertyChangedHandler(container, () => {
@@ -232,6 +247,92 @@ namespace MindMap.Entities.Elements {
 						}
 					),
 				});
+			}
+			if(container is IGridShadow shadow) {
+				StackPanel title = PropertiesPanel.SectionTitle("Grid Shadow");
+				var pro1 = PropertiesPanel.DuoColumnIconsSelector("Enable Grid Shadow", shadow.EnableShadow, args => IPropertiesContainer.PropertyChangedHandler(container, () => {
+					shadow.EnableShadow = args.NewValue;
+				}, (oldP, newP) => {
+					editHistory.SubmitByElementPropertyChanged(TargetType.Element, container, oldP, newP, "Enable Shadow");
+				}));
+				var pro2 = PropertiesPanel.SliderInput("Blur Radius", shadow.ShadowBlurRadius, 0, 40, args => IPropertiesContainer.PropertyChangedHandler(container, () => {
+					shadow.ShadowBlurRadius = args.NewValue;
+				}, (oldP, newP) => {
+					editHistory.SubmitByElementPropertyDelayedChanged(TargetType.Element, container, oldP, newP, "Blur Radius");
+				}), 1, 0);
+
+				var pro3 = PropertiesPanel.SliderInput("Shadow Depth", shadow.ShadowDepth, 0, 40, args => IPropertiesContainer.PropertyChangedHandler(container, () => {
+					shadow.ShadowDepth = args.NewValue;
+				}, (oldP, newP) => {
+					editHistory.SubmitByElementPropertyDelayedChanged(TargetType.Element, container, oldP, newP, "Shadow Depth");
+				}), 1, 0);
+
+				var pro4 = PropertiesPanel.SliderInput("Shadow Direction", shadow.ShadowDirection, 0, 360, args => IPropertiesContainer.PropertyChangedHandler(container, () => {
+					shadow.ShadowDirection = args.NewValue;
+				}, (oldP, newP) => {
+					editHistory.SubmitByElementPropertyDelayedChanged(TargetType.Element, container, oldP, newP, "Shadow Direction");
+				}), 1, 0);
+
+				var pro5 = PropertiesPanel.ColorInput("Shadow Color", shadow.ShadowColor,
+					args => IPropertiesContainer.PropertyChangedHandler(container, () => {
+						shadow.ShadowColor = args.NewValue;
+					}, (oldP, newP) => {
+						editHistory.SubmitByElementPropertyDelayedChanged(TargetType.Element, container, oldP, newP, "Shadow Color");
+					}), () => {
+						editHistory.InstantSealLastDelayedChange();
+					}
+				);
+
+				var pro6 = PropertiesPanel.SliderInput("Shadow Opacity", shadow.ShadowOpacity, 0, 1, args => IPropertiesContainer.PropertyChangedHandler(container, () => {
+					shadow.ShadowOpacity = args.NewValue;
+				}, (oldP, newP) => {
+					editHistory.SubmitByElementPropertyDelayedChanged(TargetType.Element, container, oldP, newP, "Shadow Opacity");
+				}), 0.05, 2);
+
+				panels.AddRange(new Panel[] { title, pro1, pro2, pro3, pro4, pro5, pro6 });
+			}
+			if(container is ITextShadow textShadow) {
+				StackPanel title = PropertiesPanel.SectionTitle("Text Shadow");
+				var pro1 = PropertiesPanel.DuoColumnIconsSelector("Enable Text Shadow", textShadow.EnableTextShadow, args => IPropertiesContainer.PropertyChangedHandler(container, () => {
+					textShadow.EnableTextShadow = args.NewValue;
+				}, (oldP, newP) => {
+					editHistory.SubmitByElementPropertyChanged(TargetType.Element, container, oldP, newP, "Enable Text Shadow");
+				}));
+				var pro2 = PropertiesPanel.SliderInput("Text Blur Radius", textShadow.TextShadowBlurRadius, 0, 40, args => IPropertiesContainer.PropertyChangedHandler(container, () => {
+					textShadow.TextShadowBlurRadius = args.NewValue;
+				}, (oldP, newP) => {
+					editHistory.SubmitByElementPropertyDelayedChanged(TargetType.Element, container, oldP, newP, "Text Blur Radius");
+				}), 1, 0);
+
+				var pro3 = PropertiesPanel.SliderInput("Text Shadow Depth", textShadow.TextShadowDepth, 0, 40, args => IPropertiesContainer.PropertyChangedHandler(container, () => {
+					textShadow.TextShadowDepth = args.NewValue;
+				}, (oldP, newP) => {
+					editHistory.SubmitByElementPropertyDelayedChanged(TargetType.Element, container, oldP, newP, "Text Shadow Depth");
+				}), 1, 0);
+
+				var pro4 = PropertiesPanel.SliderInput("Text Shadow Direction", textShadow.TextShadowDirection, 0, 360, args => IPropertiesContainer.PropertyChangedHandler(container, () => {
+					textShadow.TextShadowDirection = args.NewValue;
+				}, (oldP, newP) => {
+					editHistory.SubmitByElementPropertyDelayedChanged(TargetType.Element, container, oldP, newP, "Text Shadow Direction");
+				}), 1, 0);
+
+				var pro5 = PropertiesPanel.ColorInput("Text Shadow Color", textShadow.TextShadowColor,
+					args => IPropertiesContainer.PropertyChangedHandler(container, () => {
+						textShadow.TextShadowColor = args.NewValue;
+					}, (oldP, newP) => {
+						editHistory.SubmitByElementPropertyDelayedChanged(TargetType.Element, container, oldP, newP, "Text Shadow Color");
+					}), () => {
+						editHistory.InstantSealLastDelayedChange();
+					}
+				);
+
+				var pro6 = PropertiesPanel.SliderInput("Text Shadow Opacity", textShadow.TextShadowOpacity, 0, 1, args => IPropertiesContainer.PropertyChangedHandler(container, () => {
+					textShadow.TextShadowOpacity = args.NewValue;
+				}, (oldP, newP) => {
+					editHistory.SubmitByElementPropertyDelayedChanged(TargetType.Element, container, oldP, newP, "Text Shadow Opacity");
+				}), 0.05, 2);
+
+				panels.AddRange(new Panel[] { title, pro1, pro2, pro3, pro4, pro5, pro6 });
 			}
 			return panels;
 		}

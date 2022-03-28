@@ -19,10 +19,11 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Media.Effects;
 using System.Windows.Shapes;
 
 namespace MindMap.Entities.Connections {
-	public class ConnectionPath: IPropertiesContainer, IIdentityContainer, ITextContainer, IInteractive {
+	public class ConnectionPath: IPropertiesContainer, IIdentityContainer, ITextContainer, IInteractive, ITextShadow {
 		public Identity Identity { get; set; }
 
 		public ConnectionControl from;
@@ -46,6 +47,14 @@ namespace MindMap.Entities.Connections {
 			public FontWeight fontWeight = FontWeights.Normal;
 			public double fontSize = 14;
 			public Color fontColor = Colors.Black;
+
+			public bool enableTextShadow = true;
+			public DropShadowEffect textShadowEffect = new();
+			public double textShadowBlurRadius = 2;
+			public double textShadowDepth = 2;
+			public double textShadowDirection = 315;
+			public Color textShadowColor = Colors.Black;
+			public double textShadowOpacity = 0.5;
 
 			public object Clone() {
 				return MemberwiseClone();
@@ -175,6 +184,56 @@ namespace MindMap.Entities.Connections {
 			get => property.fontColor;
 			set {
 				property.fontColor = value;
+				UpdateStyle();
+			}
+		}
+
+		public DropShadowEffect TextShadowEffect {
+			get => property.textShadowEffect;
+			set {
+				property.textShadowEffect = value;
+				UpdateStyle();
+			}
+		}
+		public bool EnableTextShadow {
+			get => property.enableTextShadow;
+			set {
+				property.enableTextShadow = value;
+				UpdateStyle();
+			}
+		}
+		public double TextShadowBlurRadius {
+			get => property.textShadowBlurRadius;
+			set {
+				property.textShadowBlurRadius = value;
+				UpdateStyle();
+			}
+		}
+		public double TextShadowDepth {
+			get => property.textShadowDepth;
+			set {
+				property.textShadowDepth = value;
+				UpdateStyle();
+			}
+		}
+		public double TextShadowDirection {
+			get => property.textShadowDirection;
+			set {
+				property.textShadowDirection = value;
+				UpdateStyle();
+			}
+		}
+		public Color TextShadowColor {
+			get => property.textShadowColor;
+			set {
+				property.textShadowColor = value;
+				UpdateStyle();
+			}
+		}
+		public double TextShadowOpacity {
+			get => property.textShadowOpacity;
+			set {
+				property.textShadowOpacity = value;
 				UpdateStyle();
 			}
 		}
@@ -441,7 +500,6 @@ namespace MindMap.Entities.Connections {
 				})
 			, 5, 0));
 
-
 			foreach(Panel p in Element.CreatePropertiesList(this, _parent.editHistory)) {
 				panel.Children.Add(p);
 			}
@@ -452,8 +510,19 @@ namespace MindMap.Entities.Connections {
 			Path.StrokeThickness = StrokeThickess;
 			Path.Stroke = new SolidColorBrush(StrokeColor);
 			Path.StrokeDashArray = new DoubleCollection(DashStroke.ToArray());
+			UpdateTextShadow();
 			UpdateBackgroundStyle();
 			UpdateTextStyle();
+		}
+
+		public void UpdateTextShadow() {
+			TextShadowEffect.BlurRadius = TextShadowBlurRadius;
+			TextShadowEffect.ShadowDepth = TextShadowDepth;
+			TextShadowEffect.Direction = TextShadowDirection;
+			TextShadowEffect.Color = TextShadowColor;
+			TextShadowEffect.Opacity = EnableTextShadow ? TextShadowOpacity : 0;
+			block.Effect = TextShadowEffect;
+			box.Effect = TextShadowEffect;
 		}
 
 		public void UpdateBackgroundStyle() {

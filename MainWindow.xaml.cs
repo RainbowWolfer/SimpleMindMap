@@ -42,7 +42,7 @@ namespace MindMap {
 			};
 			KeyManager = new ComboKeyManager(this);
 
-			MainFrame.Navigate(new WelcomePage(this));
+			MainFrame.Navigate(new InitializingPage(this));
 
 			Icon = new BitmapImage(new Uri("pack://application:,,,/Images/AppIcon_Color.png"));
 			SetTitle("Mind Map");
@@ -50,6 +50,10 @@ namespace MindMap {
 
 		private void AboutThisMenuItem_Click(object sender, RoutedEventArgs e) {
 			new AboutWindow(this).ShowDialog();
+		}
+
+		public void NavigateToWelcomePage() {
+			MainFrame.Navigate(new WelcomePage(this));
 		}
 
 		public void NavigateToMindMap() {
@@ -60,6 +64,10 @@ namespace MindMap {
 
 			SaveAsMenuItem.IsEnabled = true;
 			SaveMenuItem.IsEnabled = true;
+		}
+
+		public void EnableMenu(bool state = true) {
+			MainMenu.IsEnabled = state;
 		}
 
 		public void ClosePreviousPage() {
@@ -134,7 +142,7 @@ namespace MindMap {
 		}
 
 		private void SettingsMenuItem_Click(object sender, RoutedEventArgs e) {
-			new SettingsWindow(this).ShowDialog();
+			new SettingsWindow(this, _mindMapPage).ShowDialog();
 		}
 	}
 }

@@ -681,9 +681,9 @@ namespace MindMap.Entities {
 				public Vector2 ToSize { get; set; }
 				public Vector2 ToPosition { get; set; }
 				public static string GetNames(IEnumerable<FrameworkChangeItem> items) {
-					string result = "(";
-					result += string.Join(", ", items.Select(i => i.Identity.Name));
-					return result + ")";
+					return $"(" +
+						$"{string.Join(", ", items.Select(i => i.Identity.Name))}" +
+						$")";
 				}
 			}
 		}

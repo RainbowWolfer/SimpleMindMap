@@ -22,7 +22,31 @@ using static MindMap.Entities.EditHistory;
 
 namespace MindMap.Entities.Locals {
 	public static class Local {
+		public const string APP_FOLDER_NAME = "MindMap";
+		public const string APP_SETTINGS_FILE_NAME = "Settings.json";
 		public const string FILTER = "MindMap file (*.mp) | *.mp";
+
+		private static string GetAppSettingsFilePath() {
+			string documentFolder = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+			string folderPath = Path.Combine(documentFolder, APP_FOLDER_NAME);
+			Directory.CreateDirectory(folderPath);
+			string filePath = Path.Combine(folderPath, APP_SETTINGS_FILE_NAME);
+			return filePath;
+		}
+
+		public static async ValueTask SaveAppSettings() {
+			string filePath = GetAppSettingsFilePath();
+			await File.WriteAllTextAsync(filePath, (AppSettings.Current ?? new AppSettings()).ToJson());
+		}
+
+		public static async Task ReadAppSettings() {
+			string filePath = GetAppSettingsFilePath();
+			if(!File.Exists(filePath)) {
+				await SaveAppSettings();
+			}
+			string text = await File.ReadAllTextAsync(filePath);
+			AppSettings.Load(text);
+		}
 
 		public static async void SaveTmpFile(string fileName, string content) {
 			try {

@@ -3,16 +3,136 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:MindMap.SubWindows"
-        mc:Ignorable="d"
+        xmlns:local="clr-namespace:MindMap.SubWindows" 
+		xmlns:usercontrols="clr-namespace:MindMap.UserControls"
+		mc:Ignorable="d"
         SizeToContent="WidthAndHeight"
         ResizeMode="NoResize"
         Title="Settings"
         ShowInTaskbar="False"
         WindowStartupLocation="CenterOwner"
         MinHeight="300"
-        MinWidth="400">
-	<Grid>
+        MinWidth="400"
+		Loaded="Window_Loaded">
 
-	</Grid>
+	<Window.Resources>
+
+	</Window.Resources>
+
+	<ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+		<Grid>
+			<Grid x:Name="ErrorPanel" Visibility="Collapsed">
+				<StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+					<TextBlock Text="&#xE783;" FontFamily="Segoe MDL2 Assets" FontSize="72" TextAlignment="Center"/>
+					<TextBlock Text="Error&#x0a;Please Try Again" TextAlignment="Center" Margin="5" FontSize="20"/>
+				</StackPanel>
+			</Grid>
+			<Grid x:Name="SettingsGrid">
+				<StackPanel Margin="5">
+					<StackPanel Orientation="Horizontal">
+						<Rectangle Height="15" Width="3" Fill="MediumVioletRed" RadiusX="5" RadiusY="2"/>
+						<TextBlock Text="Elements" Margin="5,0,0,0" FontSize="18"/>
+					</StackPanel>
+					<StackPanel Margin="10,0,0,0">
+						<Grid>
+							<TextBlock Text="· Default Element Height"/>
+							<TextBlock x:Name="DefaultElementHeightText" Text="90" TextAlignment="Right" Margin="5,0,20,0"/>
+						</Grid>
+						<Slider x:Name="DefaultElementHeightSlider" d:Value="150" TickFrequency="1" Minimum="50" Maximum="300" Margin="15,0,10,0" ValueChanged="DefaultElementHeightSlider_ValueChanged"/>
+					</StackPanel>
+					<StackPanel Margin="10,0,0,0">
+						<TextBlock Text="· Default Place Position"/>
+						<StackPanel Orientation="Horizontal" Margin="15,0,0,0">
+							<usercontrols:LockableToggleButton x:Name="DefaultPlacePositionViewCenteredToggle" Padding="4,2,4,2" LockToggle="True" Click="DefaultPlacePositionViewCenteredToggle_Click">
+								<StackPanel>
+									<TextBlock Text="View Centered"/>
+								</StackPanel>
+							</usercontrols:LockableToggleButton>
+							<usercontrols:LockableToggleButton x:Name="DefaultPlacePositionCustomToggle" Padding="4,2,4,2" LockToggle="True" Margin="10,0,10,0" Click="DefaultPlacePositionCustomToggle_Click">
+								<StackPanel>
+									<TextBlock Text="Custom"/>
+								</StackPanel>
+							</usercontrols:LockableToggleButton>
+							<StackPanel Orientation="Horizontal">
+								<TextBlock Text="( " VerticalAlignment="Center"/>
+								<TextBox x:Name="DefaultPlacePositionXBox" d:Text="0" Width="50" TextAlignment="Center" Background="#33aaaaaa" VerticalAlignment="Center" TextChanged="DefaultPlacePositionXBox_TextChanged" PreviewTextInput="DefaultPlacePositionXBox_PreviewTextInput" MaxLength="3"/>
+								<TextBlock Text=", " VerticalAlignment="Center"/>
+								<TextBox x:Name="DefaultPlacePositionYBox" d:Text="0" Width="50" TextAlignment="Center" Background="#33aaaaaa" Margin="5,0,0,0" VerticalAlignment="Center" TextChanged="DefaultPlacePositionYBox_TextChanged" PreviewTextInput="DefaultPlacePositionYBox_PreviewTextInput" MaxLength="3"/>
+								<TextBlock Text=" )" VerticalAlignment="Center"/>
+							</StackPanel>
+						</StackPanel>
+					</StackPanel>
+					<StackPanel Margin="10,0,0,0">
+						<TextBlock Text="· Default Element Text"/>
+						<TextBox x:Name="DefaultElementText" d:Text="(Hello World)" Background="#33aaaaaa" Margin="15,0,0,0" Width="200" HorizontalAlignment="Left" MaxLength="20" Padding="3,1,3,1" TextChanged="DefaultElementText_TextChanged"/>
+					</StackPanel>
+					<StackPanel Orientation="Horizontal">
+						<Rectangle Height="15" Width="3" Fill="MediumVioletRed" RadiusX="5" RadiusY="2"/>
+						<TextBlock Text="Background" Margin="5,0,0,0" FontSize="18"/>
+					</StackPanel>
+					<StackPanel Margin="10,0,0,0">
+						<TextBlock Text="· Background Style"/>
+						<StackPanel Orientation="Horizontal" Margin="15,0,0,0">
+							<usercontrols:LockableToggleButton x:Name="BackgroundStyleDotToggle" LockToggle="True" Click="BackgroundStyleDotToggle_Click">
+								<StackPanel Orientation="Horizontal" Margin="2,0,4,0">
+									<TextBlock Text="&#xE7C8;" FontFamily="Segoe MDL2 Assets" VerticalAlignment="Center"/>
+									<TextBlock Text="Dot" Margin="5,0,0,0" VerticalAlignment="Center"/>
+								</StackPanel>
+							</usercontrols:LockableToggleButton>
+							<usercontrols:LockableToggleButton x:Name="BackgroundStyleRectToggle" LockToggle="True" Click="BackgroundStyleRectToggle_Click">
+								<StackPanel Orientation="Horizontal" Margin="4,0,4,0">
+									<TextBlock Text="&#xE73B;" FontFamily="Segoe MDL2 Assets" VerticalAlignment="Center" FontSize="8"/>
+									<TextBlock Text="Rect" Margin="7,0,0,0" VerticalAlignment="Center"/>
+								</StackPanel>
+							</usercontrols:LockableToggleButton>
+							<!--Heart Break Easter Eggs-->
+							<usercontrols:LockableToggleButton x:Name="BackgroundStyleHeartToggle" LockToggle="True" Click="BackgroundStyleHeartToggle_Click">
+								<StackPanel Orientation="Horizontal" Margin="4,0,4,0">
+									<TextBlock Text="&#xEB52;" FontFamily="Segoe MDL2 Assets" VerticalAlignment="Center" FontSize="10"/>
+									<TextBlock Text="Heart" Margin="7,0,0,0" VerticalAlignment="Center"/>
+								</StackPanel>
+							</usercontrols:LockableToggleButton>
+						</StackPanel>
+					</StackPanel>
+					<StackPanel Margin="10,0,0,0">
+						<Grid>
+							<TextBlock Text="· Background Shape Size"/>
+							<TextBlock x:Name="BackgroundShapSizeText" Text="15" TextAlignment="Right" Margin="5,0,20,0"/>
+						</Grid>
+						<Slider x:Name="BackgroundShapSizeSlider" d:Value="4" TickFrequency="1" Minimum="1" Maximum="10" Margin="15,0,10,0" ValueChanged="BackgroundShapSizeSlider_ValueChanged"/>
+					</StackPanel>
+					<StackPanel Margin="10,0,0,0">
+						<Grid>
+							<TextBlock Text="· Background Shape Gap"/>
+							<TextBlock x:Name="BackgroundShapGapText" Text="20" TextAlignment="Right" Margin="5,0,20,0"/>
+						</Grid>
+						<Slider x:Name="BackgroundShapGapSlider" d:Value="20" TickFrequency="1" Minimum="10" Maximum="50" Margin="15,0,10,0" ValueChanged="BackgroundShapGapSlider_ValueChanged"/>
+					</StackPanel>
+					<StackPanel Orientation="Horizontal">
+						<Rectangle Height="15" Width="3" Fill="MediumVioletRed" RadiusX="5" RadiusY="2"/>
+						<TextBlock Text="Canvas Rules" Margin="5,0,0,0" FontSize="18"/>
+					</StackPanel>
+					<StackPanel Margin="10,0,0,0">
+						<TextBlock Text="· Rules Option"/>
+						<StackPanel Orientation="Horizontal" Margin="15,0,0,0">
+							<usercontrols:LockableToggleButton x:Name="RulesEnableToggle" LockToggle="True" Click="RulesEnableToggle_Click">
+								<StackPanel Orientation="Horizontal" Margin="2,0,2,0">
+									<TextBlock Text="Enable"/>
+								</StackPanel>
+							</usercontrols:LockableToggleButton>
+							<usercontrols:LockableToggleButton x:Name="RulesDisableToggle" LockToggle="True" Margin="5,0,5,0" Click="RulesDisableToggle_Click">
+								<StackPanel Orientation="Horizontal" Margin="2,0,2,0">
+									<TextBlock Text="Disable"/>
+								</StackPanel>
+							</usercontrols:LockableToggleButton>
+							<TextBlock Text="Gap: " VerticalAlignment="Center" Margin="10,0,0,0"/>
+							<Slider x:Name="CanvasRuleGapSlider" d:Value="100" Minimum="40" Maximum="250" TickFrequency="10" Width="150" Margin="5,0,0,0" VerticalAlignment="Center" ValueChanged="CanvasRuleGapSlider_ValueChanged"/>
+							<TextBlock x:Name="CanvasRuleGapText" Text="100" Margin="5,0,0,0"/>
+						</StackPanel>
+					</StackPanel>
+					<TextBlock Text="( Save on Close ) *" TextAlignment="Center" Margin="5,5,5,0"/>
+				</StackPanel>
+			</Grid>
+		</Grid>
+	</ScrollViewer>
 </Window>

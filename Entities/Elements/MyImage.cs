@@ -2,6 +2,7 @@
 using MindMap.Entities.Elements.Interfaces;
 using MindMap.Entities.Frames;
 using MindMap.Entities.Identifications;
+using MindMap.Entities.Locals;
 using MindMap.Entities.Properties;
 using MindMap.Pages;
 using Newtonsoft.Json;
@@ -134,17 +135,19 @@ namespace MindMap.Entities.Elements {
 
 		public override Vector2 DefaultSize {
 			get {
-				if(ImageSize == Vector2.Zero) {
-					return new Vector2(150, 150);
+				if(AppSettings.Current == null || ImageSize == Vector2.Zero) {
+					return base.DefaultSize;
 				} else {
 					double ratio = ImageSize.X / ImageSize.Y;
-					return new Vector2(ImageDefaultHeight * ratio, ImageDefaultHeight);
+					double imageDefaultHeight = AppSettings.Current.ElementDefaultHeight;
+					return new Vector2(imageDefaultHeight * ratio, imageDefaultHeight);
 				}
 			}
 		}
 
 		private Vector2 ImageSize { get; set; } = Vector2.Zero;
-		private int ImageDefaultHeight = 150;
+
+		//private int ImageDefaultHeight = 150;
 
 		public MyImage(MindMapPage parent, Identity? identity = null) : base(parent, identity) {
 			BitmapImage bitmapImage = new(new Uri("pack://application:,,,/Images/DefaultImage.png"));
@@ -264,6 +267,7 @@ namespace MindMap.Entities.Elements {
 		}
 
 		protected override void UpdateStyle() {
+			base.UpdateStyle();
 			_background.Fill = Background;
 			_border.BorderBrush = BorderColor;
 			_border.BorderThickness = BorderThickness;

@@ -33,23 +33,23 @@ namespace MindMap.Entities.Elements.TextShapes {
 		};
 
 		public Brush Background {
-			get => BaseProperties.background;
+			get => TextShapeProperties.background;
 			set {
-				BaseProperties.background = value;
+				TextShapeProperties.background = value;
 				UpdateStyle();
 			}
 		}
 		public Brush BorderColor {
-			get => BaseProperties.borderColor;
+			get => TextShapeProperties.borderColor;
 			set {
-				BaseProperties.borderColor = value;
+				TextShapeProperties.borderColor = value;
 				UpdateStyle();
 			}
 		}
 		public Thickness BorderThickness {
-			get => BaseProperties.borderThickness;
+			get => TextShapeProperties.borderThickness;
 			set {
-				BaseProperties.borderThickness = value;
+				TextShapeProperties.borderThickness = value;
 				UpdateStyle();
 			}
 		}
@@ -63,8 +63,8 @@ namespace MindMap.Entities.Elements.TextShapes {
 			public Thickness borderThickness = new(2);
 		}
 
-		protected abstract TextShapeProperty BaseProperties { get; }
-		public override IProperty Properties => BaseProperties;
+		protected abstract TextShapeProperty TextShapeProperties { get; }
+		public override IProperty Properties => TextShapeProperties;
 
 		public TextShape(MindMapPage parent, Identity? identity = null) : base(parent, identity) {
 			MyTextBox.KeyDown += (s, e) => {
@@ -126,6 +126,7 @@ namespace MindMap.Entities.Elements.TextShapes {
 		}
 
 		protected override void UpdateStyle() {
+			base.UpdateStyle();
 			MyTextBlock.Text = Text;
 			MyTextBlock.Foreground = new SolidColorBrush(FontColor);
 			MyTextBlock.FontFamily = FontFamily;
@@ -149,6 +150,14 @@ namespace MindMap.Entities.Elements.TextShapes {
 				shape.Stroke = BorderColor;
 				shape.StrokeThickness = BorderThickness.Top;
 			}
+
+			TextShadowEffect.BlurRadius = TextShadowBlurRadius;
+			TextShadowEffect.ShadowDepth = TextShadowDepth;
+			TextShadowEffect.Direction = TextShadowDirection;
+			TextShadowEffect.Color = TextShadowColor;
+			TextShadowEffect.Opacity = EnableTextShadow ? TextShadowOpacity : 0;
+			MyTextBlock.Effect = TextShadowEffect;
+			MyTextBox.Effect = TextShadowEffect;
 		}
 	}
 }

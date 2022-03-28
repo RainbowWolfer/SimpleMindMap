@@ -94,18 +94,26 @@
 			<Grid>
 				<!--Only for detecting contacting canvas through mouse-->
 				<Rectangle x:Name="BackgroundRectangle" Fill="Transparent" MouseDown="BackgroundRectangle_MouseDown" MouseMove="BackgroundRectangle_MouseMove" MouseUp="BackgroundRectangle_MouseUp"/>
-				<Canvas x:Name="MainCanvas" Loaded="MainCanvas_Loaded">
+				<Canvas x:Name="MainCanvas" Loaded="MainCanvas_Loaded" SizeChanged="MainCanvas_SizeChanged">
 					<Canvas x:Name="BackgroundCanvas">
-						<!--<Grid Width="150" Height="150">
-							<Image Source="/Images/20210620_130110.jpg" Stretch="Uniform"/>
-							<Grid HorizontalAlignment="Center" VerticalAlignment="Center">
-								<Grid.RenderTransform>
-									<TranslateTransform X="0" Y="75"/>
-								</Grid.RenderTransform>
-								<TextBlock Text="This is Annotation"/>
-								<TextBox Text="This is Annotation"/>
-							</Grid>
-						</Grid>-->
+						<!--<Grid Margin="50"
+								Background="Firebrick"
+								Width="150" Height="150">
+							<Grid.Effect>
+								<DropShadowEffect/>
+							</Grid.Effect>
+						</Grid>
+						-->
+						<!--<Ellipse Width="190" Height="190" Fill="Red" Margin="50">
+							<Ellipse.Effect>
+								<DropShadowEffect />
+							</Ellipse.Effect>
+						</Ellipse>-->
+						<!--<TextBlock Text="Hello World" Margin="50" FontSize="20">
+							<TextBlock.Effect>
+								<DropShadowEffect/>
+							</TextBlock.Effect>
+						</TextBlock>-->
 						<!--<Path StrokeThickness="2" Stroke="Red" Fill="{Binding Stroke, RelativeSource={RelativeSource Self}}">
 							<Path.Data>
 								<PathGeometry>
@@ -133,6 +141,15 @@
 						</TransformGroup>
 					</Canvas.RenderTransform>
 				</Canvas>
+				<Canvas x:Name="TopCoordRule" Background="#ffcccccc" Height="15" VerticalAlignment="Top" Margin="15,0,0,0">
+
+				</Canvas>
+				<Canvas x:Name="LeftCoordRule" Background="#ffcccccc" Width="15" HorizontalAlignment="Left" Margin="0,14.5,0,0">
+
+				</Canvas>
+				<Grid x:Name="TopLeftRuleIcon" Background="#ffcccccc" VerticalAlignment="Top" HorizontalAlignment="Left" Height="15" Width="15">
+					<TextBlock FontSize="12" FontFamily="Segoe MDL2 Assets" Text="&#xE7A8;" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+				</Grid>
 			</Grid>
 		</Border>
 		<Rectangle Grid.Column="2" Width="1" Fill="Gray" HorizontalAlignment="Right"/>

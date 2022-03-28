@@ -106,8 +106,8 @@ namespace MindMap.Entities {
 			panel.Children.Add(picker);
 			return panel;
 		}
-		public static StackPanel ColorInput(string title, Brush initBrush, Action<ValueChangedArgs<Color>> onColorChanged) {
-			return ColorInput(title, initBrush is SolidColorBrush solid ? solid.Color : Colors.White, onColorChanged);
+		public static StackPanel ColorInput(string title, Brush initBrush, Action<ValueChangedArgs<Color>> onColorChanged, Action? onLostFocus = null) {
+			return ColorInput(title, initBrush is SolidColorBrush solid ? solid.Color : Colors.White, onColorChanged, onLostFocus);
 		}
 
 		public static StackPanel FontSelector(string title, FontFamily initFont, Action<ValueChangedArgs<FontFamily>> onFontChanged, params string[] availableFonts) {
@@ -206,12 +206,23 @@ namespace MindMap.Entities {
 			StackPanel panel = CreateBase(title);
 			var selector = new StackIconsSelector(data, initialIndex) {
 				OnItemClick = (oldV, newV) => {
-					onValueChanged?.Invoke(new ValueChangedArgs<Pair<IconElement, string>>(oldV, newV));
+					onValueChanged.Invoke(new ValueChangedArgs<Pair<IconElement, string>>(oldV, newV));
 				},
 			};
 			CreateContextMenu(selector, () => {
 				//selector.Select(initialData);
 			});
+			panel.Children.Add(selector);
+			return panel;
+		}
+
+		public static StackPanel DuoColumnIconsSelector(string title, bool initialIsLeft, Action<ValueChangedArgs<bool>> onValueChanged) {
+			StackPanel panel = CreateBase(title);
+			var selector = new DuoColumnIconsSelector(initialIsLeft) {
+				OnChanged = (from, to) => {
+					onValueChanged.Invoke(new ValueChangedArgs<bool>(from, to));
+				},
+			};
 			panel.Children.Add(selector);
 			return panel;
 		}
@@ -250,6 +261,15 @@ namespace MindMap.Entities {
 				onClickAction.Invoke();
 			};
 			panel.Children.Add(button);
+			return panel;
+		}
+
+		public static StackPanel CheckBox(string title) {
+			StackPanel panel = new StackPanel();
+			CheckBox checkBox = new CheckBox() {
+				Content = title,
+			};
+			panel.Children.Add(checkBox);
 			return panel;
 		}
 

@@ -30,7 +30,7 @@ namespace MindMap.Entities.Elements.TextShapes {
 			}
 		}
 		private Property property = new();
-		protected override TextShapeProperty BaseProperties => property;
+		protected override TextShapeProperty TextShapeProperties => property;
 		protected override TextRelatedProperty TextRelatedProperties => property;
 
 

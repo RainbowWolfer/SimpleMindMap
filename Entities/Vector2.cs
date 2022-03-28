@@ -107,6 +107,10 @@ namespace MindMap.Entities {
 			return new Vector2(vec.X, vec.Y);
 		}
 
+		public static implicit operator Vector2(Size size) {
+			return new Vector2(size.Width, size.Height);
+		}
+
 		public static implicit operator string(Vector2 vec) => vec.ToString();
 
 		public static bool operator ==(Vector2 v1, Vector2 v2) => v1.Equals(v2);

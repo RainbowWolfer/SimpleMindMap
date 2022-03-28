@@ -84,9 +84,12 @@ namespace MindMap.Pages {
 			//	multiSelectionFrame.Disappear();
 			//};
 
-			SizeChanged += (s, e) => UpdateBackgroundDot();
+			//SizeChanged += (s, e) => UpdateBackgroundDot();
 
 			HideElementProperties();
+
+			MainCanvas_TranslateTransform.X = 40;
+			MainCanvas_TranslateTransform.Y = 40;
 
 			FileNameText.Text = fileName;
 			CreatedDateText.Text = $"Created Date ({DateTime.Now})";
@@ -321,29 +324,145 @@ namespace MindMap.Pages {
 			previewLine = null;
 		}
 
-		private readonly Dictionary<Vector2, Shape> backgroundPool = new();
-		private const int SIZE = 4;
-		private const int GAP = 20;
+		private readonly Dictionary<Vector2, FrameworkElement> backgroundPool = new();
+		//private const int SIZE = 4;
+		//private const int GAP = 20;
 		private void UpdateBackgroundDot() {
-			var offset = -new Vector2(MainCanvas_TranslateTransform.X, MainCanvas_TranslateTransform.Y).ToInt() / GAP;
-			var size = new Vector2(MainCanvas.ActualWidth, MainCanvas.ActualHeight).ToInt() / GAP;
+			double shapSize = AppSettings.Current?.BackgroundShapeSize ?? 4;
+			double gap = AppSettings.Current?.BackgroundShapeGap ?? 20;
+			var offset = -new Vector2(MainCanvas_TranslateTransform.X, MainCanvas_TranslateTransform.Y).ToInt() / gap;
+			var size = new Vector2(MainCanvas.ActualWidth, MainCanvas.ActualHeight).ToInt() / gap;
 			for(int i = offset.X_Int; i < size.X + offset.X; i++) {
 				for(int j = offset.Y_Int; j < size.Y + offset.Y; j++) {
 					if(backgroundPool.ContainsKey(new Vector2(i, j))) {
 						continue;
 					}
-					Ellipse t = new() {
-						Width = SIZE,
-						Height = SIZE,
-						Fill = new SolidColorBrush(Colors.Gray),
-					};
-					t.MouseDown += BackgroundRectangle_MouseDown;
-					Canvas.SetLeft(t, i * GAP);
-					Canvas.SetTop(t, j * GAP);
-					backgroundPool.Add(new Vector2(i, j), t);
-					BackgroundCanvas.Children.Add(t);
+					FrameworkElement framework;
+					if(AppSettings.Current == null || AppSettings.Current.BackgroundStyle == BackgroundStyle.Dot) {
+						framework = new Ellipse() {
+							Width = shapSize,
+							Height = shapSize,
+							Fill = new SolidColorBrush(Colors.Gray),
+						};
+					} else if(AppSettings.Current.BackgroundStyle == BackgroundStyle.Rect) {
+						framework = new Rectangle() {
+							Width = shapSize,
+							Height = shapSize,
+							Fill = new SolidColorBrush(Colors.Gray),
+						};
+					} else if(AppSettings.Current.BackgroundStyle == BackgroundStyle.Heart) {
+						framework = new TextBlock() {
+							Width = shapSize,
+							Height = shapSize,
+							Foreground = new SolidColorBrush(Colors.Gray),
+							FontFamily = new FontFamily("Segoe MDL2 Assets"),
+							HorizontalAlignment = HorizontalAlignment.Center,
+							VerticalAlignment = VerticalAlignment.Center,
+							Text = "\uE0A5",
+							FontSize = shapSize,
+						};
+					} else {
+						return;
+					}
+					framework.MouseDown += BackgroundRectangle_MouseDown;
+					Canvas.SetLeft(framework, i * gap - shapSize / 2);
+					Canvas.SetTop(framework, j * gap - shapSize / 2);
+					backgroundPool.Add(new Vector2(i, j), framework);
+					BackgroundCanvas.Children.Add(framework);
 				}
 			}
+		}
+
+		private void ClearBackground() {
+			backgroundPool.Clear();
+			BackgroundCanvas.Children.Clear();
+		}
+
+		public void NotifyBackgroundStyleChanged() {
+			ClearBackground();
+			UpdateBackgroundDot();
+		}
+
+		private Dictionary<int, FrameworkElement> horizontalRuleFrameworks = new();
+		private Dictionary<int, FrameworkElement> verticalRuleFrameworks = new();
+		private const int RULE_ADJUST_OFFSET = -15;//match value of rule canvas
+		private void UpdateCoordiantionRules() {
+			Vector2 coord = new Vector2(MainCanvas_TranslateTransform.X, MainCanvas_TranslateTransform.Y);
+			Size size = MainCanvas.RenderSize;
+			int ruleMinGap = (int)(AppSettings.Current?.CanvasRuleGap ?? 100);
+			List<int> required_x = new();
+			for(int x = -(int)coord.X / ruleMinGap * ruleMinGap
+				; x < (double)(size.Width - coord.X)
+				; x += ruleMinGap) {
+				required_x.Add(x);
+				FrameworkElement framework;
+				if(horizontalRuleFrameworks.ContainsKey(x)) {
+					framework = horizontalRuleFrameworks[x];
+				} else {
+					framework = new TextBlock() {
+						Text = $"{x}",
+					};
+					horizontalRuleFrameworks.Add(x, framework);
+					TopCoordRule.Children.Add(framework);
+				}
+				Canvas.SetTop(framework, 0);
+				Canvas.SetLeft(framework, coord.X + x + RULE_ADJUST_OFFSET);
+			}
+			foreach(var item in horizontalRuleFrameworks) {
+				item.Value.Visibility = required_x.Contains(item.Key) ? Visibility.Visible : Visibility.Collapsed;
+			}
+
+			List<int> required_y = new();
+			for(int y = -(int)coord.Y / ruleMinGap * ruleMinGap
+				; y < (double)(size.Height - coord.Y)
+				; y += ruleMinGap) {
+				required_y.Add(y);
+				FrameworkElement framework;
+				if(verticalRuleFrameworks.ContainsKey(y)) {
+					framework = verticalRuleFrameworks[y];
+				} else {
+					framework = new TextBlock() {
+						Text = $"{y}",
+						LayoutTransform = new RotateTransform(-90),
+					};
+					verticalRuleFrameworks.Add(y, framework);
+					LeftCoordRule.Children.Add(framework);
+				}
+				Canvas.SetLeft(framework, 0);
+				Canvas.SetTop(framework, coord.Y + y + RULE_ADJUST_OFFSET);
+			}
+			foreach(var item in verticalRuleFrameworks) {
+				item.Value.Visibility = required_y.Contains(item.Key) ? Visibility.Visible : Visibility.Collapsed;
+			}
+		}
+
+		private void ClearCoordinationRules() {
+			horizontalRuleFrameworks.Clear();
+			verticalRuleFrameworks.Clear();
+			TopCoordRule.Children.Clear();
+			LeftCoordRule.Children.Clear();
+		}
+
+		public void EnableRule(bool enable = true) {
+			TopCoordRule.Visibility = enable ? Visibility.Visible : Visibility.Collapsed;
+			LeftCoordRule.Visibility = enable ? Visibility.Visible : Visibility.Collapsed;
+			TopLeftRuleIcon.Visibility = enable ? Visibility.Visible : Visibility.Collapsed;
+		}
+
+		public void NotifyCoordinationRuleStyleChanged() {
+			ClearCoordinationRules();
+			if(AppSettings.Current?.EnableCanvasRule ?? true) {
+				EnableRule(true);
+				UpdateCoordiantionRules();
+			} else {
+				EnableRule(false);
+			}
+		}
+
+		private Vector2 GetCenterViewPoint() {
+			Vector2 coord = new Vector2(MainCanvas_TranslateTransform.X, MainCanvas_TranslateTransform.Y);
+			Size size = MainCanvas.RenderSize;
+			return (-coord + new Vector2(size.Width, size.Height) / 2);
 		}
 
 		public readonly Dictionary<FrameworkElement, Element> elements = new();
@@ -539,18 +658,26 @@ namespace MindMap.Pages {
 		}
 
 		private void Reposition(Element element) {
-			if(element.GetPosition() != Vector2.Zero) {
-				return;
+			Vector2 defaultPosition;
+			if(AppSettings.Current == null) {
+				defaultPosition = Vector2.Zero;
+			} else if(AppSettings.Current.EnableElementDefaultPositionCentered) {
+				defaultPosition = GetCenterViewPoint() - element.GetSize() / 2;
+			} else {
+				defaultPosition = AppSettings.Current.ElementDefaultPosition;
 			}
+			//if(element.GetPosition() != defaultPosition) {
+			//	return;
+			//}
 			const int GAP = 20;
 			int count = 0;
 			foreach(Element item in elements.Select(e => e.Value).Where(e => e != element)) {
-				Vector2 pos = item.GetPosition() - Vector2.One * GAP * count;
+				Vector2 pos = item.GetPosition() - Vector2.One * GAP * count - defaultPosition;
 				if(pos.Magnitude < 5) {
 					count++;
 				}
 			}
-			element.SetPosition(Vector2.One * count * GAP);
+			element.SetPosition(Vector2.One * count * GAP + defaultPosition);
 			element.UpdateConnectionsFrame();
 		}
 
@@ -772,6 +899,7 @@ namespace MindMap.Pages {
 
 				UpdateBackgroundDot();
 			}
+			UpdateCoordiantionRules();
 		}
 
 		private void BackgroundRectangle_MouseUp(object sender, MouseButtonEventArgs e) {
@@ -793,7 +921,7 @@ namespace MindMap.Pages {
 		}
 
 		private void MainCanvas_Loaded(object sender, RoutedEventArgs e) {
-			UpdateBackgroundDot();
+			//UpdateBackgroundDot();
 		}
 
 		private long lastClickTick = 0;
@@ -805,7 +933,7 @@ namespace MindMap.Pages {
 					RightTabControl.Width = 280;
 				}
 				RightTabControl.UpdateLayout();
-				UpdateBackgroundDot();
+				//UpdateBackgroundDot();
 			}
 			lastClickTick = DateTime.Now.Ticks;
 		}
@@ -843,6 +971,11 @@ namespace MindMap.Pages {
 
 		private enum MouseType {
 			Left, Middle, Right
+		}
+
+		private void MainCanvas_SizeChanged(object sender, SizeChangedEventArgs e) {
+			UpdateBackgroundDot();
+			UpdateCoordiantionRules();
 		}
 	}
 

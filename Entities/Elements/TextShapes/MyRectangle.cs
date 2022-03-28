@@ -18,7 +18,7 @@ namespace MindMap.Entities.Elements.TextShapes {
 		public override string ElementTypeName => "Rectangle";
 		public override (string icon, string fontFamily) Icon => ("\uE002", "Segoe Fluent Icons");
 		private class Property: TextShapeProperty {
-			public CornerRadius cornerRadius = new(0);
+			public CornerRadius cornerRadius = new(5);
 
 			public override object Clone() {
 				return MemberwiseClone();
@@ -38,7 +38,7 @@ namespace MindMap.Entities.Elements.TextShapes {
 			}
 		}
 
-		protected override TextShapeProperty BaseProperties => property;
+		protected override TextShapeProperty TextShapeProperties => property;
 		protected override TextRelatedProperty TextRelatedProperties => property;
 
 		private readonly Border _rect = new();

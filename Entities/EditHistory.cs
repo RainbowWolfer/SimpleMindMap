@@ -77,6 +77,7 @@ namespace MindMap.Entities {
 					PropertyDelayedChange.JSONCONVERTID => JsonConvert.DeserializeObject<PropertyDelayedChange>(item.Value),
 					PropertyChange.JSONCONVERTID => JsonConvert.DeserializeObject<PropertyChange>(item.Value),
 					ElementFrameworkChange.JSONCONVERTID => JsonConvert.DeserializeObject<ElementFrameworkChange>(item.Value),
+					ElementConnectionFrameControlsChange.JSONCONVERTID => JsonConvert.DeserializeObject<ElementConnectionFrameControlsChange>(item.Value),
 					ElementLockStateChange.JSONCONVERTID => JsonConvert.DeserializeObject<ElementLockStateChange>(item.Value),
 					_ => null,
 				};
@@ -135,6 +136,16 @@ namespace MindMap.Entities {
 			));
 			OnHistoryChanged?.Invoke(GetPreviousHistories());
 		}
+
+		//public ElementCreatedOrDeleted? GetLastElementCreatedHistory() {
+		//	if(previous.Count == 0) {
+		//		return null;
+		//	} else if(previous.LastOrDefault() is ElementCreatedOrDeleted ecod) {
+		//		return ecod;
+		//	} else {
+		//		return null;
+		//	}
+		//}
 
 		public void SubmitByElementDeleted(Element target, List<ConnectionPath>? relatedConnections = null, ControlsInfo? connections = null) {
 			InstantSealLastDelayedChange();

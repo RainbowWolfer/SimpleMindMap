@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 
 namespace MindMap.Entities.Locals {
 	public static class Local {
-		public const string APP_FOLDER_NAME = "MindMap";
+		public const string APP_FOLDER_NAME = "SimpleMindMap";
 		public const string APP_SETTINGS_FILE_NAME = "Settings.json";
 		public const string FILTER = "MindMap file (*.mp) | *.mp";
 
@@ -61,23 +61,34 @@ namespace MindMap.Entities.Locals {
 			return filePath;
 		}
 
-		public static async Task<LocalInfo?> Load() {
+		public static async Task<LocalInfo?> Load(string? path = null) {
 			OpenFileDialog openFileDialog = new() {
 				Filter = FILTER,
 				InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
 			};
-			if(openFileDialog.ShowDialog() == true) {
-				string json = await File.ReadAllTextAsync(openFileDialog.FileName);
-				//string converted = BinaryToString(json);
+			if(string.IsNullOrWhiteSpace(path)) {
+				if(openFileDialog.ShowDialog() == true) {
+					string json = await File.ReadAllTextAsync(openFileDialog.FileName);
+					//string converted = BinaryToString(json);
+					LocalInfo info = new(
+						JsonConvert.DeserializeObject<MapInfo>(json),
+						openFileDialog.SafeFileName,
+						openFileDialog.FileName,
+						File.GetCreationTime(openFileDialog.FileName)
+					);
+					return info;
+				} else {
+					return null;
+				}
+			} else {
+				string json = await File.ReadAllTextAsync(path);
 				LocalInfo info = new(
 					JsonConvert.DeserializeObject<MapInfo>(json),
-					openFileDialog.SafeFileName,
-					openFileDialog.FileName,
-					File.GetCreationTime(openFileDialog.FileName)
+					Path.GetFileName(path),
+					path,
+					File.GetCreationTime(path)
 				);
 				return info;
-			} else {
-				return null;
 			}
 		}
 

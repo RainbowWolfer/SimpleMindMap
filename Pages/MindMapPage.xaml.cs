@@ -88,6 +88,7 @@ namespace MindMap.Pages {
 			SavingPanel.Visibility = Visibility.Collapsed;
 			LoadingPanel.Visibility = Visibility.Collapsed;
 
+			OnClose();
 			MainWindow.Instance?.KeyManager.Register(
 				() => holdShift = true,
 				() => holdShift = false,
@@ -214,6 +215,8 @@ namespace MindMap.Pages {
 				MainWindow.SetTitle($"Mind Map - {FileName}");
 				//set created time
 				SetSetOprationHintText("Saved Successfully");
+
+				await AddRecentOpenFile(FileName, savePath);
 			}
 			SavingPanel.Visibility = Visibility.Collapsed;
 		}
@@ -223,6 +226,7 @@ namespace MindMap.Pages {
 			FileName = fileInfo.FileName;
 			savePath = fileInfo.FilePath;
 			CreatedDateText.Text = $"Created Date ({fileInfo.CreatedDate})";
+			await AddRecentOpenFile(FileName, savePath);
 
 			imagesAssets.SetAssets(mapInfo.imagesAssets);
 
@@ -251,6 +255,19 @@ namespace MindMap.Pages {
 			SetSetOprationHintText("Loaded Successfully");
 		}
 
+		private async Task AddRecentOpenFile(string name, string path) {
+			if(AppSettings.Current == null) {
+				return;
+			}
+			foreach(var item in AppSettings.Current.RecentOpenFilesList) {
+				if(item.name == name || item.path == path) {
+					return;
+				}
+			}
+			AppSettings.Current.RecentOpenFilesList.Add(new(name, path, DateTime.Now));
+			await Local.SaveAppSettings();
+		}
+
 		public void Redo() => editHistory.Redo();
 
 		public void Undo() => editHistory.Undo();
@@ -273,8 +290,11 @@ namespace MindMap.Pages {
 		}
 
 		public void Deselect(bool includePath = true) {
-			if(ResizeFrame.Current != null) {
-				ResizeFrame.Current.elements.ForEach(e => e.Deselect());
+			//if(ResizeFrame.Current != null) {
+			//	ResizeFrame.Current.elements.ForEach(e => e.Deselect());
+			//}
+			foreach(Element item in elements.Values) {
+				item.Deselect();
 			}
 			if(includePath) {
 				connectionsManager.CurrentSelection?.Deselect();
@@ -606,8 +626,9 @@ namespace MindMap.Pages {
 		}
 
 		private void AddElementByClick(long id) {
-			Element element = AddElement(id);
+			Element element = AddElement(id, null, default, default, null, false);
 			Reposition(element);
+			editHistory.SubmitByElementCreated(element);
 		}
 
 		private void AddRectableButton_Click(object sender, RoutedEventArgs e) {

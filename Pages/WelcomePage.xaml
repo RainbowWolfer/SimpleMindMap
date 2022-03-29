@@ -3,7 +3,7 @@
 	  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
 	  xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-	  xmlns:local="clr-namespace:MindMap.Pages"
+	  xmlns:local="clr-namespace:MindMap.Pages" xmlns:welcomepagecontrols="clr-namespace:MindMap.UserControls.WelcomePageControls"
 	  mc:Ignorable="d" 
 	  d:DesignHeight="450" d:DesignWidth="800"
 	  d:Background="White"
@@ -11,46 +11,99 @@
 
 	<Grid>
 		<Grid.RowDefinitions>
-			<RowDefinition Height="2*"/>
-			<RowDefinition Height="2*"/>
+			<RowDefinition Height="auto"/>
 			<RowDefinition Height="*"/>
+			<!--<RowDefinition Height="*"/>-->
 		</Grid.RowDefinitions>
-		<StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-			<TextBlock Text="Mind Map" Grid.Row="0" FontSize="48"/>
-			<TextBlock Text=" By RainbowWolfer" Grid.Row="0" FontSize="24"/>
-		</StackPanel>
-		<Grid Grid.Row="1">
+		<Grid Height="120">
+			<StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+				<TextBlock Text="Simple Mind Map" Grid.Row="0" FontSize="48"/>
+				<TextBlock Text=" By RainbowWolfer" Grid.Row="0" FontSize="24" TextAlignment="Center"/>
+			</StackPanel>
+		</Grid>
+		<Grid Grid.Row="1" Margin="70,0,70,20">
 			<Grid.ColumnDefinitions>
 				<ColumnDefinition Width="*"/>
-				<ColumnDefinition Width="2*"/>
-				<ColumnDefinition Width="2*"/>
-				<ColumnDefinition Width="2*"/>
-				<ColumnDefinition Width="*"/>
+				<ColumnDefinition Width="auto"/>
 			</Grid.ColumnDefinitions>
-			<Button x:Name="NewFileButton" Grid.Column="1" Width="150" Height="150" Click="NewFileButton_Click">
-				<Button.Content>
-					<StackPanel>
-						<TextBlock Text="&#xE78B;" FontFamily="Segoe MDL2 Assets" FontSize="80"/>
-						<TextBlock Text="New File" HorizontalAlignment="Center" FontSize="15" Margin="0,10,0,0"/>
+			<Grid Grid.Column="0">
+				<Grid.RowDefinitions>
+					<RowDefinition Height="auto"/>
+					<RowDefinition Height="*"/>
+				</Grid.RowDefinitions>
+				<TextBlock Text="Recent Files" FontSize="20" Margin="5"/>
+				<Grid Grid.Row="1" x:Name="NoDataGrid">
+					<StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+						<TextBlock Text="&#xED25;" FontFamily="Segoe MDL2 Assets" FontSize="64" Margin="5" TextAlignment="Center"/>
+						<TextBlock Text="No Recent Opened Files" Margin="5" FontSize="16"/>
 					</StackPanel>
-				</Button.Content>
-			</Button>
-			<Button x:Name="OpenFileButton" Grid.Column="2" Width="150" Height="150" Click="OpenFileButton_Click">
-				<Button.Content>
-					<StackPanel>
-						<TextBlock Text="&#xE8E5;" FontFamily="Segoe MDL2 Assets" FontSize="80"/>
-						<TextBlock Text="Open File" HorizontalAlignment="Center" FontSize="15" Margin="0,10,0,0"/>
+				</Grid>
+				<ScrollViewer Margin="5,5,20,5" Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+					<StackPanel x:Name="RecentFileStackPanel" Margin="5">
+						<d:Expander Header="Today">
+							<StackPanel>
+								<welcomepagecontrols:RecentFileButton/>
+							</StackPanel>
+						</d:Expander>
 					</StackPanel>
-				</Button.Content>
-			</Button>
-			<Button x:Name="SettingsButton" Grid.Column="3" Width="150" Height="150" Click="SettingsButton_Click">
-				<Button.Content>
+				</ScrollViewer>
+			</Grid>
+			<Grid Grid.Column="1" Width="320">
+				<Grid.RowDefinitions>
+					<RowDefinition Height="auto"/>
+					<RowDefinition Height="*"/>
+				</Grid.RowDefinitions>
+				<TextBlock Text="Get Started" FontSize="20" Margin="5"/>
+				<ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Grid.Row="1">
 					<StackPanel>
-						<TextBlock Text="&#xE713;" FontFamily="Segoe MDL2 Assets" FontSize="80"/>
-						<TextBlock Text="Settings" HorizontalAlignment="Center" FontSize="15" Margin="0,10,0,0"/>
+						<Button x:Name="NewFileButton" HorizontalContentAlignment="Stretch" Margin="5" Click="NewFileButton_Click">
+							<Grid>
+								<Grid.ColumnDefinitions>
+									<ColumnDefinition Width="auto"/>
+									<ColumnDefinition Width="*"/>
+								</Grid.ColumnDefinitions>
+								<Grid.RowDefinitions>
+									<RowDefinition Height="auto"/>
+									<RowDefinition Height="*"/>
+								</Grid.RowDefinitions>
+								<TextBlock Text="&#xE78B;" FontFamily="Segoe MDL2 Assets" FontSize="40" Grid.Column="0" Grid.RowSpan="2" Margin="5" Width="40" TextAlignment="Center"/>
+								<TextBlock Grid.Column="1" Text="New File" VerticalAlignment="Center" FontSize="24" Margin="5"/>
+								<TextBlock Grid.Column="1" Grid.Row="1" Text="Create a empty canvas for you to have fun with" TextWrapping="Wrap" Margin="5" FontSize="16"/>
+							</Grid>
+						</Button>
+						<Button x:Name="OpenFileButton" HorizontalContentAlignment="Stretch" Margin="5" Click="OpenFileButton_Click">
+							<Grid>
+								<Grid.ColumnDefinitions>
+									<ColumnDefinition Width="auto"/>
+									<ColumnDefinition Width="*"/>
+								</Grid.ColumnDefinitions>
+								<Grid.RowDefinitions>
+									<RowDefinition Height="auto"/>
+									<RowDefinition Height="*"/>
+								</Grid.RowDefinitions>
+								<TextBlock Text="&#xE8E5;" FontFamily="Segoe MDL2 Assets" FontSize="35" Grid.Column="0" Grid.RowSpan="2" Margin="5" Width="40" TextAlignment="Center"/>
+								<TextBlock Grid.Column="1" Text="Open File" VerticalAlignment="Center" FontSize="24" Margin="5"/>
+								<TextBlock Grid.Column="1" Grid.Row="1" Text="Open an existing .mp file with full functionality" TextWrapping="Wrap" Margin="5" FontSize="16"/>
+							</Grid>
+						</Button>
+						<Button x:Name="SettingsButton" HorizontalContentAlignment="Stretch" Margin="5" Click="SettingsButton_Click">
+							<Grid>
+								<Grid.ColumnDefinitions>
+									<ColumnDefinition Width="auto"/>
+									<ColumnDefinition Width="*"/>
+								</Grid.ColumnDefinitions>
+								<Grid.RowDefinitions>
+									<RowDefinition Height="auto"/>
+									<RowDefinition Height="*"/>
+								</Grid.RowDefinitions>
+								<TextBlock Text="&#xE713;" FontFamily="Segoe MDL2 Assets" FontSize="35" Grid.Column="0" Grid.RowSpan="2" Margin="5" Width="40" TextAlignment="Center"/>
+								<TextBlock Grid.Column="1" Text="Settings" VerticalAlignment="Center" FontSize="24" Margin="5"/>
+								<TextBlock Grid.Column="1" Grid.Row="1" Text="Open the settings window" TextWrapping="Wrap" Margin="5" FontSize="16"/>
+							</Grid>
+						</Button>
 					</StackPanel>
-				</Button.Content>
-			</Button>
+				</ScrollViewer>
+			</Grid>
 		</Grid>
 	</Grid>
 </Page>

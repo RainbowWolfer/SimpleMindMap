@@ -62,8 +62,8 @@ namespace MindMap {
 			}
 		}
 
-		public async void OpenFile() {
-			LocalInfo? result = await Local.Load();
+		public async void OpenFile(string? path = null) {
+			LocalInfo? result = await Local.Load(path);
 			if(result != null && result.MapInfo != null) {
 				NavigateToMindMap();
 				if(_mindMapPage != null) {
@@ -102,6 +102,12 @@ namespace MindMap {
 		}
 
 		private void OpenFileMenuItem_Click(object sender, RoutedEventArgs e) {
+			if(_mindMapPage?.HasChanged ?? false) {
+				MessageBoxResult result = MessageBox.Show(this, "You have unsaved file. Are you sure to open another canvas?", "Open File", MessageBoxButton.OKCancel, MessageBoxImage.Warning);
+				if(result != MessageBoxResult.OK) {
+					return;
+				}
+			}
 			OpenFile();
 		}
 
@@ -129,6 +135,10 @@ namespace MindMap {
 
 		private void SettingsMenuItem_Click(object sender, RoutedEventArgs e) {
 			new SettingsWindow(this, _mindMapPage).ShowDialog();
+		}
+
+		private void BackMenuItem_Click(object sender, RoutedEventArgs e) {
+			NavigateToWelcomePage();
 		}
 	}
 }

@@ -20,6 +20,7 @@
 				<MenuItem x:Name="SaveMenuItem" Header="Save" Click="SaveMenuItem_Click"/>
 				<MenuItem x:Name="SaveAsMenuItem" Header="Save As" Click="SaveAsMenuItem_Click"/>
 				<Separator/>
+				<MenuItem x:Name="BackMenuItem" Header="Start Page" Click="BackMenuItem_Click"/>
 				<MenuItem x:Name="ExitMenuItem" Header="Exit" Click="ExitMenuItem_Click"/>
 			</MenuItem>
 			<MenuItem Header="Edit">

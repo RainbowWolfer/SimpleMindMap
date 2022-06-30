@@ -46,7 +46,7 @@
 			<TabControl Grid.Row="1">
 				<TabItem x:Name="ElementsTabItem" Header="Elements" Width="83">
 					<ScrollViewer VerticalScrollBarVisibility="Auto">
-						<StackPanel>
+						<StackPanel x:Name="ElementsPresetsPanel">
 							<Expander Header="Rectangles" IsExpanded="True">
 								<StackPanel>
 									<Button Content="Normal Rectangle" Click="AddRectableButton_Click" Style="{StaticResource MenuButton}"/>
@@ -185,7 +185,12 @@
 						<ListView x:Name="MapElementsListView" SelectionChanged="MapElementsListView_SelectionChanged" d:ItemsSource="{d:SampleData ItemCount=7}">
 							<ListView.ItemTemplate>
 								<DataTemplate>
-									<Grid>
+									<Grid x:Name="MapElementsListViewItemGrid" Tag="{Binding Item}" MouseDown="MapElementsListViewItemGrid_MouseDown">
+										<Grid.ContextMenu>
+											<ContextMenu>
+												<MenuItem x:Name="MapElementsMenuItemSelect" Header="Select" Click="MapElementsMenuItemSelect_Click" Tag="{Binding Item}"/>
+											</ContextMenu>
+										</Grid.ContextMenu>
 										<Grid.ColumnDefinitions>
 											<ColumnDefinition Width="auto"/>
 											<ColumnDefinition Width="*"/>

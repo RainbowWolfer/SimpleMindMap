@@ -48,4 +48,8 @@
     <Resource Include="Images\DefaultImage.png" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="UserControls\Dialogs\" />
+  </ItemGroup>
+
 </Project>

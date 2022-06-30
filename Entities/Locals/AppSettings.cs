@@ -28,7 +28,11 @@ namespace MindMap.Entities.Locals {
 
 		public static void Load(string json) {
 			AppSettings? obj = JsonConvert.DeserializeObject<AppSettings>(json);
-			Current = obj ?? new AppSettings() {
+			Current = obj ?? GetDefault();
+		}
+
+		public static AppSettings GetDefault() {
+			return new AppSettings() {
 				EnableElementDefaultPositionCentered = true,
 				ElementDefaultPosition = Vector2.Zero,
 				ElementDefaultHeight = 150,

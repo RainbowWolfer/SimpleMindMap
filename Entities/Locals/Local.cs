@@ -27,7 +27,7 @@ namespace MindMap.Entities.Locals {
 
 		public static async ValueTask SaveAppSettings() {
 			string filePath = GetAppSettingsFilePath();
-			await File.WriteAllTextAsync(filePath, (AppSettings.Current ?? new AppSettings()).ToJson());
+			await File.WriteAllTextAsync(filePath, (AppSettings.Current ?? AppSettings.GetDefault()).ToJson());
 		}
 
 		public static async Task ReadAppSettings() {
@@ -81,14 +81,18 @@ namespace MindMap.Entities.Locals {
 					return null;
 				}
 			} else {
-				string json = await File.ReadAllTextAsync(path);
-				LocalInfo info = new(
-					JsonConvert.DeserializeObject<MapInfo>(json),
-					Path.GetFileName(path),
-					path,
-					File.GetCreationTime(path)
-				);
-				return info;
+				try {
+					string json = await File.ReadAllTextAsync(path);
+					LocalInfo info = new(
+						JsonConvert.DeserializeObject<MapInfo>(json),
+						Path.GetFileName(path),
+						path,
+						File.GetCreationTime(path)
+					);
+					return info;
+				} catch(FileNotFoundException) {
+					return null;
+				}
 			}
 		}
 

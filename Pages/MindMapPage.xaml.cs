@@ -7,8 +7,10 @@ using MindMap.Entities.Frames;
 using MindMap.Entities.Identifications;
 using MindMap.Entities.Interactions;
 using MindMap.Entities.Locals;
+using MindMap.Entities.Presets;
 using MindMap.Entities.Tags;
 using MindMap.Pages.Interfaces;
+using MindMap.UserControls.MindMapPageControls;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,6 +20,8 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
+using System.Xml.Linq;
+using Xceed.Wpf.Toolkit.PropertyGrid.Attributes;
 
 namespace MindMap.Pages {
 	public partial class MindMapPage: Page, IPage {//Editor Page
@@ -61,21 +65,7 @@ namespace MindMap.Pages {
 			MainCanvas.MouseMove += MainCanvas_MouseMove;
 			MainCanvas.MouseUp += MainCanvas_MouseUp;
 
-			//BackgroundRectangle.MouseLeave += (s, e) => {
-			//	foreach(FrameworkElement item in BackgroundCanvas.Children) {
-			//		if(item.IsMouseOver) {
-			//			return;
-			//		}
-			//	}
-			//	if(multiSelectionFrame.IsMouseOver) {
-			//		return;
-			//	}
-			//	Debug.WriteLine("MouseLeave " + BackgroundCanvas.Children.Count);
-
-			//	multiSelectionFrame.Disappear();
-			//};
-
-			//SizeChanged += (s, e) => UpdateBackgroundDot();
+			LoadElementsPreset();
 
 			HideElementProperties();
 
@@ -112,6 +102,19 @@ namespace MindMap.Pages {
 			MainWindow.Instance?.KeyManager.Remove(Key.LeftCtrl, Key.S);
 			MainWindow.Instance?.KeyManager.Remove(Key.LeftCtrl, Key.Z);
 			MainWindow.Instance?.KeyManager.Remove(Key.LeftCtrl, Key.Y);
+		}
+
+		private void LoadElementsPreset() {
+			if(AppSettings.Current == null) {
+				return;
+			}
+			List<ElementPresetsGroup> presets = AppSettings.Current.ElementPresetsGroups;
+			ElementsPresetsPanel.Children.Clear();
+
+			foreach(ElementPresetsGroup preset in presets) {
+				var group = new ElementPresetsGroupView(this, preset);
+				ElementsPresetsPanel.Children.Add(group);
+			}
 		}
 
 		private void EditHistory_OnUndo(EditHistory.IChange obj) {
@@ -933,7 +936,7 @@ namespace MindMap.Pages {
 			//}
 			List<ElementListViewItem> items = new();
 			foreach(Element item in elements.Values) {
-				items.Add(new ElementListViewItem(item.Icon.icon, item.Icon.fontFamily, item.Identity.Name));
+				items.Add(new ElementListViewItem(item));
 			}
 			MapElementsListView.ItemsSource = items;
 		}
@@ -962,16 +965,35 @@ namespace MindMap.Pages {
 			UpdateBackgroundDot();
 			UpdateCoordiantionRules();
 		}
+
+		private void MapElementsListViewItemGrid_MouseDown(object sender, MouseButtonEventArgs e) {
+			if(sender is not Grid grid || grid.Tag is not Element element) {
+				return;
+			}
+			if(e.ChangedButton == MouseButton.Left && e.ClickCount >= 2) {
+				PutElementOnTop(element);
+				ResizeFrame.Create(this, element);
+				ShowElementProperties(element);
+			}
+		}
+
+		private void MapElementsMenuItemSelect_Click(object sender, RoutedEventArgs e) {
+			if(sender is not MenuItem item || item.Tag is not Element element) {
+				return;
+			}
+			PutElementOnTop(element);
+			ResizeFrame.Create(this, element);
+			ShowElementProperties(element);
+		}
 	}
 
 	public class ElementListViewItem {
-		public string Icon { get; set; }
-		public string FontFamily { get; set; }
-		public string Title { get; set; }
-		public ElementListViewItem(string icon, string fontFamily, string title) {
-			Icon = icon;
-			FontFamily = fontFamily;
-			Title = title;
+		public Element Item { get; set; }
+		public string Icon => Item.Icon.icon;
+		public string FontFamily => Item.Icon.fontFamily;
+		public string Title => Item.Identity.Name;
+		public ElementListViewItem(Element item) {
+			Item = item;
 		}
 	}
 }

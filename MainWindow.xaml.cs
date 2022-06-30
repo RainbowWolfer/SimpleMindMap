@@ -62,12 +62,20 @@ namespace MindMap {
 			}
 		}
 
-		public async void OpenFile(string? path = null) {
+		public async void OpenFile(string? path = null, Action? onErrorAction = null) {
 			LocalInfo? result = await Local.Load(path);
 			if(result != null && result.MapInfo != null) {
 				NavigateToMindMap();
 				if(_mindMapPage != null) {
 					await _mindMapPage.Load(result.MapInfo, result.FileInfo);
+				}
+			} else {
+				if(onErrorAction != null && MessageBox.Show(this,
+					"An error occured when opening this file, would you like to delete this record?",
+					"Error Opening File",
+					MessageBoxButton.YesNo,
+					MessageBoxImage.Error) == MessageBoxResult.Yes) {
+					onErrorAction.Invoke();
 				}
 			}
 		}

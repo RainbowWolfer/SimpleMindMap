@@ -31,11 +31,12 @@ namespace MindMap.Pages {
 			}
 
 			Dictionary<RecentType, StackPanel> panels = new();
-			panels.Add(RecentType.Today, new StackPanel() { Margin = new Thickness(20, 0, 0, 0) });
-			panels.Add(RecentType.Yesterday, new StackPanel() { Margin = new Thickness(20, 0, 0, 0) });
-			panels.Add(RecentType.ThisMonth, new StackPanel() { Margin = new Thickness(20, 0, 0, 0) });
-			panels.Add(RecentType.LastMonth, new StackPanel() { Margin = new Thickness(20, 0, 0, 0) });
-			panels.Add(RecentType.Earlier, new StackPanel() { Margin = new Thickness(20, 0, 0, 0) });
+			var margin = new Thickness(20, 0, 0, 0);
+			panels.Add(RecentType.Today, new StackPanel() { Margin = margin });
+			panels.Add(RecentType.Yesterday, new StackPanel() { Margin = margin });
+			panels.Add(RecentType.ThisMonth, new StackPanel() { Margin = margin });
+			panels.Add(RecentType.LastMonth, new StackPanel() { Margin = margin });
+			panels.Add(RecentType.Earlier, new StackPanel() { Margin = margin });
 
 			//foreach((string name, string path, DateTime time) item in AppSettings.Current.GetDefaultTestValues()) {
 			foreach((string name, string path, DateTime time) item in AppSettings.Current.RecentOpenFilesList) {
@@ -43,13 +44,10 @@ namespace MindMap.Pages {
 				if(!panels.ContainsKey(recentType)) {
 					throw new Exception($"Recent Type ({recentType}) Not Found");
 				}
-				panels[recentType].Children.Add(new RecentFileButton() {
+				var child = new RecentFileButton() {
 					FileName = item.name,
 					Path = item.path,
 					Date = item.time.ToString("yyyy-MM-dd HH:mm"),
-					OnClick = target => {
-						_mainWindow.OpenFile(item.path);
-					},
 					OnDelete = async target => {
 						StackPanel? parent = null;
 						Expander? expander = null;
@@ -76,7 +74,15 @@ namespace MindMap.Pages {
 						});
 						await Local.SaveAppSettings();
 					},
-				});
+				};
+				child.OnClick = target => {
+					_mainWindow.OpenFile(item.path, async () => {
+						panels[recentType].Children.Remove(child);
+						AppSettings.Current.RecentOpenFilesList.Remove(item);
+						await Local.SaveAppSettings();
+					});
+				};
+				panels[recentType].Children.Add(child);
 			}
 			foreach(KeyValuePair<RecentType, StackPanel> item in panels) {
 				if(item.Value.Children.Count == 0) {

@@ -74,5 +74,9 @@ namespace MindMap.Entities.Elements.TextShapes {
 			base.UpdateStyle();
 			_rect.CornerRadius = CornerRadius;
 		}
+
+		public static string GetDefaultPropertyJson() {
+			return JsonConvert.SerializeObject(new Property(), Formatting.Indented);
+		}
 	}
 }

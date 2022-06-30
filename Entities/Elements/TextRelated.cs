@@ -2,6 +2,7 @@
 using MindMap.Entities.Identifications;
 using MindMap.Entities.Locals;
 using MindMap.Pages;
+using System;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Effects;
@@ -111,7 +112,11 @@ namespace MindMap.Entities.Elements {
 			}
 		}
 
-		protected TextRelated(MindMapPage parent, Identity? identity = null) : base(parent, identity) {
+		public void SetText(Func<string, string> restrict) {
+			Text = restrict.Invoke(Text);
+		}
+
+		protected TextRelated(MindMapPage? parent, Identity? identity = null) : base(parent, identity) {
 
 		}
 

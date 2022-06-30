@@ -36,7 +36,7 @@ namespace MindMap.Entities.Elements.TextShapes {
 
 		private readonly Border _rect = new();
 		public override FrameworkElement Shape => _rect;
-		public MyRectangle(MindMapPage parent, Identity? identity = null, string? propertyJson = null) : base(parent, identity) {
+		public MyRectangle(MindMapPage? parent, Identity? identity = null, string? propertyJson = null) : base(parent, identity) {
 			if(!string.IsNullOrWhiteSpace(propertyJson)) {
 				SetProperty(propertyJson);
 			}
@@ -48,6 +48,9 @@ namespace MindMap.Entities.Elements.TextShapes {
 		}
 
 		public override Panel CreateElementProperties() {
+			if(parent == null) {
+				throw BeyondLimitException;
+			}
 			StackPanel panel = new();
 			panel.Children.Add(PropertiesPanel.SectionTitle(Identity.Name, newName => Identity.Name = newName));
 			panel.Children.Add(PropertiesPanel.SliderInput("Cornder Radius", CornerRadius.TopLeft, 0, 100,

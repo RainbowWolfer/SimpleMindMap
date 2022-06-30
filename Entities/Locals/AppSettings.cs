@@ -29,6 +29,9 @@ namespace MindMap.Entities.Locals {
 		public static void Load(string json) {
 			AppSettings? obj = JsonConvert.DeserializeObject<AppSettings>(json);
 			Current = obj ?? GetDefault();
+			if(Current.ElementPresetsGroups.Count <= 1) {
+				Current.ElementPresetsGroups = ElementPresetsGroup.GetDefaultList();
+			}
 		}
 
 		public static AppSettings GetDefault() {

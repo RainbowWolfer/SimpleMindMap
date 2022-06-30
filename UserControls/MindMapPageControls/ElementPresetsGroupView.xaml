@@ -11,23 +11,37 @@
 		<Expander IsExpanded="True">
 			<Expander.Header>
 				<Grid Width="150">
-					<Grid Width="110" HorizontalAlignment="Left">
-						<Rectangle Fill="Transparent"/>
-						<TextBlock x:Name="GroupTextBlock" Text="Group Name"/>
-						<TextBox x:Name="GroupTextBox" Text="Group Name" MaxLength="15" Visibility="Collapsed"/>
+					<Grid Width="98" HorizontalAlignment="Left" VerticalAlignment="Center"	>
+						<Grid.ColumnDefinitions>
+							<ColumnDefinition Width="auto"/>
+							<ColumnDefinition Width="*"/>
+						</Grid.ColumnDefinitions>
+						<Rectangle Fill="Transparent" Grid.ColumnSpan="2"/>
+						<TextBlock x:Name="GroupCountText" Text="(2)" Grid.Column="0"/>
+						<TextBlock x:Name="GroupTextBlock" FontSize="12" Text="Group Name" Margin="3,0,0,0" Grid.Column="1"/>
 					</Grid>
-					<Button x:Name="DeleteButton" HorizontalAlignment="Right" BorderThickness="0" Padding="2" Background="#11111111" Click="DeleteButton_Click">
-						<Button.Resources>
-							<Style TargetType="{x:Type Border}">
-								<Setter Property="CornerRadius" Value="4"/>
-							</Style>
-						</Button.Resources>
-						<TextBlock Text="&#xE107;" FontFamily="Segoe MDL2 Assets"/>
-					</Button>
+					<StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+						<Button x:Name="RenameButton" BorderThickness="0" Padding="5" Background="#11111111" Click="RenameButton_Click">
+							<Button.Resources>
+								<Style TargetType="{x:Type Border}">
+									<Setter Property="CornerRadius" Value="4"/>
+								</Style>
+							</Button.Resources>
+							<TextBlock Text="&#xE13E;" FontSize="12" FontFamily="Segoe MDL2 Assets"/>
+						</Button>
+						<Button x:Name="DeleteButton" BorderThickness="0" Padding="5" Background="#11111111" Click="DeleteButton_Click" Margin="5,0,0,0">
+							<Button.Resources>
+								<Style TargetType="{x:Type Border}">
+									<Setter Property="CornerRadius" Value="4"/>
+								</Style>
+							</Button.Resources>
+							<TextBlock Text="&#xE107;" FontSize="12" FontFamily="Segoe MDL2 Assets"/>
+						</Button>
+					</StackPanel>
 				</Grid>
 			</Expander.Header>
-			<WrapPanel Name="PresetsPanel" HorizontalAlignment="Center">
-				
+			<WrapPanel Name="PresetsPanel" HorizontalAlignment="Left">
+
 			</WrapPanel>
 		</Expander>
 	</Grid>

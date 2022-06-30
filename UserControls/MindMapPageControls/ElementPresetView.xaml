@@ -7,7 +7,7 @@
              mc:Ignorable="d" 
 			 d:Background="White"
              d:DesignHeight="100" d:DesignWidth="86">
-	<Grid Height="100" Width="86">
+	<Grid x:Name="MainGrid" Height="100" Width="86" MouseEnter="Grid_MouseEnter" MouseLeave="Grid_MouseLeave">
 		<Grid.ContextMenu>
 			<ContextMenu>
 				<MenuItem x:Name="RenameMenuItem" Header="Rename" Click="RenameMenuItem_Click">
@@ -46,7 +46,12 @@
 			<RowDefinition Height="*"/>
 			<RowDefinition Height="auto"/>
 		</Grid.RowDefinitions>
-		<Button x:Name="MainButton" Margin="3" Height="80" Width="80" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" Click="MainButton_Click">
+		<Button x:Name="MainButton" Margin="3" Height="80" Width="80" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" Click="MainButton_Click" BorderThickness="0" BorderBrush="Transparent" Background="Transparent" Padding="5">
+			<Button.Resources>
+				<Style TargetType="{x:Type Border}">
+					<Setter Property="CornerRadius" Value="10"/>
+				</Style>
+			</Button.Resources>
 			<Grid x:Name="PresetElementDisplayGrid">
 				<Grid Height="60" Width="60">
 					<Grid.Effect>
@@ -56,7 +61,7 @@
 				</Grid>
 			</Grid>
 		</Button>
-		<Grid Grid.Row="1" MouseEnter="Grid_MouseEnter" MouseLeave="Grid_MouseLeave" LostMouseCapture="Grid_LostMouseCapture" MouseDown="Grid_MouseDown">
+		<Grid Grid.Row="1" LostMouseCapture="Grid_LostMouseCapture" PreviewMouseUp="Grid_PreviewMouseUp">
 			<Rectangle Fill="Transparent"/>
 			<TextBlock x:Name="NameBlock" Text="Hello World" TextAlignment="Center" Height="13" FontSize="10" VerticalAlignment="Center"/>
 			<TextBox x:Name="NameBox" Text="Hello World" MaxLength="20" TextAlignment="Center" VerticalAlignment="Center" FontSize="10" PreviewKeyDown="NameBox_PreviewKeyDown" LostFocus="NameBox_LostFocus"/>

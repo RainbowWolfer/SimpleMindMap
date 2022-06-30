@@ -14,7 +14,7 @@ namespace MindMap.Entities.Elements {
 		public const long ID_Polygon = 3;
 		public const long ID_Image = 4;
 
-		public static Element GetElement(MindMapPage page, long type_id, Identity? identity) {
+		public static Element GetElement(MindMapPage? page, long type_id, Identity? identity) {
 			return type_id switch {
 				ID_Rectangle => new MyRectangle(page, identity),
 				ID_Ellipse => new MyEllipse(page, identity),

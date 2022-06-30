@@ -144,7 +144,7 @@ namespace MindMap.Entities.Elements {
 
 		//private int ImageDefaultHeight = 150;
 
-		public MyImage(MindMapPage parent, Identity? identity = null) : base(parent, identity) {
+		public MyImage(MindMapPage? parent, Identity? identity = null) : base(parent, identity) {
 			BitmapImage bitmapImage = new(new Uri("pack://application:,,,/Images/DefaultImage.png"));
 			ImageSize = new Vector2(bitmapImage.PixelWidth, bitmapImage.PixelHeight);
 			_image.Source = bitmapImage;
@@ -160,6 +160,9 @@ namespace MindMap.Entities.Elements {
 		}
 
 		public override Panel CreateElementProperties() {
+			if(parent == null) {
+				throw BeyondLimitException;
+			}
 			StackPanel panel = new();
 			panel.Children.Add(PropertiesPanel.SectionTitle(Identity.Name,
 				newName => Identity.Name = newName
@@ -231,8 +234,10 @@ namespace MindMap.Entities.Elements {
 		public override void SetFramework() {
 			_root.Children.Clear();
 			AnnotationGrid.Children.Clear();
-			if(!MainCanvas.Children.Contains(_root)) {
-				MainCanvas.Children.Add(_root);
+			if(parent != null) {
+				if(!parent.MainCanvas.Children.Contains(_root)) {
+					parent.MainCanvas.Children.Add(_root);
+				}
 			}
 			_root.Children.Add(_background);
 			_root.Children.Add(_image);
@@ -327,7 +332,7 @@ namespace MindMap.Entities.Elements {
 		}
 
 		public void UpdateImage() {
-			if(ImageKey == null) {
+			if(parent == null || ImageKey == null) {
 				SetImageByBase64(null);
 			} else {
 				string? base64 = parent.imagesAssets.FindBase64(ImageKey);
@@ -336,6 +341,9 @@ namespace MindMap.Entities.Elements {
 		}
 
 		public void SetImageByKey(string key) {
+			if(parent == null) {
+				throw BeyondLimitException;
+			}
 			ImageKey = key;
 			string? base64 = parent.imagesAssets.FindBase64(key);
 			SetImageByBase64(base64);
@@ -354,6 +362,10 @@ namespace MindMap.Entities.Elements {
 				_image.Source = bitmap;
 				ImageSize = new Vector2(bitmap.PixelWidth, bitmap.PixelHeight);
 			}
+		}
+
+		public static string GetDefaultPropertyJson() {
+			return JsonConvert.SerializeObject(new Property(), Formatting.Indented);
 		}
 	}
 }

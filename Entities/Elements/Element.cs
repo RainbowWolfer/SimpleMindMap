@@ -11,6 +11,7 @@ using MindMap.Entities.Tags;
 using MindMap.Pages;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
@@ -29,11 +30,13 @@ namespace MindMap.Entities.Elements {
 
 		public Identity Identity { get; set; }
 
-		protected MindMapPage parent;
+		protected MindMapPage? parent;
 		private bool isLocked = false;
 
 		public ConnectionsFrame? ConnectionsFrame { get; protected set; }
-		protected Canvas MainCanvas => parent.MainCanvas;
+		//protected Canvas? MainCanvas => parent?.MainCanvas;
+
+		//public bool FullFunction => MainCanvas != null && parent != null;
 
 		public abstract FrameworkElement Target { get; }
 
@@ -46,6 +49,9 @@ namespace MindMap.Entities.Elements {
 		}
 
 		public void SetLocked(bool value, bool submitHistory = true) {
+			if(parent == null) {
+				throw BeyondLimitException;
+			}
 			if(submitHistory) {
 				parent.editHistory.SubmitByElementLockStateChange(this, IsLocked, value);
 			}
@@ -62,10 +68,10 @@ namespace MindMap.Entities.Elements {
 			}
 		}
 
-		public Element(MindMapPage parent, Identity? identity = null) {
+		public Element(MindMapPage? parent, Identity? identity = null) {
 			this.parent = parent;
 			Identity = identity ?? new Identity(IntializeID(GetType()), InitializeDefaultName());
-			Identity.OnNameChanged += (n, o) => parent.UpdateHistoryListView();
+			Identity.OnNameChanged += (n, o) => parent?.UpdateHistoryListView();
 			Target.Tag = new ElementFrameworkTag(this);
 			Debug();
 
@@ -140,10 +146,16 @@ namespace MindMap.Entities.Elements {
 		}
 
 		public void CreateConnectionsFrame(ControlsInfo? initialControls = null) {
+			if(parent == null) {
+				throw BeyondLimitException;
+			}
 			ConnectionsFrame = new ConnectionsFrame(this.parent, this, initialControls);
 		}
 
 		public List<ConnectionPath> GetRelatedPaths() {
+			if(parent == null) {
+				throw BeyondLimitException;
+			}
 			if(ConnectionsFrame == null) {
 				return new();
 			}
@@ -341,7 +353,13 @@ namespace MindMap.Entities.Elements {
 		public abstract void Deselect();
 
 		public virtual void Delete(bool submitEditHistory = true) {
+			if(parent == null) {
+				throw BeyondLimitException;
+			}
 			parent.RemoveElement(this, submitEditHistory);
 		}
+
+		protected static Exception BeyondLimitException => new Exception("Parent and canvas is null, it is not supposed to be used in such functions.");
+
 	}
 }

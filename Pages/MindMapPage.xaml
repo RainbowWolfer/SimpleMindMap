@@ -25,7 +25,7 @@
 	</Page.Resources>
 	<Grid>
 		<Grid.ColumnDefinitions>
-			<ColumnDefinition Width="170"/>
+			<ColumnDefinition Width="190"/>
 			<ColumnDefinition Width="auto"/>
 			<ColumnDefinition Width="*"/>
 			<ColumnDefinition Width="auto"/>
@@ -47,33 +47,16 @@
 				<TabItem x:Name="ElementsTabItem" Header="Elements" Width="83">
 					<ScrollViewer VerticalScrollBarVisibility="Auto">
 						<StackPanel x:Name="ElementsPresetsPanel">
-							<Expander Header="Rectangles" IsExpanded="True">
-								<StackPanel>
-									<Button Content="Normal Rectangle" Click="AddRectableButton_Click" Style="{StaticResource MenuButton}"/>
+							<Button x:Name="AddNewGroupButton" Margin="5" Click="AddNewGroupButton_Click">
+								<StackPanel Orientation="Horizontal">
+									<TextBlock FontFamily="Segoe MDL2 Assets" FontWeight="Bold" Text="&#xE109;" FontSize="10" VerticalAlignment="Center"/>
+									<TextBlock Text="Add New Group" Margin="10,0,0,0"/>
 								</StackPanel>
-							</Expander>
-							<Expander Header="Ellipses" IsExpanded="True">
-								<StackPanel>
-									<Button Content="Normal Ellipse" Click="AddEllipseButton_Click" Style="{StaticResource MenuButton}"/>
-								</StackPanel>
-							</Expander>
-							<Expander Header="Polygon" IsExpanded="True">
-								<StackPanel>
-									<Button Content="Octagon" Click="AddPolygonButton_Click" Style="{StaticResource MenuButton}"/>
-								</StackPanel>
-							</Expander>
-							<Expander Header="Images" IsExpanded="True">
-								<StackPanel>
-									<Button Content="Annotation Image" Click="AddImageButton_Click" Style="{StaticResource MenuButton}"/>
-								</StackPanel>
-							</Expander>
-							<Expander Header="Clipboard" IsExpanded="True" Visibility="Collapsed">
-
-							</Expander>
+							</Button>
 						</StackPanel>
 					</ScrollViewer>
 				</TabItem>
-				<TabItem x:Name="PropertiesTabItem" Header="Properties" Width="83">
+				<TabItem x:Name="PropertiesTabItem" Header="Properties" Width="100">
 					<ScrollViewer VerticalScrollBarVisibility="Auto">
 						<StackPanel x:Name="ElementPropertiesPanel">
 							<!-- SelectionChanged=""-->
@@ -195,6 +178,7 @@
 											<ColumnDefinition Width="auto"/>
 											<ColumnDefinition Width="*"/>
 										</Grid.ColumnDefinitions>
+										<Rectangle Fill="Transparent" Grid.ColumnSpan="2" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
 										<TextBlock FontSize="16" Width="17" Height="17" Margin="5" Text="{Binding Icon}" FontFamily="{Binding FontFamily}" VerticalAlignment="Center"/>
 										<TextBlock Grid.Column="1" Text="{Binding Title}" VerticalAlignment="Center"/>
 									</Grid>

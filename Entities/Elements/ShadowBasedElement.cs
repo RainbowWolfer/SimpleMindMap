@@ -72,7 +72,7 @@ namespace MindMap.Entities.Elements {
 			}
 		}
 
-		public ShadowBasedElement(MindMapPage parent, Identity? identity = null) : base(parent, identity) {
+		public ShadowBasedElement(MindMapPage? parent, Identity? identity = null) : base(parent, identity) {
 			//Target.Effect = ShadowEffect;
 		}
 

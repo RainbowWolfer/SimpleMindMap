@@ -29,7 +29,7 @@ namespace MindMap.Entities.Elements.TextShapes {
 		private readonly Ellipse _ellipse = new();
 		public override FrameworkElement Shape => _ellipse;
 
-		public MyEllipse(MindMapPage parent, Identity? identity = null, string? propertyJson = null) : base(parent, identity) {
+		public MyEllipse(MindMapPage? parent, Identity? identity = null, string? propertyJson = null) : base(parent, identity) {
 			if(!string.IsNullOrWhiteSpace(propertyJson)) {
 				SetProperty(propertyJson);
 			}
@@ -58,6 +58,10 @@ namespace MindMap.Entities.Elements.TextShapes {
 		protected override void UpdateStyle() {
 			base.UpdateStyle();
 
+		}
+
+		public static string GetDefaultPropertyJson() {
+			return JsonConvert.SerializeObject(new Property(), Formatting.Indented);
 		}
 
 	}

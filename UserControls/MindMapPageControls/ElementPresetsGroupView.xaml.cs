@@ -23,9 +23,11 @@ namespace MindMap.UserControls.MindMapPageControls {
 			get => group;
 			set {
 				group = value;
+				GroupTextBlock.Text = value.Name;
+				GroupCountText.Text = $"({value.Presets.Count})";
 				PresetsPanel.Children.Clear();
 				foreach(ElementPreset item in value.Presets) {
-					var child = new ElementPresetView(parent, item);
+					var child = new ElementPresetView(parent, item, value.Unchangable);
 					PresetsPanel.Children.Add(child);
 				}
 			}
@@ -38,9 +40,20 @@ namespace MindMap.UserControls.MindMapPageControls {
 			this.parent = parent;
 			this.group = group;
 			Group = group;
+
+			if(Group.Unchangable) {
+				RenameButton.Visibility = Visibility.Collapsed;
+				DeleteButton.Visibility = Visibility.Collapsed;
+				RenameButton.IsEnabled = false;
+				DeleteButton.IsEnabled = false;
+			}
 		}
 
 		private void DeleteButton_Click(object sender, RoutedEventArgs e) {
+
+		}
+
+		private void RenameButton_Click(object sender, RoutedEventArgs e) {
 
 		}
 	}

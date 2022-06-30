@@ -109,11 +109,20 @@ namespace MindMap.Pages {
 				return;
 			}
 			List<ElementPresetsGroup> presets = AppSettings.Current.ElementPresetsGroups;
-			ElementsPresetsPanel.Children.Clear();
+			List<ElementPresetsGroupView> deleted = new();
+			foreach(var item in ElementsPresetsPanel.Children) {
+				if(item is ElementPresetsGroupView view) {
+					deleted.Add(view);
+				}
+			}
 
-			foreach(ElementPresetsGroup preset in presets) {
+			foreach(var item in deleted) {
+				ElementsPresetsPanel.Children.Remove(item);
+			}
+
+			foreach(ElementPresetsGroup preset in presets.Reverse<ElementPresetsGroup>()) {
 				var group = new ElementPresetsGroupView(this, preset);
-				ElementsPresetsPanel.Children.Add(group);
+				ElementsPresetsPanel.Children.Insert(0, group);
 			}
 		}
 
@@ -628,26 +637,11 @@ namespace MindMap.Pages {
 
 		}
 
-		private void AddElementByClick(long id) {
-			Element element = AddElement(id, null, default, default, null, false);
+		public void AddElementByClick(long id, Vector2 size, string propertyJson) {
+			Element element = AddElement(id, null, default, size, null, false);
+			element.SetProperty(propertyJson);
 			Reposition(element);
 			editHistory.SubmitByElementCreated(element);
-		}
-
-		private void AddRectableButton_Click(object sender, RoutedEventArgs e) {
-			AddElementByClick(ElementGenerator.ID_Rectangle);
-		}
-
-		private void AddEllipseButton_Click(object sender, RoutedEventArgs e) {
-			AddElementByClick(ElementGenerator.ID_Ellipse);
-		}
-
-		private void AddPolygonButton_Click(object sender, RoutedEventArgs e) {
-			AddElementByClick(ElementGenerator.ID_Polygon);
-		}
-
-		private void AddImageButton_Click(object sender, RoutedEventArgs e) {
-			AddElementByClick(ElementGenerator.ID_Image);
 		}
 
 		private void Reposition(Element element) {
@@ -970,11 +964,16 @@ namespace MindMap.Pages {
 			if(sender is not Grid grid || grid.Tag is not Element element) {
 				return;
 			}
-			if(e.ChangedButton == MouseButton.Left && e.ClickCount >= 2) {
+			if(e.ChangedButton == MouseButton.Left) {
+				ClearResizePanel();
+				Deselect();
 				PutElementOnTop(element);
-				ResizeFrame.Create(this, element);
-				ShowElementProperties(element);
+				if(e.ClickCount >= 2) {
+					ResizeFrame.Create(this, element);
+					ShowElementProperties(element);
+				}
 			}
+
 		}
 
 		private void MapElementsMenuItemSelect_Click(object sender, RoutedEventArgs e) {
@@ -984,6 +983,20 @@ namespace MindMap.Pages {
 			PutElementOnTop(element);
 			ResizeFrame.Create(this, element);
 			ShowElementProperties(element);
+		}
+
+		private async void AddNewGroupButton_Click(object sender, RoutedEventArgs e) {
+			if(AppSettings.Current == null) {
+				return;
+			}
+			string groupName = $"New Group {AppSettings.Current.ElementPresetsGroups.Count + 1}";
+			var group = new ElementPresetsGroup(groupName);
+			AppSettings.Current.ElementPresetsGroups.Add(group);
+			int index = ElementsPresetsPanel.Children.IndexOf(AddNewGroupButton);
+			var groupView = new ElementPresetsGroupView(this, group);
+			ElementsPresetsPanel.Children.Insert(index, groupView);
+
+			await Local.SaveAppSettings();
 		}
 	}
 

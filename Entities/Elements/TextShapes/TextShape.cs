@@ -60,7 +60,7 @@ namespace MindMap.Entities.Elements.TextShapes {
 		protected abstract TextShapeProperty TextShapeProperties { get; }
 		public override IProperty Properties => TextShapeProperties;
 
-		public TextShape(MindMapPage parent, Identity? identity = null) : base(parent, identity) {
+		public TextShape(MindMapPage? parent, Identity? identity = null) : base(parent, identity) {
 			MyTextBox.KeyDown += (s, e) => {
 				if(e.Key == Key.Escape) {
 					Deselect();
@@ -93,8 +93,10 @@ namespace MindMap.Entities.Elements.TextShapes {
 
 		public override void SetFramework() {
 			root.Children.Clear();
-			if(!MainCanvas.Children.Contains(root)) {
-				MainCanvas.Children.Add(root);
+			if(parent != null) {
+				if(!parent.MainCanvas.Children.Contains(root)) {
+					parent.MainCanvas.Children.Add(root);
+				}
 			}
 			root.Children.Add(MyTextBlock);
 			root.Children.Add(MyTextBox);

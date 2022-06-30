@@ -1,4 +1,5 @@
-﻿using MindMap.Entities.Elements;
+﻿using MindMap.Entities;
+using MindMap.Entities.Elements;
 using MindMap.Entities.Identifications;
 using MindMap.Entities.Presets;
 using MindMap.Pages;
@@ -23,6 +24,7 @@ namespace MindMap.UserControls.MindMapPageControls {
 		private bool edit;
 		private readonly MindMapPage parent;
 
+		//public 
 		public ElementPreset Preset { get; set; }
 
 		public bool IsMouseOn {
@@ -54,7 +56,7 @@ namespace MindMap.UserControls.MindMapPageControls {
 			}
 		}
 
-		public ElementPresetView(MindMapPage parent, ElementPreset preset) {
+		public ElementPresetView(MindMapPage parent, ElementPreset preset, bool unchangable = false) {
 			InitializeComponent();
 			this.parent = parent;
 			Preset = preset;
@@ -62,13 +64,27 @@ namespace MindMap.UserControls.MindMapPageControls {
 			NameBox.Text = preset.Name;
 			Edit = false;
 			DrawElement();
+			if(unchangable) {
+				MainGrid.ContextMenu = null;
+			}
 		}
 
 		private void DrawElement() {
-			Identity identity = new("preset_id", "preset_name");
-			Element element = ElementGenerator.GetElement(parent, Preset.TypeID, identity);
+			Identity identity = new(Preset.TypeID.ToString(), Preset.Name);
+			Element element = ElementGenerator.GetElement(null, Preset.TypeID, identity);
+			if(Preset.TypeID == ElementGenerator.ID_Polygon) {
+				element.SetSize(new Vector2(60, 54));
+			} else {
+				element.SetSize(new Vector2(60, 60));
+			}
 			element.SetFramework();
 			element.SetProperty(Preset.PropertiesJson);
+			if(element is TextRelated text) {
+				text.SetText(t => string.IsNullOrWhiteSpace(t) ? "" : "T");
+			}
+			if(element is MyImage image) {
+				image.SetText(t => "");
+			}
 			PresetElementDisplayGrid.Children.Clear();
 			PresetElementDisplayGrid.Children.Add(element.Target);
 		}
@@ -94,7 +110,7 @@ namespace MindMap.UserControls.MindMapPageControls {
 		}
 
 		private void MainButton_Click(object sender, RoutedEventArgs e) {
-
+			parent.AddElementByClick(Preset.TypeID, Preset.Size, Preset.PropertiesJson);
 		}
 
 		private void Grid_MouseEnter(object sender, MouseEventArgs e) {
@@ -109,7 +125,7 @@ namespace MindMap.UserControls.MindMapPageControls {
 			Edit = false;
 		}
 
-		private void Grid_MouseDown(object sender, MouseButtonEventArgs e) {
+		private void Grid_PreviewMouseUp(object sender, MouseButtonEventArgs e) {
 			Edit = true;
 		}
 
@@ -120,7 +136,7 @@ namespace MindMap.UserControls.MindMapPageControls {
 		}
 
 		private void NameBox_LostFocus(object sender, RoutedEventArgs e) {
-			Edit = false;
+			//Edit = false;
 		}
 	}
 }

@@ -44,7 +44,7 @@ namespace MindMap.Entities.Elements.TextShapes {
 		private readonly Polygon _polygon = new();
 		public override FrameworkElement Shape => _polygon;
 
-		public MyPolygon(MindMapPage parent, Identity? identity = null, string? propertyJson = null) : base(parent, identity) {
+		public MyPolygon(MindMapPage? parent, Identity? identity = null, string? propertyJson = null) : base(parent, identity) {
 			if(!string.IsNullOrWhiteSpace(propertyJson)) {
 				SetProperty(propertyJson);
 			}
@@ -89,6 +89,9 @@ namespace MindMap.Entities.Elements.TextShapes {
 		}
 
 		public override Panel CreateElementProperties() {
+			if(parent == null) {
+				throw BeyondLimitException;
+			}
 			StackPanel panel = new();
 			panel.Children.Add(PropertiesPanel.SectionTitle($"{Identity.Name}", newName => Identity.Name = newName));
 			panel.Children.Add(PropertiesPanel.SliderInput("Polygon Points", PointCount, 3, 20,
@@ -121,5 +124,8 @@ namespace MindMap.Entities.Elements.TextShapes {
 			DrawPolygon(PointCount);
 		}
 
+		public static string GetDefaultPropertyJson() {
+			return JsonConvert.SerializeObject(new Property(), Formatting.Indented);
+		}
 	}
 }

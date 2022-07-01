@@ -13,6 +13,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Entities\Presets\ElementPresetsGroup.cs~RF329cc0b.TMP" />
     <None Remove="Icons\Connection_Add.png" />
     <None Remove="Icons\Connection_Add.psd" />
     <None Remove="Icons\Connection_Remove.png" />
@@ -46,10 +47,6 @@
     <Resource Include="Images\AppIcon_Color.png" />
     <Resource Include="Images\AppIcon_White.png" />
     <Resource Include="Images\DefaultImage.png" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="UserControls\Dialogs\" />
   </ItemGroup>
 
 </Project>

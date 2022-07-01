@@ -1,7 +1,10 @@
-﻿using MindMap.Entities.Presets;
+﻿using MindMap.Entities.Locals;
+using MindMap.Entities.Presets;
 using MindMap.Pages;
+using MindMap.SubWindows.Dialogs;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -27,7 +30,7 @@ namespace MindMap.UserControls.MindMapPageControls {
 				GroupCountText.Text = $"({value.Presets.Count})";
 				PresetsPanel.Children.Clear();
 				foreach(ElementPreset item in value.Presets) {
-					var child = new ElementPresetView(parent, item, value.Unchangable);
+					var child = new ElementPresetView(parent, item, group.Name, value.Unchangable);
 					PresetsPanel.Children.Add(child);
 				}
 			}
@@ -49,12 +52,33 @@ namespace MindMap.UserControls.MindMapPageControls {
 			}
 		}
 
-		private void DeleteButton_Click(object sender, RoutedEventArgs e) {
-
+		private async void DeleteButton_Click(object sender, RoutedEventArgs e) {
+			if(MainWindow.Instance == null || AppSettings.Current == null) {
+				return;
+			}
+			if(MessageBox.Show(MainWindow.Instance, $"Are you sure to delete this group? ({Group.Name})", "Confirm", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes) {
+				parent.RemovePresetGroup(Group);
+				AppSettings.Current.ElementPresetsGroups.Remove(Group);
+				await Local.SaveAppSettings();
+			}
 		}
 
-		private void RenameButton_Click(object sender, RoutedEventArgs e) {
-
+		private async void RenameButton_Click(object sender, RoutedEventArgs e) {
+			if(MainWindow.Instance == null || AppSettings.Current == null) {
+				return;
+			}
+			var exist = AppSettings.Current.ElementPresetsGroups.Select(x => x.Name);
+			var dialog = new RenameDialog(MainWindow.Instance, exist, Group.Name);
+			var result = dialog.ShowDialog();
+			if(result == true) {
+				string text = dialog.GetNewName();
+				ElementPresetsGroup? found = AppSettings.Current.ElementPresetsGroups.Find(i => i == Group);
+				if(found != null) {
+					found.Name = text;
+					Group = found;
+					await Local.SaveAppSettings();
+				}
+			}
 		}
 	}
 }

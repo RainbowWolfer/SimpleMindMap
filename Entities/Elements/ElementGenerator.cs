@@ -23,5 +23,15 @@ namespace MindMap.Entities.Elements {
 				_ => throw new Exception($"ID({type_id}) Not Found"),
 			};
 		}
+
+		public static string GetTypeDefaultName(long typeID) {
+			return typeID switch {
+				ID_Rectangle => "Rectangle",
+				ID_Ellipse => "Ellipse",
+				ID_Polygon => "Polygon",
+				ID_Image => "Image",
+				_ => $"Type {typeID} not found",
+			};
+		}
 	}
 }

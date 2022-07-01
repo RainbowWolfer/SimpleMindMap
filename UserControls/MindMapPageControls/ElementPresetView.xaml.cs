@@ -1,8 +1,10 @@
 ﻿using MindMap.Entities;
 using MindMap.Entities.Elements;
 using MindMap.Entities.Identifications;
+using MindMap.Entities.Locals;
 using MindMap.Entities.Presets;
 using MindMap.Pages;
+using MindMap.SubWindows.Dialogs;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,10 +23,8 @@ using System.Windows.Shapes;
 namespace MindMap.UserControls.MindMapPageControls {
 	public partial class ElementPresetView: UserControl {
 		private bool isMouseOn;
-		private bool edit;
 		private readonly MindMapPage parent;
 
-		//public 
 		public ElementPreset Preset { get; set; }
 
 		public bool IsMouseOn {
@@ -34,35 +34,14 @@ namespace MindMap.UserControls.MindMapPageControls {
 				parent.Cursor = value ? Cursors.Hand : null;
 			}
 		}
+		private readonly string groupName;
 
-		public bool Edit {
-			get => edit;
-			set {
-				edit = value;
-				if(value) {
-					NameBox.Text = NameBlock.Text;
-					NameBlock.Visibility = Visibility.Collapsed;
-					NameBox.Visibility = Visibility.Visible;
-					NameBox.Focus();
-					NameBox.SelectionStart = NameBox.Text.Length;
-				} else {
-					if(string.IsNullOrWhiteSpace(NameBox.Text)) {
-						NameBlock.Text = NameBox.Text;
-						Preset.Name = NameBox.Text;
-					}
-					NameBlock.Visibility = Visibility.Visible;
-					NameBox.Visibility = Visibility.Collapsed;
-				}
-			}
-		}
-
-		public ElementPresetView(MindMapPage parent, ElementPreset preset, bool unchangable = false) {
+		public ElementPresetView(MindMapPage parent, ElementPreset preset, string groupName, bool unchangable = false) {
 			InitializeComponent();
 			this.parent = parent;
+			this.groupName = groupName;
 			Preset = preset;
 			NameBlock.Text = preset.Name;
-			NameBox.Text = preset.Name;
-			Edit = false;
 			DrawElement();
 			if(unchangable) {
 				MainGrid.ContextMenu = null;
@@ -89,24 +68,37 @@ namespace MindMap.UserControls.MindMapPageControls {
 			PresetElementDisplayGrid.Children.Add(element.Target);
 		}
 
-		private void RenameMenuItem_Click(object sender, RoutedEventArgs e) {
-
+		private async void RenameMenuItem_Click(object sender, RoutedEventArgs e) {
+			if(MainWindow.Instance == null || AppSettings.Current == null) {
+				return;
+			}
+			var group = AppSettings.Current.ElementPresetsGroups.Find(f => f.Name == groupName);
+			if(group == null) {
+				return;
+			}
+			var dialog = new RenameDialog(MainWindow.Instance, group.Presets.Select(p => p.Name), Preset.Name);
+			if(dialog.ShowDialog() == true) {
+				var name = dialog.GetNewName();
+				Preset.Name = name;
+				NameBlock.Text = Preset.Name;
+				await Local.SaveAppSettings();
+			}
 		}
 
 		private void TopMenuItem_Click(object sender, RoutedEventArgs e) {
-
+			parent.MovePresetToTop(Preset, groupName);
 		}
 
 		private void PreviousMenuItem_Click(object sender, RoutedEventArgs e) {
-
+			parent.MovePresetToLeft(Preset, groupName);
 		}
 
 		private void NextMenuItem_Click(object sender, RoutedEventArgs e) {
-
+			parent.MovePresetToRight(Preset, groupName);
 		}
 
 		private void DeleteMenuItem_Click(object sender, RoutedEventArgs e) {
-
+			parent.RemoveFromPresetGroup(Preset, groupName);
 		}
 
 		private void MainButton_Click(object sender, RoutedEventArgs e) {
@@ -119,24 +111,6 @@ namespace MindMap.UserControls.MindMapPageControls {
 
 		private void Grid_MouseLeave(object sender, MouseEventArgs e) {
 			IsMouseOn = false;
-		}
-
-		private void Grid_LostMouseCapture(object sender, MouseEventArgs e) {
-			Edit = false;
-		}
-
-		private void Grid_PreviewMouseUp(object sender, MouseButtonEventArgs e) {
-			Edit = true;
-		}
-
-		private void NameBox_PreviewKeyDown(object sender, KeyEventArgs e) {
-			if(e.Key == Key.Escape || e.Key == Key.Enter) {
-				Edit = false;
-			}
-		}
-
-		private void NameBox_LostFocus(object sender, RoutedEventArgs e) {
-			//Edit = false;
 		}
 	}
 }

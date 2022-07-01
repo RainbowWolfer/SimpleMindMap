@@ -182,6 +182,12 @@ namespace MindMap.Entities.Elements {
 		public virtual void CreateFlyoutMenu() {
 			FlyoutMenu.CreateBase(Target, (s, e) => Delete());
 			Target.ContextMenu.Items.Add(menuItem_lock);
+			MenuItem item_addPreset = new MenuItem() {
+				Header = "Add to preset",
+				Icon = new FontIcon("\uE109", 14).Generate(),
+			};
+			item_addPreset.Click += (s, e) => AddToPreset();
+			Target.ContextMenu.Items.Add(item_addPreset);
 		}
 
 		public static List<Panel> CreatePropertiesList(IPropertiesContainer container, EditHistory editHistory) {
@@ -357,6 +363,13 @@ namespace MindMap.Entities.Elements {
 				throw BeyondLimitException;
 			}
 			parent.RemoveElement(this, submitEditHistory);
+		}
+
+		public virtual void AddToPreset() {
+			if(parent == null) {
+				throw BeyondLimitException;
+			}
+			parent.CallAddToPresetDialog(this);
 		}
 
 		protected static Exception BeyondLimitException => new Exception("Parent and canvas is null, it is not supposed to be used in such functions.");

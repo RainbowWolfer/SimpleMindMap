@@ -10,7 +10,9 @@ using MindMap.Entities.Locals;
 using MindMap.Entities.Presets;
 using MindMap.Entities.Tags;
 using MindMap.Pages.Interfaces;
+using MindMap.SubWindows.Dialogs;
 using MindMap.UserControls.MindMapPageControls;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -123,6 +125,131 @@ namespace MindMap.Pages {
 			foreach(ElementPresetsGroup preset in presets.Reverse<ElementPresetsGroup>()) {
 				var group = new ElementPresetsGroupView(this, preset);
 				ElementsPresetsPanel.Children.Insert(0, group);
+			}
+		}
+
+		public void RemovePresetGroup(ElementPresetsGroup group) {
+			foreach(var item in ElementsPresetsPanel.Children) {
+				if(item is ElementPresetsGroupView view && view.Group == group) {
+					ElementsPresetsPanel.Children.Remove(view);
+					break;
+				}
+			}
+		}
+
+		public void CallAddToPresetDialog(Element element) {
+			if(MainWindow.Instance == null || AppSettings.Current == null) {
+				return;
+			}
+			if(AppSettings.Current.ElementPresetsGroups.Where(i => !i.Unchangable).Count() == 0) {
+				MessageBox.Show(MainWindow.Instance, "You don't have any presets group except default. \nPlease create a new one by clicking 'Add New Group' on the left.", "Problem", MessageBoxButton.OK, MessageBoxImage.Information);
+				return;
+			}
+			var dialog = new ElementPresetsGroupSelectorView(MainWindow.Instance, element.ElementTypeName);
+			dialog.ShowDialog();
+			if(dialog.DialogResult == true && dialog.CurrentSelected != null && dialog.NameValid) {
+				AddToPresetGroup(element, dialog.CurrentSelected, dialog.NewNameText);
+			}
+		}
+
+		public async void AddToPresetGroup(Element element, ElementPresetsGroup group, string newName) {
+			var preset = new ElementPreset(
+				newName,
+				element.TypeID,
+				JsonConvert.SerializeObject(element.Properties, Formatting.Indented),
+				element.GetSize());
+			group.Presets.Add(preset);
+			UpdatePresetGroup(group);
+			await Local.SaveAppSettings();
+		}
+
+		public async void RemoveFromPresetGroup(ElementPreset preset, string? groupName = null) {
+			if(AppSettings.Current == null) {
+				return;
+			}
+			ElementPresetsGroup? found = null;
+			if(string.IsNullOrWhiteSpace(groupName)) {
+				found = AppSettings.Current.ElementPresetsGroups.Find(p => p.Name == groupName);
+				if(found == null) {
+					return;
+				}
+				found.Presets.Remove(preset);
+			} else {//not tested in this section
+				foreach(ElementPresetsGroup item in AppSettings.Current.ElementPresetsGroups) {
+					foreach(ElementPreset p in item.Presets) {
+						if(p == preset) {
+							found = item;
+							break;
+						}
+					}
+					if(found != null) {
+						found.Presets.Remove(preset);
+					}
+				}
+			}
+			if(found != null) {
+				UpdatePresetGroup(found);
+				await Local.SaveAppSettings();
+			}
+		}
+
+		public async void MovePresetToTop(ElementPreset preset, string groupName) {
+			if(AppSettings.Current == null || string.IsNullOrEmpty(groupName)) {
+				return;
+			}
+			ElementPresetsGroup? found = AppSettings.Current.ElementPresetsGroups.Find(p => p.Name == groupName);
+			if(found == null || found.Presets.IndexOf(preset) <= 0) {//already at first or index cannot be found
+				return;
+			}
+			found.Presets.Remove(preset);
+			found.Presets.Insert(0, preset);
+
+			UpdatePresetGroup(found);
+			await Local.SaveAppSettings();
+		}
+
+		public async void MovePresetToLeft(ElementPreset preset, string groupName) {
+			if(AppSettings.Current == null || string.IsNullOrEmpty(groupName)) {
+				return;
+			}
+			ElementPresetsGroup? found = AppSettings.Current.ElementPresetsGroups.Find(p => p.Name == groupName);
+			if(found == null) {
+				return;
+			}
+			int index = found.Presets.IndexOf(preset);
+			if(index <= 0) {//same as above
+				return;
+			}
+			found.Presets.Remove(preset);
+			found.Presets.Insert(index - 1, preset);
+			UpdatePresetGroup(found);
+			await Local.SaveAppSettings();
+		}
+
+		public async void MovePresetToRight(ElementPreset preset, string groupName) {
+			if(AppSettings.Current == null || string.IsNullOrEmpty(groupName)) {
+				return;
+			}
+			ElementPresetsGroup? found = AppSettings.Current.ElementPresetsGroups.Find(p => p.Name == groupName);
+			if(found == null) {
+				return;
+			}
+			int index = found.Presets.IndexOf(preset);
+			if(index == -1 || index == found.Presets.Count - 2) {
+				return;
+			}
+			found.Presets.Remove(preset);
+			found.Presets.Insert(index + 1, preset);
+			UpdatePresetGroup(found);
+			await Local.SaveAppSettings();
+		}
+
+		private void UpdatePresetGroup(ElementPresetsGroup group) {
+			foreach(var item in ElementsPresetsPanel.Children) {
+				if(item is ElementPresetsGroupView view && view.Group == group) {
+					view.Group = group;
+					break;
+				}
 			}
 		}
 

@@ -61,10 +61,9 @@
 				</Grid>
 			</Grid>
 		</Button>
-		<Grid Grid.Row="1" LostMouseCapture="Grid_LostMouseCapture" PreviewMouseUp="Grid_PreviewMouseUp">
+		<Grid Grid.Row="1">
 			<Rectangle Fill="Transparent"/>
 			<TextBlock x:Name="NameBlock" Text="Hello World" TextAlignment="Center" Height="13" FontSize="10" VerticalAlignment="Center"/>
-			<TextBox x:Name="NameBox" Text="Hello World" MaxLength="20" TextAlignment="Center" VerticalAlignment="Center" FontSize="10" PreviewKeyDown="NameBox_PreviewKeyDown" LostFocus="NameBox_LostFocus"/>
 		</Grid>
 	</Grid>
 </UserControl>

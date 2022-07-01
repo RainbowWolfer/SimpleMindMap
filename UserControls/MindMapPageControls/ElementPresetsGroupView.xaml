@@ -21,7 +21,7 @@
 						<TextBlock x:Name="GroupTextBlock" FontSize="12" Text="Group Name" Margin="3,0,0,0" Grid.Column="1"/>
 					</Grid>
 					<StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-						<Button x:Name="RenameButton" BorderThickness="0" Padding="5" Background="#11111111" Click="RenameButton_Click">
+						<Button x:Name="RenameButton" BorderThickness="0" Padding="5" Background="#11111111" Click="RenameButton_Click" ToolTipService.ToolTip="Rename">
 							<Button.Resources>
 								<Style TargetType="{x:Type Border}">
 									<Setter Property="CornerRadius" Value="4"/>
@@ -29,7 +29,7 @@
 							</Button.Resources>
 							<TextBlock Text="&#xE13E;" FontSize="12" FontFamily="Segoe MDL2 Assets"/>
 						</Button>
-						<Button x:Name="DeleteButton" BorderThickness="0" Padding="5" Background="#11111111" Click="DeleteButton_Click" Margin="5,0,0,0">
+						<Button x:Name="DeleteButton" BorderThickness="0" Padding="5" Background="#11111111" Click="DeleteButton_Click" Margin="5,0,0,0" ToolTipService.ToolTip="Delete">
 							<Button.Resources>
 								<Style TargetType="{x:Type Border}">
 									<Setter Property="CornerRadius" Value="4"/>

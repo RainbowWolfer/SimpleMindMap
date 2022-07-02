@@ -85,10 +85,10 @@ namespace MindMap.Pages {
 				() => holdShift = true,
 				() => holdShift = false,
 			false, Key.LeftShift);
-			MainWindow.Instance?.KeyManager.Register(
-				() => Save(),
-				() => { },
-			true, Key.LeftCtrl, Key.S);
+			//MainWindow.Instance?.KeyManager.Register(
+			//	() => Save(),
+			//	() => { },
+			//true, Key.LeftCtrl, Key.S);
 			MainWindow.Instance?.KeyManager.Register(
 				() => Undo(),
 				() => { },
@@ -341,13 +341,13 @@ namespace MindMap.Pages {
 
 		public async void Save(bool saveAs = false) {
 			SavingPanel.Visibility = Visibility.Visible;
-			savePath = await Local.Save(
+			savePath = (await Local.Save(
 				elements.Values.ToList(),
 				connectionsManager,
 				editHistory,
 				imagesAssets,
 				saveAs ? null : savePath
-			);
+			)) ?? savePath;
 			if(!string.IsNullOrWhiteSpace(savePath)) {
 				FileName = savePath[(savePath.LastIndexOf('\\') + 1)..];
 				HasChanged = false;
@@ -364,6 +364,7 @@ namespace MindMap.Pages {
 			LoadingPanel.Visibility = Visibility.Visible;
 			FileName = fileInfo.FileName;
 			savePath = fileInfo.FilePath;
+			MainWindow.SetTitle($"{App.Name} - {FileName}");
 			CreatedDateText.Text = $"Created Date ({fileInfo.CreatedDate})";
 			await AddRecentOpenFile(FileName, savePath);
 
@@ -764,9 +765,12 @@ namespace MindMap.Pages {
 
 		}
 
-		public void AddElementByClick(long id, Vector2 size, string propertyJson) {
+		public void AddElementByClick(long id, Vector2 size, string propertyJson, bool isInDefaultGroup = false) {
 			Element element = AddElement(id, null, default, size, null, false);
 			element.SetProperty(propertyJson);
+			if(isInDefaultGroup && element is TextRelated text) {
+				text.SetText(f => AppSettings.Current?.ElementDefaultText ?? f);
+			}
 			Reposition(element);
 			editHistory.SubmitByElementCreated(element);
 		}
@@ -1116,7 +1120,17 @@ namespace MindMap.Pages {
 			if(AppSettings.Current == null) {
 				return;
 			}
-			string groupName = $"New Group {AppSettings.Current.ElementPresetsGroups.Count + 1}";
+			const int MAX_WHILE_LIMIT = 100;//make sure no duplicate name
+			string groupName;
+			int count = AppSettings.Current.ElementPresetsGroups.Count + 1;
+			int triedCount = 0;
+			do {
+				groupName = $"New Group {count++}";
+				triedCount++;
+			} while(AppSettings.Current.ElementPresetsGroups.Select(g => g.Name).Contains(groupName) && triedCount < MAX_WHILE_LIMIT);
+			if(AppSettings.Current.ElementPresetsGroups.Select(g => g.Name).Contains(groupName)) {
+				groupName = $"New Group {new string(DateTime.Now.Ticks.ToString().TakeLast(5).ToArray())}";
+			}
 			var group = new ElementPresetsGroup(groupName);
 			AppSettings.Current.ElementPresetsGroups.Add(group);
 			int index = ElementsPresetsPanel.Children.IndexOf(AddNewGroupButton);

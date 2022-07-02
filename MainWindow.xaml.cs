@@ -4,7 +4,9 @@ using MindMap.Pages;
 using MindMap.Pages.Interfaces;
 using MindMap.SubWindows;
 using System;
+using System.Diagnostics;
 using System.Windows;
+using System.Windows.Input;
 using System.Windows.Media.Imaging;
 
 namespace MindMap {
@@ -29,9 +31,7 @@ namespace MindMap {
 			KeyManager = new ComboKeyManager(this);
 
 			MainFrame.Navigate(new InitializingPage(this));
-
-			Icon = new BitmapImage(new Uri("pack://application:,,,/Images/AppIcon_Color.png"));
-			SetTitle("Mind Map");
+			SetTitle(App.Name);
 		}
 
 		private void AboutThisMenuItem_Click(object sender, RoutedEventArgs e) {
@@ -44,6 +44,7 @@ namespace MindMap {
 
 		public void NavigateToMindMap() {
 			ClosePreviousPage();
+			SetTitle(App.Name);
 			_mindMapPage = new MindMapPage();
 			MainFrame.Navigate(_mindMapPage);
 			_mindMapPage.Focus();
@@ -96,27 +97,15 @@ namespace MindMap {
 		}
 
 		private void NewFileMenuItem_Click(object sender, RoutedEventArgs e) {
-			if(_mindMapPage?.HasChanged ?? false) {
-				MessageBoxResult result = MessageBox.Show(this, "You have unsaved file. Are you sure to start a new canvas?", "New File", MessageBoxButton.OKCancel, MessageBoxImage.Warning);
-				if(result != MessageBoxResult.OK) {
-					return;
-				}
-			}
-			NavigateToMindMap();
+			New();
 		}
 
 		private void SaveMenuItem_Click(object sender, RoutedEventArgs e) {
-			_mindMapPage?.Save();
+			Save();
 		}
 
 		private void OpenFileMenuItem_Click(object sender, RoutedEventArgs e) {
-			if(_mindMapPage?.HasChanged ?? false) {
-				MessageBoxResult result = MessageBox.Show(this, "You have unsaved file. Are you sure to open another canvas?", "Open File", MessageBoxButton.OKCancel, MessageBoxImage.Warning);
-				if(result != MessageBoxResult.OK) {
-					return;
-				}
-			}
-			OpenFile();
+			Open();
 		}
 
 		private void RedoMenuItem_Click(object sender, RoutedEventArgs e) {
@@ -128,10 +117,54 @@ namespace MindMap {
 		}
 
 		private void SaveAsMenuItem_Click(object sender, RoutedEventArgs e) {
-			_mindMapPage?.Save(true);
+			SaveAs();
 		}
 
 		private void ExitMenuItem_Click(object sender, RoutedEventArgs e) {
+			Quit();
+		}
+
+		private void SettingsMenuItem_Click(object sender, RoutedEventArgs e) {
+			new SettingsWindow(this, _mindMapPage).ShowDialog();
+		}
+
+		private void BackMenuItem_Click(object sender, RoutedEventArgs e) {
+			NavigateToWelcomePage();
+		}
+
+		private void ExitCommandBinding_Executed(object sender, ExecutedRoutedEventArgs e) {
+			Quit();
+		}
+
+		private void Save() {
+			_mindMapPage?.Save();
+		}
+
+		private void SaveAs() {
+			_mindMapPage?.Save(true);
+		}
+
+		private void New() {
+			if(_mindMapPage?.HasChanged ?? false) {
+				MessageBoxResult result = MessageBox.Show(this, "You have unsaved file. Are you sure to start a new canvas?", "New File", MessageBoxButton.OKCancel, MessageBoxImage.Warning);
+				if(result != MessageBoxResult.OK) {
+					return;
+				}
+			}
+			NavigateToMindMap();
+		}
+
+		private void Open() {
+			if(_mindMapPage?.HasChanged ?? false) {
+				MessageBoxResult result = MessageBox.Show(this, "You have unsaved file. Are you sure to open another canvas?", "Open File", MessageBoxButton.OKCancel, MessageBoxImage.Warning);
+				if(result != MessageBoxResult.OK) {
+					return;
+				}
+			}
+			OpenFile();
+		}
+
+		private void Quit() {
 			if(_mindMapPage?.HasChanged ?? false) {
 				MessageBoxResult result = MessageBox.Show(this, "You have unsaved file. Are you sure to quit?", "Exit", MessageBoxButton.OKCancel, MessageBoxImage.Warning);
 				if(result != MessageBoxResult.OK) {
@@ -141,12 +174,24 @@ namespace MindMap {
 			Application.Current.Shutdown();
 		}
 
-		private void SettingsMenuItem_Click(object sender, RoutedEventArgs e) {
-			new SettingsWindow(this, _mindMapPage).ShowDialog();
+		private void OpenCommandBinding_Executed(object sender, ExecutedRoutedEventArgs e) {
+			Open();
 		}
 
-		private void BackMenuItem_Click(object sender, RoutedEventArgs e) {
-			NavigateToWelcomePage();
+		private void NewCommandBinding_Executed(object sender, ExecutedRoutedEventArgs e) {
+			New();
+		}
+
+		private void SaveAsCommandBinding_Executed(object sender, ExecutedRoutedEventArgs e) {
+			SaveAs();
+		}
+
+		private void SaveCommandBinding_Executed(object sender, ExecutedRoutedEventArgs e) {
+			Save();
+		}
+
+		private void ReleaseNoteMenuItem_Click(object sender, RoutedEventArgs e) {
+			new ReleaseNoteWindow(this).ShowDialog();
 		}
 	}
 }

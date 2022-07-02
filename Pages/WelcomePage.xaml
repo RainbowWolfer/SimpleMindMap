@@ -15,10 +15,10 @@
 			<RowDefinition Height="*"/>
 			<!--<RowDefinition Height="*"/>-->
 		</Grid.RowDefinitions>
-		<Grid Height="120">
+		<Grid Height="100">
 			<StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
 				<TextBlock Text="Simple Mind Map" Grid.Row="0" FontSize="48"/>
-				<TextBlock Text=" By RainbowWolfer" Grid.Row="0" FontSize="24" TextAlignment="Center"/>
+				<TextBlock Text=" By RainbowWolfer" Grid.Row="0" FontSize="24" TextAlignment="Center" Visibility="Collapsed"/>
 			</StackPanel>
 		</Grid>
 		<Grid Grid.Row="1" Margin="70,0,70,20">

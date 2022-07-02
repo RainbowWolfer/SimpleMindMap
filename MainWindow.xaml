@@ -4,9 +4,25 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:MindMap" 
+		xmlns:cm="clr-namespace:MindMap.Entities.Commands"
 		xmlns:usercontrols="clr-namespace:MindMap.UserControls"
 		mc:Ignorable="d"
-        Title="MainWindow" Height="600" Width="1000">
+		Icon="/Images/AppIcon_Color.png"
+        Title="Simple Mind Map" Height="600" Width="1000">
+	<Window.CommandBindings>
+		<CommandBinding Command="cm:CustomCommands.Exit" Executed="ExitCommandBinding_Executed"/>
+		<CommandBinding Command="cm:CustomCommands.Open" Executed="OpenCommandBinding_Executed"/>
+		<CommandBinding Command="cm:CustomCommands.New" Executed="NewCommandBinding_Executed"/>
+		<CommandBinding Command="cm:CustomCommands.Save" Executed="SaveCommandBinding_Executed"/>
+		<CommandBinding Command="cm:CustomCommands.SaveAs" Executed="SaveAsCommandBinding_Executed"/>
+	</Window.CommandBindings>
+	<Window.InputBindings>
+		<KeyBinding Key="E" Modifiers="Control" Command="cm:CustomCommands.Exit"/>
+		<KeyBinding Key="O" Modifiers="Control" Command="cm:CustomCommands.Open"/>
+		<KeyBinding Key="N" Modifiers="Control" Command="cm:CustomCommands.New"/>
+		<KeyBinding Key="S" Modifiers="Control" Command="cm:CustomCommands.Save"/>
+		<KeyBinding Key="S" Modifiers="Control+Shift" Command="cm:CustomCommands.SaveAs"/>
+	</Window.InputBindings>
 	<Grid>
 		<Grid.RowDefinitions>
 			<RowDefinition Height="auto"/>
@@ -14,21 +30,22 @@
 		</Grid.RowDefinitions>
 		<Menu x:Name="MainMenu" IsEnabled="False">
 			<MenuItem Header="Files">
-				<MenuItem x:Name="NewFileMenuItem" Header="New Item" Click="NewFileMenuItem_Click"/>
-				<MenuItem x:Name="OpenFileMenuItem" Header="Open File" Click="OpenFileMenuItem_Click"/>
+				<MenuItem x:Name="NewFileMenuItem" Header="New Item" Click="NewFileMenuItem_Click" Command="cm:CustomCommands.New" InputGestureText="Ctrl+N"/>
+				<MenuItem x:Name="OpenFileMenuItem" Header="Open File" Click="OpenFileMenuItem_Click" Command="cm:CustomCommands.Open" InputGestureText="Ctrl+O"/>
 				<Separator/>
-				<MenuItem x:Name="SaveMenuItem" Header="Save" Click="SaveMenuItem_Click"/>
-				<MenuItem x:Name="SaveAsMenuItem" Header="Save As" Click="SaveAsMenuItem_Click"/>
+				<MenuItem x:Name="SaveMenuItem" Header="Save" Click="SaveMenuItem_Click" Command="cm:CustomCommands.Save" InputGestureText="Ctrl+S"/>
+				<MenuItem x:Name="SaveAsMenuItem" Header="Save As" Click="SaveAsMenuItem_Click" Command="cm:CustomCommands.SaveAs" InputGestureText="Ctrl+Shift+S"/>
 				<Separator/>
 				<MenuItem x:Name="BackMenuItem" Header="Start Page" Click="BackMenuItem_Click"/>
-				<MenuItem x:Name="ExitMenuItem" Header="Exit" Click="ExitMenuItem_Click"/>
+				<MenuItem x:Name="ExitMenuItem" Header="Exit" Command="cm:CustomCommands.Exit" Click="ExitMenuItem_Click" InputGestureText="Ctrl+E"/>
 			</MenuItem>
 			<MenuItem Header="Edit">
-				<MenuItem x:Name="RedoMenuItem" Header="Redo" Click="RedoMenuItem_Click"/>
-				<MenuItem x:Name="UndoMenuItem" Header="Undo" Click="UndoMenuItem_Click"/>
+				<MenuItem x:Name="RedoMenuItem" Header="Redo" Click="RedoMenuItem_Click" InputGestureText="Ctrl+Z"/>
+				<MenuItem x:Name="UndoMenuItem" Header="Undo" Click="UndoMenuItem_Click" InputGestureText="Ctrl+Y"/>
 			</MenuItem>
 			<MenuItem Header="More">
 				<MenuItem x:Name="SettingsMenuItem" Header="Settings" Click="SettingsMenuItem_Click"/>
+				<MenuItem x:Name="ReleaseNoteMenuItem" Header="Release Notes" Click="ReleaseNoteMenuItem_Click"/>
 				<MenuItem x:Name="AboutThisMenuItem" Header="About This" Click="AboutThisMenuItem_Click"/>
 			</MenuItem>
 		</Menu>

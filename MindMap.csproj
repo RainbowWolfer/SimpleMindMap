@@ -24,6 +24,9 @@
     <None Remove="Icons\Element_Add.psd" />
     <None Remove="Icons\Element_Remove.png" />
     <None Remove="Icons\Element_Remove.psd" />
+    <None Remove="Icons\IconInfo.png" />
+    <None Remove="Icons\IconSetting.png" />
+    <None Remove="Icons\IconUpdate.png" />
     <None Remove="Images\20210620_130110.jpg" />
     <None Remove="Images\AppIcon_Black.png" />
     <None Remove="Images\AppIcon_Color.png" />
@@ -42,6 +45,9 @@
     <Resource Include="Icons\ElementConnectionFrameControlsChange.png" />
     <Resource Include="Icons\Element_Add.png" />
     <Resource Include="Icons\Element_Remove.png" />
+    <Resource Include="Icons\IconInfo.png" />
+    <Resource Include="Icons\IconSetting.png" />
+    <Resource Include="Icons\IconUpdate.png" />
     <Resource Include="Images\20210620_130110.jpg" />
     <Resource Include="Images\AppIcon_Black.png" />
     <Resource Include="Images\AppIcon_Color.png" />

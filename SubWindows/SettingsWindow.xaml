@@ -9,6 +9,7 @@
         SizeToContent="WidthAndHeight"
         ResizeMode="NoResize"
         Title="Settings"
+		Icon="/Icons/IconSetting.png"
         ShowInTaskbar="False"
         WindowStartupLocation="CenterOwner"
         MinHeight="300"

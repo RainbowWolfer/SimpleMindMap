@@ -102,7 +102,12 @@ namespace MindMap.UserControls.MindMapPageControls {
 		}
 
 		private void MainButton_Click(object sender, RoutedEventArgs e) {
-			parent.AddElementByClick(Preset.TypeID, Preset.Size, Preset.PropertiesJson);
+			var isDefault = false;
+			var found = AppSettings.Current?.ElementPresetsGroups.Find(i => i.Unchangable);
+			if(found != null) {
+				isDefault = found.Presets.Contains(Preset);
+			}
+			parent.AddElementByClick(Preset.TypeID, Preset.Size, Preset.PropertiesJson, isDefault);
 		}
 
 		private void Grid_MouseEnter(object sender, MouseEventArgs e) {

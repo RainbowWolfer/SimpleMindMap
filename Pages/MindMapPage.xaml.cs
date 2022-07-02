@@ -2,7 +2,6 @@
 using MindMap.Entities.Connections;
 using MindMap.Entities.Elements;
 using MindMap.Entities.Elements.Interfaces;
-using MindMap.Entities.Elements.TextShapes;
 using MindMap.Entities.Frames;
 using MindMap.Entities.Identifications;
 using MindMap.Entities.Interactions;
@@ -22,8 +21,6 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
-using System.Xml.Linq;
-using Xceed.Wpf.Toolkit.PropertyGrid.Attributes;
 
 namespace MindMap.Pages {
 	public partial class MindMapPage: Page, IPage {//Editor Page

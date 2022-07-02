@@ -311,7 +311,7 @@ namespace MindMap.Entities.Connections {
 				grid.MouseLeave += (s, e) => MouseExit();
 
 				box.PreviewKeyDown += (s, e) => {
-					if(e.Key == Key.Escape || e.Key == Key.Enter) {
+					if(e.Key is Key.Escape or Key.Enter) {
 						Deselect();
 					}
 				};
@@ -456,21 +456,12 @@ namespace MindMap.Entities.Connections {
 				new(new FontIcon("\uE123", 16), PathType.RightAngle.ToString()),
 				new(new FontIcon("\uE123", 16), PathType.Straight.ToString()),
 			};
-			int pathTypeInitialIndex;
-			switch(PathType) {
-				case PathType.Linear:
-					pathTypeInitialIndex = 0;
-					break;
-				case PathType.RightAngle:
-					pathTypeInitialIndex = 1;
-					break;
-				case PathType.Straight:
-					pathTypeInitialIndex = 2;
-					break;
-				default:
-					pathTypeInitialIndex = 0;
-					break;
-			}
+			var pathTypeInitialIndex = PathType switch {
+				PathType.Linear => 0,
+				PathType.RightAngle => 1,
+				PathType.Straight => 2,
+				_ => 0,
+			};
 			panel.Children.Add(PropertiesPanel.StackIconsSelector("Path Type", pathTypesData, pathTypeInitialIndex,
 				args => IPropertiesContainer.PropertyChangedHandler(this, () => {
 					if(args.NewValue != null) {
@@ -570,7 +561,7 @@ namespace MindMap.Entities.Connections {
 			if(this.to == null) {
 				return Vector2.Zero;
 			}
-			if(PathType == PathType.Linear || PathType == PathType.RightAngle) {
+			if(PathType is PathType.Linear or PathType.RightAngle) {
 				return PathCenterPoint;
 			}
 			Vector2 from = this.from.GetPosition();
@@ -622,20 +613,12 @@ namespace MindMap.Entities.Connections {
 		}
 
 		private Geometry CreateGeometry(ConnectionDotInfo from, ConnectionDotInfo to) {
-			Geometry geometry;
-			switch(PathType) {
-				case PathType.Linear:
-					geometry = CreateLinearGeometry(from, to);
-					break;
-				case PathType.RightAngle:
-					geometry = CreatePathGeometry(from, to);
-					break;
-				case PathType.Straight:
-					geometry = CreateStraightPathGeometry(from, to);
-					break;
-				default:
-					throw new Exception($"PathType ({PathType}) not found");
-			}
+			Geometry geometry = PathType switch {
+				PathType.Linear => CreateLinearGeometry(from, to),
+				PathType.RightAngle => CreatePathGeometry(from, to),
+				PathType.Straight => CreateStraightPathGeometry(from, to),
+				_ => throw new Exception($"PathType ({PathType}) not found"),
+			};
 			return geometry;
 		}
 

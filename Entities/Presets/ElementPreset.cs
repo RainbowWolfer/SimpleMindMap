@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace MindMap.Entities.Presets {
+﻿namespace MindMap.Entities.Presets {
 	public class ElementPreset {
 		public string Name { get; set; }
 		public long TypeID { get; set; }

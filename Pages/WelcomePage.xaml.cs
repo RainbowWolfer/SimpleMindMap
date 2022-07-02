@@ -3,9 +3,6 @@ using MindMap.SubWindows;
 using MindMap.UserControls.WelcomePageControls;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Runtime.Serialization;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -115,20 +112,14 @@ namespace MindMap.Pages {
 		}
 
 		private string GetRecentTypeString(RecentType recentType) {
-			switch(recentType) {
-				case RecentType.Today:
-					return "Today";
-				case RecentType.Yesterday:
-					return "Yesterday";
-				case RecentType.ThisMonth:
-					return "This Month";
-				case RecentType.LastMonth:
-					return "Last Month";
-				case RecentType.Earlier:
-					return "Earlier";
-				default:
-					return "None";
-			}
+			return recentType switch {
+				RecentType.Today => "Today",
+				RecentType.Yesterday => "Yesterday",
+				RecentType.ThisMonth => "This Month",
+				RecentType.LastMonth => "Last Month",
+				RecentType.Earlier => "Earlier",
+				_ => "None",
+			};
 		}
 
 		private void NewFileButton_Click(object sender, RoutedEventArgs e) {

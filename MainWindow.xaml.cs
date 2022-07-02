@@ -4,10 +4,8 @@ using MindMap.Pages;
 using MindMap.Pages.Interfaces;
 using MindMap.SubWindows;
 using System;
-using System.Diagnostics;
 using System.Windows;
 using System.Windows.Input;
-using System.Windows.Media.Imaging;
 
 namespace MindMap {
 	public partial class MainWindow: Window {

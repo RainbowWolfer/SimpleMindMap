@@ -1,10 +1,6 @@
-﻿using System;
-using System.Diagnostics;
-using System.Net.Mail;
-using System.Reflection;
+﻿using System.Diagnostics;
 using System.Threading;
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Input;
 
 namespace MindMap.SubWindows {

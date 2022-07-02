@@ -438,7 +438,7 @@ namespace MindMap.Entities.Frames {
 						$"<{Math.Round(LeftRatio, 2)} " +
 						$">{Math.Round(RightRatio, 2)} " +
 						$"^{Math.Round(TopRatio, 2)} " +
-						$"v{Math.Round(BottomRatio, 2) }";
+						$"v{Math.Round(BottomRatio, 2)}";
 				}
 			}
 		}

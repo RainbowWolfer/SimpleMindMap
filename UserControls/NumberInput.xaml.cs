@@ -90,7 +90,7 @@ namespace MindMap.UserControls {
 		}
 
 		private void Box_PreviewKeyDown(object sender, KeyEventArgs e) {
-			if(e.Key == Key.Enter || e.Key == Key.Escape) {
+			if(e.Key is Key.Enter or Key.Escape) {
 				Edit = false;
 			}
 		}

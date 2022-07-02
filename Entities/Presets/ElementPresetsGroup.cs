@@ -1,11 +1,7 @@
 ﻿using MindMap.Entities.Elements;
 using MindMap.Entities.Elements.TextShapes;
 using Newtonsoft.Json;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MindMap.Entities.Presets {
 	public class ElementPresetsGroup {
